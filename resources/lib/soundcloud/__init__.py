@@ -1,1 +1,3 @@
-__author__ = 'braincrusher'
+__author__ = 'bromix'
+
+from client import Client
