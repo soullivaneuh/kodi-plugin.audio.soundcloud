@@ -8,6 +8,11 @@ class TestClient(unittest.TestCase):
     def setUp(self):
         pass
 
+    def test_get_me_following(self):
+        client = Client(access_token=u'1-21686-117607613-6619f148c5da6e')
+        json_data = client.get_me_following()
+        pass
+
     def test_get_me(self):
         client = Client(access_token=u'1-21686-117607613-6619f148c5da6e')
         json_data = client.get_me()

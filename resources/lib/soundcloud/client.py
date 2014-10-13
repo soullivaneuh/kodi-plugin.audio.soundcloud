@@ -1,15 +1,18 @@
 import json
 import urllib
 import urllib2
+from resources.lib.soundcloud.requests.api import post
 
 __author__ = 'bromix'
+
+import requests
 
 
 class Client(object):
     CLIENT_ID = '40ccfee680a844780a41fbe23ea89934'
     CLIENT_SECRET = '26a5240f7ee0ee2d4fa9956ed80616c2'
 
-    def __init__(self, username=None, password=None, client_id=None, client_secret=None, access_token=None):
+    def __init__(self, username='', password='', access_token='', client_id='', client_secret=''):
         self._username = username
         self._password = password
         self._access_token = access_token
@@ -27,56 +30,60 @@ class Client(object):
             pass
         pass
 
+    def get_me_following(self):
+        self.update_access_token()
+        return self._perform_request(path='me/followings',
+                                     headers={'Accept': 'application/json'})
+        pass
+
+    def get_me(self):
+        self.update_access_token()
+        return self._perform_request(path='me',
+                                     headers={'Accept': 'application/json'})
+
     def get_access_token(self):
         return self._access_token
 
-    def _perform_request(self, path, query=None, post_data=None):
-        url = 'https://api.soundcloud.com:443/%s' % path
+    def _perform_request(self, method='GET', headers=None, path=None, post_data=None, params=None):
+        # params
+        if not params:
+            params = {}
+            pass
 
-        headers = {'Content-Type': 'application/x-www-form-urlencoded',
-                   'Host': 'api.soundcloud.com:443',
-                   'Connection': 'Keep-Alive',
-                   'User-Agent': 'SoundCloud-Android/14.10.01-27 (Android 4.4.4; samsung GT-I9100)'}
-
-        # set the token
+        # basic header
+        _headers = {'Accept-Encoding': 'gzip',
+                    'Host': 'api.soundcloud.com:443',
+                    'Connection': 'Keep-Alive',
+                    'User-Agent': 'SoundCloud-Android/14.10.01-27 (Android 4.4.4; samsung GT-I9100'}
+        # set access token
         if self._access_token:
-            headers['Authorization'] = 'OAuth %s' % self._access_token
-            headers['Accept'] = 'application/json'
+            _headers['Authorization'] = 'OAuth %s' % self._access_token
+            if self._client_id:
+                params['client_id'] = self._client_id
+                pass
+            pass
+        if not headers:
+            headers = {}
+            pass
+        _headers.update(headers)
+
+        # url
+        _url = 'https://api.soundcloud.com:443/%s' % path
+
+        result = None
+        if method == 'GET':
+            result = requests.get(_url, params=params, headers=_headers, verify=False)
+        elif method == 'POST':
+            result = requests.post(_url, data=post_data, params=params, headers=_headers, verify=False)
             pass
 
-        if not query:
-            query = {}
-            pass
+        if result is None:
+            return {}
 
-        # set client id if exists and token also exists
-        if self._access_token and self._client_id:
-            query['client_id'] = self._client_id
-            pass
-
-        # add query to url
-        if len(query) > 0:
-            url = url + '?' + urllib.urlencode(query)
-            pass
-
-
-        # prepare post data
-        _post_data = None
-        if post_data is not None:
-            _post_data = urllib.urlencode(post_data)
-            pass
-
-        # create request
-        request = urllib2.Request(url, _post_data, headers=headers)
-        response = urllib2.urlopen(request)
-
-        return response
-
-    def _perform_request_json(self, path, query=None, post_data=None):
-        content = self._perform_request(path, query, post_data)
-        return json.load(content, encoding='utf-8')
+        return result.json()
 
     def update_access_token(self):
-        if self._access_token is None and self._username and self._password:
+        if not self._access_token and self._username and self._password:
             post_data = {'grant_type': 'password',
                          'client_id': self._client_id,
                          'client_secret': self._client_secret,
@@ -84,14 +91,10 @@ class Client(object):
                          'password': self._password.encode('utf-8'),
                          'scope': 'non-expiring'}
 
-            json_data = self._perform_request_json('oauth2/token', query=None, post_data=post_data)
+            json_data = self._perform_request(method='POST', path='oauth2/token', post_data=post_data)
             self._access_token = json_data.get('access_token', None)
             pass
 
         return self._access_token
-
-    def get_me(self):
-        self.update_access_token()
-        return self._perform_request_json('me')
 
     pass

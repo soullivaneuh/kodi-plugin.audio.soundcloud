@@ -7,6 +7,9 @@ from resources.lib import kodimon
 class Provider(kodimon.AbstractProvider):
     def __init__(self):
         kodimon.AbstractProvider.__init__(self)
+
+        from resources.lib import soundcloud
+        self._client = soundcloud.Client()
         pass
 
     def on_search(self, search_text, path, params, re_match):
