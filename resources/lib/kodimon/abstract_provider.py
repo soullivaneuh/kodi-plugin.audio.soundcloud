@@ -117,6 +117,9 @@ class AbstractProvider(object):
     def get_watch_later_list(self):
         return self._watch_later
 
+    def get_function_cache(self):
+        return self._cache
+
     def set_localization(self, *args):
         """
         set_localization('some.id', 50000)
@@ -150,6 +153,36 @@ class AbstractProvider(object):
             return unicode(text_id)
 
         return self._plugin.localize(mapped_id, default_text)
+
+    def create_next_page_item(self, current_page_index, path, params=None):
+        """
+        Creates a default next page item based on the current path.
+        :param current_page_index: current page index (int)
+        :param path: current path
+        :param params:
+        :return:
+        """
+        if not params:
+            params = {}
+            pass
+
+        new_params = {}
+        new_params.update(params)
+        new_params['page'] = unicode(current_page_index+1)
+        name = self.localize(self.LOCAL_NEXT_PAGE, 'Next Page')
+        if name.find('%d') != -1:
+            name %= current_page_index + 1
+            pass
+
+        from . import DirectoryItem
+        return DirectoryItem(name, self.create_uri(path, new_params))
+
+    def get_fanart(self):
+        """
+        Returns the fanart of the plugin
+        :return:
+        """
+        return self._plugin.get_fanart()
 
     def get_plugin(self):
         """

@@ -1,6 +1,7 @@
 import json
 import urllib
 import urllib2
+import urlparse
 from resources.lib.soundcloud.requests.api import post
 
 __author__ = 'bromix'
@@ -30,11 +31,33 @@ class Client(object):
             pass
         pass
 
+    def search(self, search_text):
+        return self._perform_request(path='search',
+                                     headers={'Accept': 'application/json'},
+                                     params={'limit': '30',
+                                             'q': search_text})
+        pass
+
+    def get_stream(self):
+        self.update_access_token()
+        return self._perform_request(path='e1/me/stream',
+                                     headers={'Accept': 'application/json'},
+                                     params={'limit': '100'})
+
+    def get_me_posts(self):
+        self.update_access_token()
+        return self._perform_request(path='me/activities',
+                                     headers={'Accept': 'application/json'})
+
+    def get_me_playlists(self):
+        self.update_access_token()
+        return self._perform_request(path='me/playlists',
+                                     headers={'Accept': 'application/json'})
+
     def get_me_following(self):
         self.update_access_token()
         return self._perform_request(path='me/followings',
                                      headers={'Accept': 'application/json'})
-        pass
 
     def get_me(self):
         self.update_access_token()
@@ -44,10 +67,19 @@ class Client(object):
     def get_access_token(self):
         return self._access_token
 
+    def execute_raw(self, url):
+        url_compos = urlparse.urlparse(url)
+        return self._perform_request(path=url_compos.path.strip('/').strip('api.soundcloud.com').strip('/'),
+                                     headers={'Accept': 'application/json'},
+                                     params=dict(urlparse.parse_qsl(url_compos.query)))
+
     def _perform_request(self, method='GET', headers=None, path=None, post_data=None, params=None):
         # params
         if not params:
             params = {}
+            pass
+        if self._client_id:
+            params['client_id'] = self._client_id
             pass
 
         # basic header
@@ -58,9 +90,6 @@ class Client(object):
         # set access token
         if self._access_token:
             _headers['Authorization'] = 'OAuth %s' % self._access_token
-            if self._client_id:
-                params['client_id'] = self._client_id
-                pass
             pass
         if not headers:
             headers = {}

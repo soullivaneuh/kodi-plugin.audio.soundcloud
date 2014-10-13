@@ -13,6 +13,24 @@ class FunctionCache(Storage):
 
     def __init__(self, filename, max_file_size_kb=-1):
         Storage.__init__(self, filename, max_file_size_kb=max_file_size_kb)
+
+        self._enabled = True
+        pass
+
+    def enabled(self):
+        """
+        Enables the caching
+        :return:
+        """
+        self._enabled = True
+        pass
+
+    def disable(self):
+        """
+        Disable caching e.g. for tests
+        :return:
+        """
+        self._enabled = False
         pass
 
     def _create_id_from_func(self, partial_func):
@@ -36,6 +54,11 @@ class FunctionCache(Storage):
         :param return_cached_only: return only cached data and don't call the function
         :return:
         """
+
+        # if caching is disabled call the function
+        if not self._enabled:
+            return partial_func()
+
         cache_id = self._create_id_from_func(partial_func)
         data = self._get(cache_id)
 
