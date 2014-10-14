@@ -49,12 +49,12 @@ class AbstractProvider(object):
         import constants
 
         # initialize cache
-        cache_path = os.path.join(self._plugin.get_data_path(), u'kodimon')
-        max_cache_size_mb = self._plugin.get_settings().get_int(constants.SETTING_CACHE_SIZE, 5)
+        cache_path = os.path.join(self.get_plugin().get_data_path(), u'kodimon')
+        max_cache_size_mb = self.get_plugin().get_settings().get_int(constants.SETTING_CACHE_SIZE, 5)
         self._cache = FunctionCache(os.path.join(cache_path, u'cache'), max_file_size_kb=max_cache_size_mb*1024)
 
         # initialize search history
-        max_search_history_items = self._plugin.get_settings().get_int(constants.SETTING_SEARCH_SIZE, 50,
+        max_search_history_items = self.get_plugin().get_settings().get_int(constants.SETTING_SEARCH_SIZE, 50,
                                                                        lambda x: x * 10)
         self._search = SearchHistory(os.path.join(cache_path, u'search'), max_search_history_items)
         self._favorites = FavoriteList(os.path.join(cache_path, u'favorites'))
@@ -152,7 +152,7 @@ class AbstractProvider(object):
                 return default_text
             return unicode(text_id)
 
-        return self._plugin.localize(mapped_id, default_text)
+        return self.get_plugin().localize(mapped_id, default_text)
 
     def create_next_page_item(self, current_page_index, path, params=None):
         """
@@ -182,7 +182,7 @@ class AbstractProvider(object):
         Returns the fanart of the plugin
         :return:
         """
-        return self._plugin.get_fanart()
+        return self.get_plugin().get_fanart()
 
     def get_plugin(self):
         """
@@ -208,7 +208,7 @@ class AbstractProvider(object):
         :param content_type:
         :return:
         """
-        self._plugin.set_content_type(content_type)
+        self.get_plugin().set_content_type(content_type)
         pass
 
     def add_sort_method(self, *sort_methods):
@@ -218,7 +218,7 @@ class AbstractProvider(object):
         :return:
         """
         for sort_method in sort_methods:
-            self._plugin.add_sort_method(sort_method)
+            self.get_plugin().add_sort_method(sort_method)
             pass
         pass
 
@@ -327,7 +327,7 @@ class AbstractProvider(object):
 
             for directory_item in directory_items:
                 context_menu = []
-                remove_item = contextmenu.create_remove_from_favs(self._plugin,
+                remove_item = contextmenu.create_remove_from_favs(self.get_plugin(),
                                                                   self.localize(self.LOCAL_FAVORITES_REMOVE),
                                                                   directory_item)
                 context_menu.append(remove_item)
@@ -370,7 +370,7 @@ class AbstractProvider(object):
 
             for video_item in video_items:
                 context_menu = []
-                remove_item = contextmenu.create_remove_from_watch_later(self._plugin,
+                remove_item = contextmenu.create_remove_from_watch_later(self.get_plugin(),
                                                                          self.localize(self.LOCAL_WATCH_LATER_REMOVE),
                                                                          video_item)
                 context_menu.append(remove_item)
@@ -418,7 +418,7 @@ class AbstractProvider(object):
             search_item = DirectoryItem('[B]' + self.localize(self.LOCAL_SEARCH_NEW) + '[/B]',
                                         self.create_uri([self.PATH_SEARCH, 'new']),
                                         image=self.create_resource_path('media/search.png'))
-            search_item.set_fanart(self.get_plugin().get_fanart())
+            search_item.set_fanart(self.get_fanart())
             result.append(search_item)
 
             from . import contextmenu
@@ -433,7 +433,7 @@ class AbstractProvider(object):
                                             self.create_uri([self.PATH_SEARCH, 'query'], {'q': search}),
                                             image=self.create_resource_path('media/search.png'))
                 search_item.set_fanart(self.get_fanart())
-                context_menu = [contextmenu.create_remove_from_search_history(self._plugin,
+                context_menu = [contextmenu.create_remove_from_search_history(self.get_plugin(),
                                                                               self.localize(self.LOCAL_SEARCH_REMOVE),
                                                                               search_item)]
                 search_item.set_context_menu(context_menu)

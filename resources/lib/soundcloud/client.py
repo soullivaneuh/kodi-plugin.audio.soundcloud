@@ -31,6 +31,10 @@ class Client(object):
             pass
         pass
 
+    def get_categories(self):
+        return self._perform_request(path='app/mobileapps/suggestions/tracks/categories',
+                                     headers={'Accept': 'application/json'})
+
     def get_track_url(self, track_id):
         return self._perform_request(path='tracks/%s/stream' % str(track_id),
                                      headers={'Accept': 'application/json'},

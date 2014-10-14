@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.audio.bromix.soundcloud" name="SoundCloud" version="1.0.0~alpha3" provider-name="bromix">
+<addon id="plugin.audio.bromix.soundcloud" name="SoundCloud" version="1.0.0~alpha4" provider-name="bromix">
 	<requires>
 		<import addon="xbmc.python" version="2.1.0"/>
 	</requires>
@@ -7,16 +7,16 @@
 		<provides>audio</provides>
 	</extension>
 	<extension point="xbmc.addon.metadata">
-		<summary lang="en">SoundCloud</summary>
-		<summary lang="de">Filme von Netzkino.de</summary>
-		<description lang="en">With Netzkino.de you can watch movies free and legal.</description>
-		<description lang="de">Mit Netzkino.de kannst du kostenlos und legal Spielfilme schauen.</description>
+		<summary lang="en">With SoundCloud you can hear your music legally.</summary>
+		<summary lang="de">Mit Soundcloud kannst du legal deine Musik hören.</summary>
+		<description lang="en">With SoundCloud you can hear your music legally. Various artists and radio stations make their music and mixes available.</description>
+		<description lang="de">Mit Soundcloud kannst du legal deine Musik hören. Verschiedenste Artisten und Radiosender stellen ihre Musik und Mixe zur Verfügung.</description>
 		<disclaimer lang="en"></disclaimer>
 		<language>de</language>
 		<platform>all</platform>
 		<license>GNU GENERAL PUBLIC LICENSE. Version 2, June 1991</license>
 		<forum></forum>
-		<website>http://www.netzkino.de/</website>
+		<website>http://www.soundcloud.com/</website>
 		<email>bromix at gmx dot net</email>
 		<source>https://github.com/bromix/plugin.audio.bromix.soundcloud</source>
 	</extension>
