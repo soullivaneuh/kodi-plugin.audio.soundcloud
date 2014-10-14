@@ -12,9 +12,10 @@ class Provider(kodimon.AbstractProvider):
         kodimon.AbstractProvider.__init__(self)
 
         self.set_localization({'soundcloud.explore': 30500,
-                               'soundcloud.music': 30501,
-                               'soundcloud.audio': 30502,
-                               'soundcloud.genre': 30503})
+                               'soundcloud.music.trending': 30501,
+                               'soundcloud.audio.trending': 30502,
+                               'soundcloud.music.genre': 30503,
+                               'soundcloud.audio.genre': 30504,})
 
         from resources.lib import soundcloud
         self._client = soundcloud.Client()
@@ -145,31 +146,33 @@ class Provider(kodimon.AbstractProvider):
                                               seconds=FunctionCache.ONE_MINUTE * 10)
         return self._do_collection(json_data, path, params)
 
-    @kodimon.RegisterPath('^\/explore\/((?P<category>\w+)\/)?$')
+    @kodimon.RegisterPath('^\/explore\/?$')
     def _on_explore(self, path, params, re_match):
         result = []
 
-        category = re_match.group('category')
+        # trending music
+        music_trending_item = DirectoryItem(self.localize('soundcloud.music.trending'),
+                                   self.create_uri(['explore', 'trending', 'music']))
+        music_trending_item.set_fanart(self.get_fanart())
+        result.append(music_trending_item)
 
-        if not category:
-            # trending music
-            music_item = DirectoryItem(self.localize('soundcloud.music'),
-                                       self.create_uri(['explore', 'music']))
-            music_item.set_fanart(self.get_fanart())
-            result.append(music_item)
+        # trending audio
+        audio_trending_item = DirectoryItem(self.localize('soundcloud.audio.trending'),
+                                   self.create_uri(['explore', 'trending', 'audio']))
+        audio_trending_item.set_fanart(self.get_fanart())
+        result.append(audio_trending_item)
 
-            # trending audio
-            audio_item = DirectoryItem(self.localize('soundcloud.audio'),
-                                       self.create_uri(['explore', 'audio']))
-            audio_item.set_fanart(self.get_fanart())
-            result.append(audio_item)
+        # genre music
+        music_genre_item = DirectoryItem(self.localize('soundcloud.music.genre'),
+                                   self.create_uri(['explore', 'genre', 'music']))
+        music_genre_item.set_fanart(self.get_fanart())
+        result.append(music_genre_item)
 
-            # genre
-            genre_item = DirectoryItem(self.localize('soundcloud.genre'),
-                                       self.create_uri(['explore', 'genre']))
-            genre_item.set_fanart(self.get_fanart())
-            result.append(genre_item)
-            pass
+        # genre audio
+        audio_genre_item = DirectoryItem(self.localize('soundcloud.audio.genre'),
+                                   self.create_uri(['explore', 'genre', 'audio']))
+        audio_genre_item.set_fanart(self.get_fanart())
+        result.append(audio_genre_item)
 
         return result
 

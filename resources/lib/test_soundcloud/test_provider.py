@@ -38,7 +38,7 @@ class TestProvider(unittest.TestCase):
         result = provider.navigate('/explore/')
         items = result[0]
 
-        self.assertEqual(3, len(items))
+        self.assertEqual(4, len(items))
         print_items(items)
         pass
 
