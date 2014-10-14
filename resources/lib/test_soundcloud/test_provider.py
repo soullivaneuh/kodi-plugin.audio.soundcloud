@@ -37,6 +37,9 @@ class TestProvider(unittest.TestCase):
 
         result = provider._get_hires_image('https://i1.sndcdn.com/avatars-000069503963-bk852l-large.jpg?86347b7')
         self.assertEqual('https://i1.sndcdn.com/avatars-000069503963-bk852l-t500x500.jpg', result)
+
+        result = provider._get_hires_image('https://i1.sndcdn.com/artworks-000044733261-1obt8a-large.jpg?86347b7')
+        self.assertEqual('https://i1.sndcdn.com/artworks-000044733261-1obt8a-t500x500.jpg', result)
         pass
 
     pass

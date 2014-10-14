@@ -4,7 +4,7 @@ import xbmcplugin
 
 
 def run(provider):
-    from ... import KodimonException, VideoItem, DirectoryItem, AbstractProvider
+    from ... import KodimonException, VideoItem, AudioItem, DirectoryItem, AbstractProvider
 
     plugin = provider.get_plugin()
 
@@ -13,6 +13,7 @@ def run(provider):
         results = provider.navigate(plugin.get_path(), plugin.get_params())
     except KodimonException, ex:
         from ... import constants
+
         log(ex[0], constants.LOG_ERROR)
         xbmcgui.Dialog().ok("Exception in ContentProvider", ex.__str__())
         pass
@@ -34,6 +35,8 @@ def run(provider):
                 _add_directory(plugin, item, item_count)
             elif isinstance(item, VideoItem):
                 _add_video(plugin, item, item_count)
+            elif isinstance(item, AudioItem):
+                _add_audio(plugin, item, item_count)
             pass
 
         xbmcplugin.endOfDirectory(
@@ -77,6 +80,7 @@ def _add_directory(plugin, directory_item, item_count=0):
     # only set fanart is enabled
     settings = plugin.get_settings()
     from ... import constants
+
     if directory_item.get_fanart() and settings.get_bool(constants.SETTING_SHOW_FANART, True):
         item.setProperty(u'fanart_image', directory_item.get_fanart())
         pass
@@ -89,6 +93,7 @@ def _add_directory(plugin, directory_item, item_count=0):
                                 listitem=item,
                                 isFolder=True,
                                 totalItems=item_count)
+    pass
 
 
 def _add_video(plugin, video_item, item_count=0):
@@ -99,6 +104,7 @@ def _add_video(plugin, video_item, item_count=0):
     # only set fanart is enabled
     settings = plugin.get_settings()
     from ... import constants
+
     if video_item.get_fanart() and settings.get_bool(constants.SETTING_SHOW_FANART, True):
         item.setProperty(u'fanart_image', video_item.get_fanart())
         pass
@@ -114,5 +120,33 @@ def _add_video(plugin, video_item, item_count=0):
     xbmcplugin.addDirectoryItem(handle=plugin.get_handle(),
                                 url=video_item.get_uri(),
                                 listitem=item,
-                                totalItems=item_count
-    )
+                                totalItems=item_count)
+    pass
+
+
+def _add_audio(plugin, audio_item, item_count):
+    item = xbmcgui.ListItem(label=audio_item.get_name(),
+                            iconImage=u'DefaultAudio.png',
+                            thumbnailImage=audio_item.get_image())
+
+    # only set fanart is enabled
+    settings = plugin.get_settings()
+    from ... import constants
+
+    if audio_item.get_fanart() and settings.get_bool(constants.SETTING_SHOW_FANART, True):
+        item.setProperty(u'fanart_image', audio_item.get_fanart())
+        pass
+    if audio_item.get_context_menu() is not None:
+        item.addContextMenuItems(audio_item.get_context_menu())
+        pass
+
+    item.setProperty(u'IsPlayable', u'true')
+
+    item.setInfo(type=u'audio',
+                 infoLabels=audio_item.get_info_labels())
+
+    xbmcplugin.addDirectoryItem(handle=plugin.get_handle(),
+                                url=audio_item.get_uri(),
+                                listitem=item,
+                                totalItems=item_count)
+    pass

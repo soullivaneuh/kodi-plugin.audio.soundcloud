@@ -2,7 +2,7 @@ import re
 
 __author__ = 'bromix'
 
-from resources.lib.kodimon import DirectoryItem
+from resources.lib.kodimon import DirectoryItem, AudioItem, constants
 from resources.lib import kodimon
 
 
@@ -25,6 +25,9 @@ class Provider(kodimon.AbstractProvider):
         return re.sub('(.*)(-large.jpg\?.*)', r'\1-t500x500.jpg', url)
 
     def _do_collection(self, json_data, path, params):
+
+        self.set_content_type(constants.CONTENT_TYPE_SONGS)
+
         """
         Helper function to display the items of a collection
         :param json_data:
@@ -44,6 +47,29 @@ class Provider(kodimon.AbstractProvider):
                                           image=image)
                 user_item.set_fanart(self.get_fanart())
                 result.append(user_item)
+            elif kind == 'track':
+                # some tracks don't provide an artwork so we do it like soundclound and return the avatar of the user
+                image = item.get('artwork_url', '')
+                if not image:
+                    image = item.get('user', {}).get('avatar_url', '')
+                    pass
+                if image:
+                    image = self._get_hires_image(image)
+                    pass
+
+                title = item['title']
+                audio_item = AudioItem(title,
+                                       self.create_uri(['play', str(item['id'])]),
+                                       image=image)
+                audio_item.set_fanart(self.get_fanart())
+
+                # genre
+                audio_item.set_genre(item.get('genre', ''))
+
+                # duration
+                audio_item.set_duration_in_milli_seconds(item.get('duration', 0))
+
+                result.append(audio_item)
                 pass
             pass
 
