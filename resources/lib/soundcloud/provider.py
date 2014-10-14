@@ -24,6 +24,23 @@ class Provider(kodimon.AbstractProvider):
     def _get_hires_image(self, url):
         return re.sub('(.*)(-large.jpg\.*)(\?.*)?', r'\1-t500x500.jpg', url)
 
+    def _get_track_year(self, collection_item_json):
+        # this would be the default info, but is mostly not set :(
+        year = collection_item_json.get('release_year', '')
+        if year:
+            return year
+
+        # we use a fallback.
+        # created_at=2013/03/24 00:32:01 +0000
+        re_match = re.match('(?P<year>\d{4})(.*)', collection_item_json.get('created_at', ''))
+        if re_match:
+            year = re_match.group('year')
+            if year:
+                return year
+            pass
+
+        return ''
+
     @kodimon.RegisterPath('^/play/$')
     def _play(self, path, params, re_match):
         track_id = params.get('id', '')
@@ -77,14 +94,20 @@ class Provider(kodimon.AbstractProvider):
                                        image=image)
                 audio_item.set_fanart(self.get_fanart())
 
+                # title
+                audio_item.set_title(title)
+
                 # genre
                 audio_item.set_genre(item.get('genre', ''))
 
                 # duration
                 audio_item.set_duration_in_milli_seconds(item.get('duration', 0))
 
-                #
+                # artist
                 audio_item.set_artist_name(item.get('user', {}).get('username', ''))
+
+                # year
+                audio_item.set_year(self._get_track_year(item))
 
                 result.append(audio_item)
                 pass
