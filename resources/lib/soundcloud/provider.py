@@ -14,6 +14,13 @@ class Provider(kodimon.AbstractProvider):
         self._client = soundcloud.Client()
         pass
 
+    def get_fanart(self):
+        """
+        This will return a darker and (with blur) fanart
+        :return:
+        """
+        return self.create_resource_path('media', 'fanart.jpg')
+
     def _get_hires_image(self, url):
         return re.sub('(.*)(-large.jpg\?.*)', r'\1-t500x500.jpg', url)
 
@@ -76,7 +83,7 @@ class Provider(kodimon.AbstractProvider):
         search_item = DirectoryItem(self.localize(self.LOCAL_SEARCH),
                                     self.create_uri([self.PATH_SEARCH, 'list']),
                                     image=self.create_resource_path('media', 'search.png'))
-        search_item.set_fanart(self.get_plugin().get_fanart())
+        search_item.set_fanart(self.get_fanart())
         result.append(search_item)
 
         return result
