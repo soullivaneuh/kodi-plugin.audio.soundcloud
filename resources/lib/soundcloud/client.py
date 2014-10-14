@@ -31,6 +31,16 @@ class Client(object):
             pass
         pass
 
+    def get_genre(self, genre, page=1, per_page=20):
+        path = 'app/mobileapps/suggestions/tracks/categories/%s' % genre
+        params = {'limit': str(per_page)}
+        if page > 1:
+            params['offset'] = str( (page-1)*per_page)
+            pass
+        return self._perform_request(path=path,
+                                     headers={'Accept': 'application/json'},
+                                     params=params)
+
     def get_categories(self):
         return self._perform_request(path='app/mobileapps/suggestions/tracks/categories',
                                      headers={'Accept': 'application/json'})
@@ -77,9 +87,10 @@ class Client(object):
 
     def execute_raw(self, url):
         url_compos = urlparse.urlparse(url)
-        return self._perform_request(path=url_compos.path.strip('/').strip('api.soundcloud.com').strip('/'),
-                                     headers={'Accept': 'application/json'},
-                                     params=dict(urlparse.parse_qsl(url_compos.query)))
+        return self._perform_request(
+            path=url_compos.path.strip('/').strip('api.soundcloud.com').strip('/'),
+            headers={'Accept': 'application/json'},
+            params=dict(urlparse.parse_qsl(url_compos.query)))
 
     def _perform_request(self, method='GET', headers=None, path=None, post_data=None, params=None,
                          allow_redirects=True):

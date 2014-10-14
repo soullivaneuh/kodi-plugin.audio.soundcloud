@@ -21,15 +21,32 @@ class TestProvider(unittest.TestCase):
         result = provider.navigate(path, {'q': 'angerfist'})
         pass
 
+    def test_explore_genres_drum_bass(self):
+        provider = Provider()
+        provider.get_function_cache().disable()
+
+        # music
+        result = provider.navigate('/explore/genre/music/Drum & Bass/')
+        items = result[0]
+        self.assertGreater(len(items), 0)
+        print_items(items)
+        pass
+
     def test_explore_genres(self):
         provider = Provider()
+        provider.get_function_cache().disable()
 
-        result = provider.navigate('/explore/genre/')
+        # music
+        result = provider.navigate('/explore/genre/music/')
         items = result[0]
-
         self.assertGreater(len(items), 0)
         print_items(items)
 
+        # audio
+        result = provider.navigate('/explore/genre/audio/')
+        items = result[0]
+        self.assertGreater(len(items), 0)
+        print_items(items)
         pass
 
     def test_explore(self):
