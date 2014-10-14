@@ -1,9 +1,10 @@
+from functools import partial
 import re
-
-__author__ = 'bromix'
-
+from resources.lib.kodimon.helper import FunctionCache
 from resources.lib.kodimon import DirectoryItem, AudioItem, constants
 from resources.lib import kodimon
+
+__author__ = 'bromix'
 
 
 class Provider(kodimon.AbstractProvider):
@@ -11,6 +12,7 @@ class Provider(kodimon.AbstractProvider):
         kodimon.AbstractProvider.__init__(self)
 
         from resources.lib import soundcloud
+
         self._client = soundcloud.Client()
         pass
 
@@ -73,13 +75,13 @@ class Provider(kodimon.AbstractProvider):
             kind = item.get('kind', '')
             if kind == 'user':
                 image = self._get_hires_image(item['avatar_url'])
-                user_item = DirectoryItem('[B]'+item['username']+'[/B]',
+                user_item = DirectoryItem('[B]' + item['username'] + '[/B]',
                                           self.create_uri(['user', str(item['id'])]),
                                           image=image)
                 user_item.set_fanart(self.get_fanart())
                 result.append(user_item)
             elif kind == 'track':
-                # some tracks don't provide an artwork so we do it like soundclound and return the avatar of the user
+                # some tracks don't provide an artwork so we do it like soundcloud and return the avatar of the user
                 image = item.get('artwork_url', '')
                 if not image:
                     image = item.get('user', {}).get('avatar_url', '')
@@ -135,11 +137,13 @@ class Provider(kodimon.AbstractProvider):
         :return:
         """
         url = re_match.group('url')
-        json_data = self._client.execute_raw(url)
+        json_data = self.call_function_cached(partial(self._client.execute_raw, url),
+                                              seconds=FunctionCache.ONE_MINUTE * 10)
         return self._do_collection(json_data, path, params)
 
     def on_search(self, search_text, path, params, re_match):
-        json_data = self._client.search(search_text)
+        json_data = self.call_function_cached(partial(self._client.search, search_text),
+                                              seconds=FunctionCache.ONE_MINUTE)
         return self._do_collection(json_data, path, params)
 
     def on_root(self, path, params, re_match):
