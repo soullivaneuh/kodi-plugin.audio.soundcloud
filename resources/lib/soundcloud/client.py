@@ -31,6 +31,19 @@ class Client(object):
             pass
         pass
 
+    def get_trending(self, category='music', page=1, per_page=20):
+        page = int(page)
+        per_page = int(per_page)
+
+        path = 'app/mobileapps/suggestions/tracks/popular/%s' % category
+        params = {'limit': str(per_page)}
+        if page > 1:
+            params['offset'] = str((page - 1) * per_page)
+            pass
+        return self._perform_request(path=path,
+                                     headers={'Accept': 'application/json'},
+                                     params=params)
+
     def get_genre(self, genre, page=1, per_page=20):
         page = int(page)
         per_page = int(per_page)
@@ -38,7 +51,7 @@ class Client(object):
         path = 'app/mobileapps/suggestions/tracks/categories/%s' % genre
         params = {'limit': str(per_page)}
         if page > 1:
-            params['offset'] = str( (page-1)*per_page)
+            params['offset'] = str((page - 1) * per_page)
             pass
         return self._perform_request(path=path,
                                      headers={'Accept': 'application/json'},
@@ -60,7 +73,7 @@ class Client(object):
         params = {'limit': str(per_page),
                   'q': search_text}
         if page > 1:
-            params['offset'] = str( (page-1)*per_page)
+            params['offset'] = str((page - 1) * per_page)
             pass
         return self._perform_request(path='search',
                                      headers={'Accept': 'application/json'},

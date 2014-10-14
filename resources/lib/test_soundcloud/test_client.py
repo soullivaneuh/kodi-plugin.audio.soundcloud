@@ -12,6 +12,11 @@ class TestClient(unittest.TestCase):
     def setUp(self):
         pass
 
+    def test_get_trending(self):
+        client = Client()
+        json_data = client.get_trending('audio')
+        pass
+
     def test_get_genre(self):
         client = Client()
         json_data = client.get_genre('techno')

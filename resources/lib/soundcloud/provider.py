@@ -133,21 +133,6 @@ class Provider(kodimon.AbstractProvider):
 
         return result
 
-    @kodimon.RegisterPath('^/raw/collection/(?P<url>.*)/$')
-    def _on_raw_collection(self, path, params, re_match):
-        """
-        All collection urls can directly go to this function.
-        For example the 'next_href' in collections to get the result of the next page.
-        :param path:
-        :param params:
-        :param re_match:
-        :return:
-        """
-        url = re_match.group('url')
-        json_data = self.call_function_cached(partial(self._client.execute_raw, url),
-                                              seconds=FunctionCache.ONE_MINUTE * 10)
-        return self._do_collection(json_data, path, params)
-
     def _do_mobile_collection(self, json_data, path, params):
         result = []
 
@@ -187,17 +172,37 @@ class Provider(kodimon.AbstractProvider):
             result.append(audio_item)
             pass
 
+        # test for next page
+        page = int(params.get('page', 1))
+        next_href = json_data.get('_links', {}).get('next', {}).get('href', '')
+        if next_href and len(result) > 0:
+            next_page_item = self.create_next_page_item(page,
+                                                        path,
+                                                        params)
+            result.append(next_page_item)
+            pass
+
+        return result
+
+    @kodimon.RegisterPath('^\/explore\/trending\/((?P<category>\w+)/)?$')
+    def _on_explore_trending(self, path, params, re_match):
+        result = []
+        category = re_match.group('category')
+        page = int(params.get('page', 1))
+        json_data = self.call_function_cached(partial(self._client.get_trending, category=category, page=page),
+                                              seconds=FunctionCache.ONE_HOUR)
+        result = self._do_mobile_collection(json_data, path, params)
+
         return result
 
     @kodimon.RegisterPath('^\/explore\/genre\/((?P<category>\w+)\/)((?P<genre>.+)\/)?$')
     def _on_explore_genre(self, path, params, re_match):
         result = []
-        category = re_match.group('category')
-        genre = re_match.group('genre')
-        page = int(params.get('page', 1))
 
+        genre = re_match.group('genre')
         if not genre:
             json_data = self.call_function_cached(partial(self._client.get_categories), seconds=FunctionCache.ONE_DAY)
+            category = re_match.group('category')
             genres = json_data.get(category, [])
             for genre in genres:
                 title = genre['title']
@@ -207,19 +212,10 @@ class Provider(kodimon.AbstractProvider):
                 result.append(genre_item)
                 pass
         else:
-
+            page = int(params.get('page', 1))
             json_data = self.call_function_cached(partial(self._client.get_genre, genre=genre, page=page),
                                                   seconds=FunctionCache.ONE_HOUR)
             result = self._do_mobile_collection(json_data, path, params)
-            pass
-
-        # test for next page
-        next_href = json_data.get('_links', {}).get('next', {}).get('href', '')
-        if next_href and len(result) > 0:
-            next_page_item = self.create_next_page_item(page,
-                                                        path,
-                                                        params)
-            result.append(next_page_item)
             pass
 
         return result

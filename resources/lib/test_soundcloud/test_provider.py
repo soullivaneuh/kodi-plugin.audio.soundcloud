@@ -14,6 +14,23 @@ class TestProvider(unittest.TestCase):
     def setUp(self):
         pass
 
+    def test_explore_trending(self):
+        provider = Provider()
+        provider.get_function_cache().disable()
+
+        # music
+        result = provider.navigate('/explore/trending/music/')
+        items = result[0]
+        self.assertGreater(len(items), 0)
+        print_items(items)
+
+        # audio
+        result = provider.navigate('/explore/trending/audio/')
+        items = result[0]
+        self.assertGreater(len(items), 0)
+        print_items(items)
+        pass
+
     def test_search(self):
         provider = Provider()
 
