@@ -35,6 +35,8 @@ class TestClient(unittest.TestCase):
     def test_get_stream(self):
         client = Client(access_token=self.TOKEN)
         json_data = client.get_stream()
+
+        json_data = client.get_stream( page=2)
         pass
 
     def test_get_me_posts(self):

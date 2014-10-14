@@ -79,11 +79,19 @@ class Client(object):
                                      headers={'Accept': 'application/json'},
                                      params=params)
 
-    def get_stream(self):
+    def get_stream(self, page=1, per_page=100):
+        page = int(page)
+        per_page = int(per_page)
+
+        params = {'limit': str(per_page)}
+        if page > 1:
+            params['offset'] = str((page - 1) * per_page)
+            pass
+
         self.update_access_token()
         return self._perform_request(path='e1/me/stream',
                                      headers={'Accept': 'application/json'},
-                                     params={'limit': '100'})
+                                     params=params)
 
     def get_me_posts(self):
         self.update_access_token()

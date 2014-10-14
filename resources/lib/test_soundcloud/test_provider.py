@@ -1,3 +1,6 @@
+from resources.lib.kodimon.abstract_settings import AbstractSettings
+from resources.lib.kodimon import Plugin
+
 __author__ = 'bromix'
 
 from resources.lib.soundcloud.provider import Provider
@@ -78,12 +81,25 @@ class TestProvider(unittest.TestCase):
 
     def test_root(self):
         provider = Provider()
+        plugin = provider.get_plugin()
+        settings = plugin.get_settings()
+        settings.set_string(AbstractSettings.LOGIN_USERNAME, '')
 
+        # without login
         result = provider.navigate('/')
         items = result[0]
-
         self.assertEqual(2, len(items))
+        print_items(items)
 
+        # with login
+        plugin = Plugin()
+        settings = plugin.get_settings()
+        settings.set_string(AbstractSettings.LOGIN_USERNAME, 'b194139@trbvm.com')
+        settings.set_string(AbstractSettings.LOGIN_PASSWORD, '1234567890')
+        provider = Provider(plugin)
+        result = provider.navigate('/')
+        items = result[0]
+        self.assertEqual(3, len(items))
         print_items(items)
         pass
 

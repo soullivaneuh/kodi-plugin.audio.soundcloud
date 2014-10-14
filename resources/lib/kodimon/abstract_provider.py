@@ -1,3 +1,4 @@
+import hashlib
 import os
 import re
 
@@ -51,11 +52,11 @@ class AbstractProvider(object):
         # initialize cache
         cache_path = os.path.join(self.get_plugin().get_data_path(), u'kodimon')
         max_cache_size_mb = self.get_plugin().get_settings().get_int(constants.SETTING_CACHE_SIZE, 5)
-        self._cache = FunctionCache(os.path.join(cache_path, u'cache'), max_file_size_kb=max_cache_size_mb*1024)
+        self._cache = FunctionCache(os.path.join(cache_path, u'cache'), max_file_size_kb=max_cache_size_mb * 1024)
 
         # initialize search history
         max_search_history_items = self.get_plugin().get_settings().get_int(constants.SETTING_SEARCH_SIZE, 50,
-                                                                       lambda x: x * 10)
+                                                                            lambda x: x * 10)
         self._search = SearchHistory(os.path.join(cache_path, u'search'), max_search_history_items)
         self._favorites = FavoriteList(os.path.join(cache_path, u'favorites'))
         self._watch_later = WatchLaterList(os.path.join(cache_path, u'watch_later'))
@@ -168,13 +169,14 @@ class AbstractProvider(object):
 
         new_params = {}
         new_params.update(params)
-        new_params['page'] = unicode(current_page_index+1)
+        new_params['page'] = unicode(current_page_index + 1)
         name = self.localize(self.LOCAL_NEXT_PAGE, 'Next Page')
         if name.find('%d') != -1:
             name %= current_page_index + 1
             pass
 
         from . import DirectoryItem
+
         return DirectoryItem(name, self.create_uri(path, new_params))
 
     def get_fanart(self):
@@ -251,6 +253,7 @@ class AbstractProvider(object):
             pass
 
         from . import KodimonException
+
         raise KodimonException("Mapping for path '%s' not found" % path)
 
     def on_search(self, search_text, path, params, re_match):
@@ -422,6 +425,7 @@ class AbstractProvider(object):
             result.append(search_item)
 
             from . import contextmenu
+
             for search in self._search.list():
                 # little fallback for old history entries
                 if isinstance(search, DirectoryItem):
@@ -458,5 +462,74 @@ class AbstractProvider(object):
         from . import create_plugin_uri
 
         return create_plugin_uri(self._plugin, path, params)
+
+    def has_login_credentials(self):
+        """
+        Returns True if we have a username and password.
+        :return: True if username and password exists
+        """
+        from abstract_settings import AbstractSettings
+
+        settings = self.get_plugin().get_settings()
+        username = settings.get_string(AbstractSettings.LOGIN_USERNAME, '')
+        password = settings.get_string(AbstractSettings.LOGIN_PASSWORD, '')
+        return username != '' and password != ''
+
+    def get_login_credentials(self):
+        """
+        Returns the username and password (Tuple)
+        :return: (username, password)
+        """
+        from abstract_settings import AbstractSettings
+
+        settings = self.get_plugin().get_settings()
+        username = settings.get_string(AbstractSettings.LOGIN_USERNAME, '')
+        password = settings.get_string(AbstractSettings.LOGIN_PASSWORD, '')
+        return username, password
+
+    def is_new_login_credential(self, update_hash=True):
+        """
+        Returns True if username or/and password are new.
+        :return:
+        """
+        from abstract_settings import AbstractSettings
+
+        settings = self.get_plugin().get_settings()
+        username = settings.get_string(AbstractSettings.LOGIN_USERNAME, '')
+        password = settings.get_string(AbstractSettings.LOGIN_PASSWORD, '')
+
+        m = hashlib.md5()
+        m.update(username.encode('utf-8')+password.encode('utf-8'))
+        current_hash = m.hexdigest()
+        old_hash = settings.get_string(AbstractSettings.LOGIN_HASH, '')
+        if current_hash != old_hash:
+            if update_hash:
+                settings.set_string(AbstractSettings.LOGIN_HASH, current_hash)
+                pass
+            return True
+
+        return False
+
+    def get_access_token(self):
+        """
+        Returns the access token for some API
+        :return: access_token
+        """
+        from abstract_settings import AbstractSettings
+
+        settings = self.get_plugin().get_settings()
+        return settings.get_string(AbstractSettings.ACCESS_TOKEN, '')
+
+    def update_access_token(self, access_token):
+        """
+        Updates the old access token with the new one.
+        :param access_token:
+        :return:
+        """
+        from abstract_settings import AbstractSettings
+
+        settings = self.get_plugin().get_settings()
+        settings.set_string(AbstractSettings.ACCESS_TOKEN, access_token)
+        pass
 
     pass

@@ -8,18 +8,31 @@ __author__ = 'bromix'
 
 
 class Provider(kodimon.AbstractProvider):
-    def __init__(self):
-        kodimon.AbstractProvider.__init__(self)
+    def __init__(self, plugin=None):
+        kodimon.AbstractProvider.__init__(self, plugin)
 
         self.set_localization({'soundcloud.explore': 30500,
                                'soundcloud.music.trending': 30501,
                                'soundcloud.audio.trending': 30502,
                                'soundcloud.music.genre': 30503,
-                               'soundcloud.audio.genre': 30504, })
+                               'soundcloud.audio.genre': 30504,
+                               'soundcloud.stream': 30505, })
 
         from resources.lib import soundcloud
 
-        self._client = soundcloud.Client()
+        if self.has_login_credentials():
+            username, password = self.get_login_credentials()
+            access_token = self.get_access_token()
+
+            self._client = soundcloud.Client(username=username, password=password, access_token=access_token)
+
+            # create a new access_token
+            if self.is_new_login_credential():
+                access_token = self._client.update_access_token()
+                self.update_access_token(access_token)
+                pass
+        else:
+            self._client = soundcloud.Client()
         pass
 
     def get_fanart(self):
@@ -250,6 +263,55 @@ class Provider(kodimon.AbstractProvider):
 
         return result
 
+    @kodimon.RegisterPath('^\/stream\/$')
+    def _on_stream(self, path, params, re_match):
+        result = []
+
+        json_data = self._client.get_stream()
+        collection = json_data.get('collection', [])
+        for collection_item in collection:
+            item_type = collection_item.get('type', '')
+            if item_type == 'track':
+                item = collection_item['track']
+                # some tracks don't provide an artwork so we do it like soundcloud and return the avatar of the user
+                image = item.get('artwork_url', '')
+                if not image:
+                    image = item.get('user', {}).get('avatar_url', '')
+                    pass
+                if image:
+                    image = self._get_hires_image(image)
+                    pass
+
+                title = item['title']
+                audio_item = AudioItem(title,
+                                       self.create_uri('play', {'id': unicode(item['id'])}),
+                                       image=image)
+                audio_item.set_fanart(self.get_fanart())
+
+                # title
+                audio_item.set_title(title)
+
+                # genre
+                audio_item.set_genre(item.get('genre', ''))
+
+                # duration
+                audio_item.set_duration_in_milli_seconds(item.get('duration', 0))
+
+                # artist
+                audio_item.set_artist_name(item.get('user', {}).get('username', ''))
+
+                # year
+                audio_item.set_year(self._get_track_year(item))
+
+                result.append(audio_item)
+                pass
+            pass
+
+        # next page works with an cursor?!?!?!?
+        #next_href=https://api.soundcloud.com/e1/me/stream?cursor=6e011980-48af-11e4-80d9-f79411997475&limit=100
+
+        return result
+
     def on_search(self, search_text, path, params, re_match):
         page = params.get('page', 1)
         json_data = self.call_function_cached(partial(self._client.search, search_text, page=page),
@@ -266,6 +328,14 @@ class Provider(kodimon.AbstractProvider):
         search_item.set_fanart(self.get_fanart())
         result.append(search_item)
 
+        # stream
+        if self._is_logged_in():
+            stream_item = DirectoryItem(self.localize('soundcloud.stream'),
+                                        self.create_uri(['stream']))
+            stream_item.set_fanart(self.get_fanart())
+            result.append(stream_item)
+            pass
+
         # explore
         explore_item = DirectoryItem(self.localize('soundcloud.explore'),
                                      self.create_uri('explore'))
@@ -273,5 +343,11 @@ class Provider(kodimon.AbstractProvider):
         result.append(explore_item)
 
         return result
+
+    def _is_logged_in(self):
+        access_token = self.get_access_token()
+        access_token_client = self._client.get_access_token()
+
+        return access_token != '' and access_token_client != '' and access_token == access_token_client
 
     pass

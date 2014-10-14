@@ -1,10 +1,12 @@
 class AbstractSettings(object):
+    LOGIN_USERNAME = 'kodimon.login.username'
+    LOGIN_PASSWORD = 'kodimon.login.password'
+    LOGIN_HASH = 'kodimon.login.hash'
+    ACCESS_TOKEN = 'kodimon.access_token'
+
     def __init__(self):
         object.__init__(self)
         pass
-
-    def _converter(self, x):
-        return x
 
     def get_string(self, setting_id, default_value=None):
         raise NotImplementedError()
@@ -14,7 +16,7 @@ class AbstractSettings(object):
 
     def get_int(self, setting_id, default_value, converter=None):
         if not converter:
-            converter = self._converter
+            converter = lambda x : x
             pass
 
         value = self.get_string(setting_id)
