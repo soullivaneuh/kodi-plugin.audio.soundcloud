@@ -142,7 +142,7 @@ def _add_audio(plugin, audio_item, item_count):
 
     item.setProperty(u'IsPlayable', u'true')
 
-    item.setInfo(type=u'audio',
+    item.setInfo(type=u'music',
                  infoLabels=audio_item.get_info_labels())
 
     xbmcplugin.addDirectoryItem(handle=plugin.get_handle(),

@@ -22,7 +22,7 @@ class Provider(kodimon.AbstractProvider):
         return self.create_resource_path('media', 'fanart.jpg')
 
     def _get_hires_image(self, url):
-        return re.sub('(.*)(-large.jpg\?.*)', r'\1-t500x500.jpg', url)
+        return re.sub('(.*)(-large.jpg\.*)(\?.*)?', r'\1-t500x500.jpg', url)
 
     @kodimon.RegisterPath('^/play/$')
     def _play(self, path, params, re_match):
@@ -82,6 +82,9 @@ class Provider(kodimon.AbstractProvider):
 
                 # duration
                 audio_item.set_duration_in_milli_seconds(item.get('duration', 0))
+
+                #
+                audio_item.set_artist_name(item.get('user', {}).get('username', ''))
 
                 result.append(audio_item)
                 pass

@@ -35,6 +35,9 @@ class TestProvider(unittest.TestCase):
     def test_get_hires_images(self):
         provider = Provider()
 
+        result = provider._get_hires_image(u'https://i1.sndcdn.com/avatars-000069503963-bk852l-large.jpg')
+        self.assertEqual(u'https://i1.sndcdn.com/avatars-000069503963-bk852l-t500x500.jpg', result)
+
         result = provider._get_hires_image('https://i1.sndcdn.com/avatars-000069503963-bk852l-large.jpg?86347b7')
         self.assertEqual('https://i1.sndcdn.com/avatars-000069503963-bk852l-t500x500.jpg', result)
 
