@@ -32,6 +32,9 @@ class Client(object):
         pass
 
     def get_genre(self, genre, page=1, per_page=20):
+        page = int(page)
+        per_page = int(per_page)
+
         path = 'app/mobileapps/suggestions/tracks/categories/%s' % genre
         params = {'limit': str(per_page)}
         if page > 1:
@@ -50,11 +53,18 @@ class Client(object):
                                      headers={'Accept': 'application/json'},
                                      allow_redirects=False)
 
-    def search(self, search_text):
+    def search(self, search_text, page=1, per_page=30):
+        page = int(page)
+        per_page = int(per_page)
+
+        params = {'limit': str(per_page),
+                  'q': search_text}
+        if page > 1:
+            params['offset'] = str( (page-1)*per_page)
+            pass
         return self._perform_request(path='search',
                                      headers={'Accept': 'application/json'},
-                                     params={'limit': '30',
-                                             'q': search_text})
+                                     params=params)
 
     def get_stream(self):
         self.update_access_token()
@@ -84,13 +94,6 @@ class Client(object):
 
     def get_access_token(self):
         return self._access_token
-
-    def execute_raw(self, url):
-        url_compos = urlparse.urlparse(url)
-        return self._perform_request(
-            path=url_compos.path.strip('/').strip('api.soundcloud.com').strip('/'),
-            headers={'Accept': 'application/json'},
-            params=dict(urlparse.parse_qsl(url_compos.query)))
 
     def _perform_request(self, method='GET', headers=None, path=None, post_data=None, params=None,
                          allow_redirects=True):

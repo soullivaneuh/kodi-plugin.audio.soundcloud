@@ -126,7 +126,8 @@ class Provider(kodimon.AbstractProvider):
         page = int(params.get('page', 1))
         if next_href and len(collection) > 0:
             next_page_item = self.create_next_page_item(page,
-                                                        ['raw/collection', next_href])
+                                                        path,
+                                                        params)
             result.append(next_page_item)
             pass
 
@@ -254,7 +255,8 @@ class Provider(kodimon.AbstractProvider):
         return result
 
     def on_search(self, search_text, path, params, re_match):
-        json_data = self.call_function_cached(partial(self._client.search, search_text),
+        page = params.get('page', 1)
+        json_data = self.call_function_cached(partial(self._client.search, search_text, page=page),
                                               seconds=FunctionCache.ONE_MINUTE)
         return self._do_collection(json_data, path, params)
 
