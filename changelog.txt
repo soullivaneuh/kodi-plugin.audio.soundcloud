@@ -1,2 +1,5 @@
+1.0.0~alpha2 (2014-10-14)
+ADD: search for tests
+
 1.0.0~alpha (2014-10-11)
 - initial version for tests
