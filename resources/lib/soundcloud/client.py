@@ -31,12 +31,16 @@ class Client(object):
             pass
         pass
 
+    def get_track_url(self, track_id):
+        return self._perform_request(path='tracks/%s/stream' % str(track_id),
+                                     headers={'Accept': 'application/json'},
+                                     allow_redirects=False)
+
     def search(self, search_text):
         return self._perform_request(path='search',
                                      headers={'Accept': 'application/json'},
                                      params={'limit': '30',
                                              'q': search_text})
-        pass
 
     def get_stream(self):
         self.update_access_token()
@@ -73,7 +77,8 @@ class Client(object):
                                      headers={'Accept': 'application/json'},
                                      params=dict(urlparse.parse_qsl(url_compos.query)))
 
-    def _perform_request(self, method='GET', headers=None, path=None, post_data=None, params=None):
+    def _perform_request(self, method='GET', headers=None, path=None, post_data=None, params=None,
+                         allow_redirects=True):
         # params
         if not params:
             params = {}
@@ -101,9 +106,10 @@ class Client(object):
 
         result = None
         if method == 'GET':
-            result = requests.get(_url, params=params, headers=_headers, verify=False)
+            result = requests.get(_url, params=params, headers=_headers, verify=False, allow_redirects=allow_redirects)
         elif method == 'POST':
-            result = requests.post(_url, data=post_data, params=params, headers=_headers, verify=False)
+            result = requests.post(_url, data=post_data, params=params, headers=_headers, verify=False,
+                                   allow_redirects=allow_redirects)
             pass
 
         if result is None:

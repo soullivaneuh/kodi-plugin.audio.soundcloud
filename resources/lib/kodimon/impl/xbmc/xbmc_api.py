@@ -24,7 +24,7 @@ def run(provider):
 
     if isinstance(result, bool) and not result:
         xbmcplugin.endOfDirectory(plugin.get_handle(), succeeded=False)
-    elif isinstance(result, VideoItem):
+    elif isinstance(result, VideoItem) or isinstance(result, AudioItem):
         _set_resolved_url(plugin, result)
     elif isinstance(result, DirectoryItem):
         _add_directory(plugin, result)

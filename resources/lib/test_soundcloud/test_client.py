@@ -12,6 +12,11 @@ class TestClient(unittest.TestCase):
     def setUp(self):
         pass
 
+    def test_get_track_url(self):
+        client = Client()
+        json_data = client.get_track_url(77773864)
+        pass
+
     def test_execute_raw(self):
         url = 'https://api.soundcloud.com/search?client_id=40ccfee680a844780a41fbe23ea89934&limit=30&offset=30&q=angerfist'
         client = Client()

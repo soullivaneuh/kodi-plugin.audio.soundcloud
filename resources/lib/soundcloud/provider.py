@@ -24,6 +24,20 @@ class Provider(kodimon.AbstractProvider):
     def _get_hires_image(self, url):
         return re.sub('(.*)(-large.jpg\?.*)', r'\1-t500x500.jpg', url)
 
+    @kodimon.RegisterPath('^/play/$')
+    def _play(self, path, params, re_match):
+        track_id = params.get('id', '')
+        if not track_id:
+            raise kodimon.KodimonException('Missing if for audio file')
+
+        json_data = self._client.get_track_url(track_id)
+        location = json_data.get('location')
+        if not location:
+            raise kodimon.KodimonException("Could not get url for trask '%s'" % track_id)
+
+        item = kodimon.AudioItem(track_id, location)
+        return item
+
     def _do_collection(self, json_data, path, params):
 
         self.set_content_type(constants.CONTENT_TYPE_SONGS)
@@ -59,7 +73,7 @@ class Provider(kodimon.AbstractProvider):
 
                 title = item['title']
                 audio_item = AudioItem(title,
-                                       self.create_uri(['play', str(item['id'])]),
+                                       self.create_uri('play', {'id': unicode(item['id'])}),
                                        image=image)
                 audio_item.set_fanart(self.get_fanart())
 
