@@ -417,7 +417,7 @@ class AbstractProvider(object):
             # 'New Search...'
             search_item = DirectoryItem('[B]' + self.localize(self.LOCAL_SEARCH_NEW) + '[/B]',
                                         self.create_uri([self.PATH_SEARCH, 'new']),
-                                        image=self.get_plugin().create_resource_path('media/search.png'))
+                                        image=self.create_resource_path('media/search.png'))
             search_item.set_fanart(self.get_plugin().get_fanart())
             result.append(search_item)
 
@@ -432,6 +432,7 @@ class AbstractProvider(object):
                 search_item = DirectoryItem(search,
                                             self.create_uri([self.PATH_SEARCH, 'query'], {'q': search}),
                                             image=self.create_resource_path('media/search.png'))
+                search_item.set_fanart(self.get_fanart())
                 context_menu = [contextmenu.create_remove_from_search_history(self._plugin,
                                                                               self.localize(self.LOCAL_SEARCH_REMOVE),
                                                                               search_item)]

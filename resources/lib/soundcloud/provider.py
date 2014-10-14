@@ -24,10 +24,18 @@ class Provider(kodimon.AbstractProvider):
     def _get_hires_image(self, url):
         return re.sub('(.*)(-large.jpg\?.*)', r'\1-t500x500.jpg', url)
 
-    def _do_collection(self, json_collection):
+    def _do_collection(self, json_data, path, params):
+        """
+        Helper function to display the items of a collection
+        :param json_data:
+        :param path:
+        :param params:
+        :return:
+        """
         result = []
 
-        for item in json_collection:
+        collection = json_data.get('collection', [])
+        for item in collection:
             kind = item.get('kind', '')
             if kind == 'user':
                 image = self._get_hires_image(item['avatar_url'])
@@ -39,42 +47,34 @@ class Provider(kodimon.AbstractProvider):
                 pass
             pass
 
+        # test for next page
+        next_href = json_data.get('next_href', '')
+        page = int(params.get('page', 1))
+        if next_href and len(collection) > 0:
+            next_page_item = self.create_next_page_item(page,
+                                                        ['raw/collection', next_href])
+            result.append(next_page_item)
+            pass
+
         return result
 
     @kodimon.RegisterPath('^/raw/collection/(?P<url>.*)/$')
     def _on_raw_collection(self, path, params, re_match):
+        """
+        All collection urls can directly go to this function.
+        For example the 'next_href' in collections to get the result of the next page.
+        :param path:
+        :param params:
+        :param re_match:
+        :return:
+        """
         url = re_match.group('url')
         json_data = self._client.execute_raw(url)
-        collection = json_data.get('collection', [])
-
-        result = self._do_collection(collection)
-
-        # test for next page
-        next_href = json_data.get('next_href', '')
-        page = int(params.get('page', 1))
-        if next_href:
-            next_page_item = self.create_next_page_item(page,
-                                                        ['raw/collection', next_href])
-            result.append(next_page_item)
-            pass
-
-        return result
+        return self._do_collection(json_data, path, params)
 
     def on_search(self, search_text, path, params, re_match):
         json_data = self._client.search(search_text)
-        collection = json_data.get('collection', [])
-
-        result = self._do_collection(collection)
-
-        # test for next page
-        page = 1
-        next_href = json_data.get('next_href', '')
-        if next_href:
-            next_page_item = self.create_next_page_item(page,
-                                                        ['raw/collection', next_href])
-            result.append(next_page_item)
-            pass
-        return result
+        return self._do_collection(json_data, path, params)
 
     def on_root(self, path, params, re_match):
         result = []
