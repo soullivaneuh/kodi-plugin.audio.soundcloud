@@ -28,4 +28,10 @@
     <string id="30108">Remove</string>
     <string id="30109">Latest Videos</string>
     <string id="30110">New Search</string>
+
+    <!-- SoundCloud -->
+    <string id="30500">Explore</string>
+    <string id="30501">Trending Music</string>
+    <string id="30502">Trending Audio</string>
+    <string id="30503">Genres</string>
 </strings>

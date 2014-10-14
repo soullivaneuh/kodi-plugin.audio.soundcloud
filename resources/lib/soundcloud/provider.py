@@ -11,8 +11,12 @@ class Provider(kodimon.AbstractProvider):
     def __init__(self):
         kodimon.AbstractProvider.__init__(self)
 
-        from resources.lib import soundcloud
+        self.set_localization({'soundcloud.explore': 30500,
+                               'soundcloud.music': 30501,
+                               'soundcloud.audio': 30502,
+                               'soundcloud.genre': 30503})
 
+        from resources.lib import soundcloud
         self._client = soundcloud.Client()
         pass
 
@@ -141,6 +145,34 @@ class Provider(kodimon.AbstractProvider):
                                               seconds=FunctionCache.ONE_MINUTE * 10)
         return self._do_collection(json_data, path, params)
 
+    @kodimon.RegisterPath('^\/explore\/((?P<category>\w+)\/)?$')
+    def _on_explore(self, path, params, re_match):
+        result = []
+
+        category = re_match.group('category')
+
+        if not category:
+            # trending music
+            music_item = DirectoryItem(self.localize('soundcloud.music'),
+                                       self.create_uri(['explore', 'music']))
+            music_item.set_fanart(self.get_fanart())
+            result.append(music_item)
+
+            # trending audio
+            audio_item = DirectoryItem(self.localize('soundcloud.audio'),
+                                       self.create_uri(['explore', 'audio']))
+            audio_item.set_fanart(self.get_fanart())
+            result.append(audio_item)
+
+            # genre
+            genre_item = DirectoryItem(self.localize('soundcloud.genre'),
+                                       self.create_uri(['explore', 'genre']))
+            genre_item.set_fanart(self.get_fanart())
+            result.append(genre_item)
+            pass
+
+        return result
+
     def on_search(self, search_text, path, params, re_match):
         json_data = self.call_function_cached(partial(self._client.search, search_text),
                                               seconds=FunctionCache.ONE_MINUTE)
@@ -155,6 +187,12 @@ class Provider(kodimon.AbstractProvider):
                                     image=self.create_resource_path('media', 'search.png'))
         search_item.set_fanart(self.get_fanart())
         result.append(search_item)
+
+        # explore
+        explore_item = DirectoryItem(self.localize('soundcloud.explore'),
+                                     self.create_uri('explore'))
+        explore_item.set_fanart(self.get_fanart())
+        result.append(explore_item)
 
         return result
 

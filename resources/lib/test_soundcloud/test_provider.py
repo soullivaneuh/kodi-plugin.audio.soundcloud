@@ -21,13 +21,34 @@ class TestProvider(unittest.TestCase):
         result = provider.navigate(path, {'q': 'angerfist'})
         pass
 
+    def test_explore_genres(self):
+        provider = Provider()
+
+        result = provider.navigate('/explore/genre/')
+        items = result[0]
+
+        self.assertGreater(len(items), 0)
+        print_items(items)
+
+        pass
+
+    def test_explore(self):
+        provider = Provider()
+
+        result = provider.navigate('/explore/')
+        items = result[0]
+
+        self.assertEqual(3, len(items))
+        print_items(items)
+        pass
+
     def test_root(self):
         provider = Provider()
 
         result = provider.navigate('/')
         items = result[0]
 
-        self.assertEqual(1, len(items))
+        self.assertEqual(2, len(items))
 
         print_items(items)
         pass
