@@ -1,7 +1,8 @@
+from encodings.punycode import selective_find
 from functools import partial
 import re
 from resources.lib.kodimon.helper import FunctionCache
-from resources.lib.kodimon import DirectoryItem, AudioItem, constants, KodimonException
+from resources.lib.kodimon import DirectoryItem, AudioItem, constants, KodimonException, contextmenu
 from resources.lib import kodimon
 
 __author__ = 'bromix'
@@ -17,7 +18,9 @@ class Provider(kodimon.AbstractProvider):
                                'soundcloud.music.genre': 30503,
                                'soundcloud.audio.genre': 30504,
                                'soundcloud.stream': 30505,
-                               'soundcloud.playlists': 30506, })
+                               'soundcloud.playlists': 30506,
+                               'soundcloud.following': 30507,
+                               'soundcloud.follow': 30508, })
 
         from resources.lib import soundcloud
 
@@ -76,76 +79,6 @@ class Provider(kodimon.AbstractProvider):
 
         item = kodimon.AudioItem(track_id, location)
         return item
-
-    def _do_collection(self, json_data, path, params):
-
-        self.set_content_type(constants.CONTENT_TYPE_SONGS)
-
-        """
-        Helper function to display the items of a collection
-        :param json_data:
-        :param path:
-        :param params:
-        :return:
-        """
-        result = []
-
-        collection = json_data.get('collection', [])
-        for item in collection:
-            kind = item.get('kind', '')
-            if kind == 'user':
-                image = self._get_hires_image(item['avatar_url'])
-                user_item = DirectoryItem('[B]' + item['username'] + '[/B]',
-                                          self.create_uri(['user', str(item['id'])]),
-                                          image=image)
-                user_item.set_fanart(self.get_fanart())
-                result.append(user_item)
-            elif kind == 'track':
-                # some tracks don't provide an artwork so we do it like soundcloud and return the avatar of the user
-                image = item.get('artwork_url', '')
-                if not image:
-                    image = item.get('user', {}).get('avatar_url', '')
-                    pass
-                if image:
-                    image = self._get_hires_image(image)
-                    pass
-
-                title = item['title']
-                audio_item = AudioItem(title,
-                                       self.create_uri('play', {'id': unicode(item['id'])}),
-                                       image=image)
-                audio_item.set_fanart(self.get_fanart())
-
-                # title
-                audio_item.set_title(title)
-
-                # genre
-                audio_item.set_genre(item.get('genre', ''))
-
-                # duration
-                audio_item.set_duration_in_milli_seconds(item.get('duration', 0))
-
-                # artist
-                audio_item.set_artist_name(item.get('user', {}).get('username', ''))
-
-                # year
-                audio_item.set_year(self._get_track_year(item))
-
-                result.append(audio_item)
-                pass
-            pass
-
-        # test for next page
-        next_href = json_data.get('next_href', '')
-        page = int(params.get('page', 1))
-        if next_href and len(collection) > 0:
-            next_page_item = self.create_next_page_item(page,
-                                                        path,
-                                                        params)
-            result.append(next_page_item)
-            pass
-
-        return result
 
     def _do_mobile_collection(self, json_data, path, params):
         result = []
@@ -264,39 +197,6 @@ class Provider(kodimon.AbstractProvider):
 
         return result
 
-    @kodimon.RegisterPath('^\/playlist\/(?P<playlist_id>.+)/$')
-    def _on_playlist(self, path, params, re_match):
-        result = []
-
-        playlist_id = re_match.group('playlist_id')
-        json_data = self.call_function_cached(partial(self._client.get_playlist, playlist_id),
-                                              seconds=FunctionCache.ONE_MINUTE)
-        tracks = json_data['tracks']
-        track_number = 1
-        for track in tracks:
-            track_item = self._json_item_to_item(track)
-
-            # based on the position in the playlist we add a track number
-            track_item.set_track_number(track_number)
-            result.append(track_item)
-            track_number += 1
-            pass
-
-        return result
-
-    @kodimon.RegisterPath('^\/user/playlists\/(?P<user_id>.+)/$')
-    def _on_user_playlists(self, path, params, re_match):
-        result = []
-
-        user_id = re_match.group('user_id')
-        json_data = self.call_function_cached(partial(self._client.get_user_playlists, user_id),
-                                              seconds=FunctionCache.ONE_MINUTE)
-        for json_item in json_data:
-            result.append(self._json_item_to_item(json_item))
-            pass
-
-        return result
-
     @kodimon.RegisterPath('^\/stream\/$')
     def _on_stream(self, path, params, re_match):
         result = []
@@ -346,6 +246,51 @@ class Provider(kodimon.AbstractProvider):
 
         return result
 
+    @kodimon.RegisterPath('^\/playlist\/(?P<playlist_id>.+)/$')
+    def _on_playlist(self, path, params, re_match):
+        result = []
+
+        playlist_id = re_match.group('playlist_id')
+        json_data = self.call_function_cached(partial(self._client.get_playlist, playlist_id),
+                                              seconds=FunctionCache.ONE_MINUTE)
+        tracks = json_data['tracks']
+        track_number = 1
+        for track in tracks:
+            track_item = self._do_item(track)
+
+            # based on the position in the playlist we add a track number
+            track_item.set_track_number(track_number)
+            result.append(track_item)
+            track_number += 1
+            pass
+
+        return result
+
+    @kodimon.RegisterPath('^\/user/playlists\/(?P<user_id>.+)/$')
+    def _on_user_playlists(self, path, params, re_match):
+        result = []
+
+        user_id = re_match.group('user_id')
+        json_data = self.call_function_cached(partial(self._client.get_playlists, user_id),
+                                              seconds=FunctionCache.ONE_MINUTE)
+        for json_item in json_data:
+            result.append(self._do_item(json_item))
+            pass
+
+        return result
+
+    @kodimon.RegisterPath('^\/user/following\/(?P<user_id>.+)/$')
+    def _on_following(self, path, params, re_match):
+        result = []
+
+        user_id = re_match.group('user_id')
+        json_data = self._client.get_following(user_id)
+        for json_item in json_data:
+            result.append(self._do_item(json_item))
+            pass
+
+        return result
+
     def on_search(self, search_text, path, params, re_match):
         page = params.get('page', 1)
         json_data = self.call_function_cached(partial(self._client.search, search_text, page=page),
@@ -379,12 +324,18 @@ class Provider(kodimon.AbstractProvider):
         explore_item.set_fanart(self.get_fanart())
         result.append(explore_item)
 
-        # playlists
         if is_logged_in:
+            # playlists
             playlists_item = DirectoryItem(self.localize('soundcloud.playlists'),
                                            self.create_uri('user/playlists/me'))
             playlists_item.set_fanart(self.get_fanart())
             result.append(playlists_item)
+
+            # following
+            following_item = DirectoryItem(self.localize('soundcloud.following'),
+                                           self.create_uri('user/following/me'))
+            following_item.set_fanart(self.get_fanart())
+            result.append(following_item)
             pass
 
         return result
@@ -395,9 +346,43 @@ class Provider(kodimon.AbstractProvider):
 
         return access_token != '' and access_token_client != '' and access_token == access_token_client
 
-    def _json_item_to_item(self, json_item):
+    def _do_collection(self, json_data, path, params):
+
+        self.set_content_type(constants.CONTENT_TYPE_SONGS)
+
+        """
+        Helper function to display the items of a collection
+        :param json_data:
+        :param path:
+        :param params:
+        :return:
+        """
+        result = []
+
+        collection = json_data.get('collection', [])
+        for item in collection:
+            result.append(self._do_item(item))
+            pass
+
+        # test for next page
+        next_href = json_data.get('next_href', '')
+        page = int(params.get('page', 1))
+        if next_href and len(collection) > 0:
+            next_page_item = self.create_next_page_item(page,
+                                                        path,
+                                                        params)
+            result.append(next_page_item)
+            pass
+
+        return result
+
+    def _do_item(self, json_item):
         def _get_image(json_data):
             image_url = json_data.get('artwork_url', '')
+
+            # test avatar image
+            if not image_url:
+                image_url = json_data.get('avatar_url', '')
 
             # test tracks (used for playlists)
             if not image_url:
@@ -419,6 +404,17 @@ class Provider(kodimon.AbstractProvider):
                                           image=_get_image(json_item))
             playlist_item.set_fanart(self.get_fanart())
             return playlist_item
+        elif kind == 'user':
+            user_item = DirectoryItem(json_item['username'],
+                                      '',
+                                      image=_get_image(json_item))
+            user_item.set_fanart(self.get_fanart())
+
+            context_menu = [contextmenu.create_run_plugin(self.get_plugin(),
+                                                          self.localize('soundcloud.follow'),
+                                                          ['follow', unicode(json_item['id'])], {'follow': '1'})]
+            user_item.set_context_menu(context_menu)
+            return user_item
         elif kind == 'track':
             title = json_item['title']
             track_item = AudioItem(title,
@@ -442,6 +438,10 @@ class Provider(kodimon.AbstractProvider):
             track_item.set_year(self._get_track_year(json_item))
 
             return track_item
+        elif kind == 'group':
+            group_item = DirectoryItem('Group-Dummy',
+                                       '')
+            return group_item
 
         raise KodimonException("Unknown kind of item '%s'" % kind)
 

@@ -27,13 +27,19 @@ class TestProvider(unittest.TestCase):
         self._provider = Provider(plugin)
         pass
 
-    def test_playlist(self):
+    def test_get_following(self):
+        result = self._provider.navigate('/user/following/me/')
+        items = result[0]
+        print_items(items)
+        pass
+
+    def test_get_playlist(self):
         result = self._provider.navigate('/playlist/54934787/')
         items = result[0]
         print_items(items)
         pass
 
-    def test_user_playlists(self):
+    def test_get_user_playlists(self):
         result = self._provider.navigate('/user/playlists/me/')
         items = result[0]
         print_items(items)

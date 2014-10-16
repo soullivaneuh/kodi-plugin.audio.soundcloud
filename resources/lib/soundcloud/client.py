@@ -110,19 +110,30 @@ class Client(object):
         return self._perform_request(path='me/activities',
                                      headers={'Accept': 'application/json'})
 
+    def follow_user(self, user_id, follow=True):
+        method = 'PUT'
+        if not follow:
+            method = 'DELETE'
+            pass
+
+        return self._perform_request(method=method,
+                                     path='me/followings/%s' % unicode(user_id),
+                                     headers={'Accept': 'application/json'})
+
     def get_playlist(self, playlist_id):
         return self._perform_request(path='playlists/%s' % unicode(playlist_id),
                                      headers={'Accept': 'application/json'})
 
-    def get_user_playlists(self, me_or_user_id):
+    def get_playlists(self, me_or_user_id):
         self.update_access_token()
         path = self._create_path_based_on_user_id(me_or_user_id, 'playlists')
         return self._perform_request(path=path,
-                                         headers={'Accept': 'application/json'})
+                                     headers={'Accept': 'application/json'})
 
-    def get_me_following(self):
+    def get_following(self, me_or_user_id):
         self.update_access_token()
-        return self._perform_request(path='me/followings',
+        path = self._create_path_based_on_user_id(me_or_user_id, 'followings')
+        return self._perform_request(path=path,
                                      headers={'Accept': 'application/json'})
 
     def get_me(self):
@@ -166,6 +177,12 @@ class Client(object):
         elif method == 'POST':
             result = requests.post(_url, data=post_data, params=params, headers=_headers, verify=False,
                                    allow_redirects=allow_redirects)
+        elif method == 'PUT':
+            result = requests.put(_url, data=post_data, params=params, headers=_headers, verify=False,
+                                  allow_redirects=allow_redirects)
+        elif method == 'DELETE':
+            result = requests.delete(_url, data=post_data, params=params, headers=_headers, verify=False,
+                                     allow_redirects=allow_redirects)
             pass
 
         if result is None:

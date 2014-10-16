@@ -44,26 +44,36 @@ class TestClient(unittest.TestCase):
         json_data = client.get_me_posts()
         pass
 
+    def test_follow(self):
+        client = Client(access_token=self.TOKEN)
+        json_data = client.follow_user(1701116, False)
+        self.assertGreater(len(json_data), 0)
+
+        json_data = client.follow_user(1701116, True)
+        self.assertGreater(len(json_data), 0)
+        pass
+
     def test_get_playlist(self):
         client = Client(access_token=self.TOKEN)
         json_data = client.get_playlist(55019726)
         self.assertGreater(len(json_data), 0)
         pass
 
-    def test_get_user_playlists(self):
+    def test_get_playlists(self):
         # me
         client = Client(access_token=self.TOKEN)
-        json_data = client.get_user_playlists('me')
+        json_data = client.get_playlists('me')
         self.assertGreater(len(json_data), 0)
 
         # some user
-        json_data = client.get_user_playlists(2442230)
+        json_data = client.get_playlists(2442230)
         self.assertGreater(len(json_data), 0)
         pass
 
-    def test_get_me_following(self):
+    def test_get_following(self):
         client = Client(access_token=self.TOKEN)
-        json_data = client.get_me_following()
+        json_data = client.get_following('me')
+        self.assertGreater(len(json_data), 0)
         pass
 
     def test_get_me(self):
