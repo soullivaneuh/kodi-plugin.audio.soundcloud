@@ -27,6 +27,12 @@ class TestProvider(unittest.TestCase):
         self._provider = Provider(plugin)
         pass
 
+    def test_get_follower(self):
+        result = self._provider.navigate('/user/follower/me/')
+        items = result[0]
+        print_items(items)
+        pass
+
     def test_get_following(self):
         result = self._provider.navigate('/user/following/me/')
         items = result[0]

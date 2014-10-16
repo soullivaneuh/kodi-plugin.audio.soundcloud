@@ -70,6 +70,12 @@ class TestClient(unittest.TestCase):
         self.assertGreater(len(json_data), 0)
         pass
 
+    def test_get_follower(self):
+        client = Client(access_token=self.TOKEN)
+        json_data = client.get_follower('me')
+        self.assertGreater(len(json_data), 0)
+        pass
+
     def test_get_following(self):
         client = Client(access_token=self.TOKEN)
         json_data = client.get_following('me')

@@ -20,7 +20,8 @@ class Provider(kodimon.AbstractProvider):
                                'soundcloud.stream': 30505,
                                'soundcloud.playlists': 30506,
                                'soundcloud.following': 30507,
-                               'soundcloud.follow': 30508, })
+                               'soundcloud.follow': 30508,
+                               'soundcloud.follower': 30509, })
 
         from resources.lib import soundcloud
 
@@ -291,6 +292,26 @@ class Provider(kodimon.AbstractProvider):
 
         return result
 
+    @kodimon.RegisterPath('^\/user/follower\/(?P<user_id>.+)/$')
+    def _on_follower(self, path, params, re_match):
+        result = []
+
+        user_id = re_match.group('user_id')
+        json_data = self._client.get_follower(user_id)
+        for json_item in json_data:
+            result.append(self._do_item(json_item))
+            pass
+
+        return result
+
+    @kodimon.RegisterPath('^\/follow\/(?P<user_id>.+)/$')
+    def _on_follow(self, path, params, re_match):
+        user_id = re_match.group('user_id')
+        follow = params.get('follow', '') == '1'
+        json_data = self._client.follow_user(user_id, follow)
+
+        return True
+
     def on_search(self, search_text, path, params, re_match):
         page = params.get('page', 1)
         json_data = self.call_function_cached(partial(self._client.search, search_text, page=page),
@@ -336,6 +357,12 @@ class Provider(kodimon.AbstractProvider):
                                            self.create_uri('user/following/me'))
             following_item.set_fanart(self.get_fanart())
             result.append(following_item)
+
+            # follower
+            follower_item = DirectoryItem(self.localize('soundcloud.follower'),
+                                           self.create_uri('user/follower/me'))
+            follower_item.set_fanart(self.get_fanart())
+            result.append(follower_item)
             pass
 
         return result

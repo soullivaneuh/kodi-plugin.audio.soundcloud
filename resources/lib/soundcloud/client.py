@@ -130,6 +130,12 @@ class Client(object):
         return self._perform_request(path=path,
                                      headers={'Accept': 'application/json'})
 
+    def get_follower(self, me_or_user_id):
+        self.update_access_token()
+        path = self._create_path_based_on_user_id(me_or_user_id, 'followers')
+        return self._perform_request(path=path,
+                                     headers={'Accept': 'application/json'})
+
     def get_following(self, me_or_user_id):
         self.update_access_token()
         path = self._create_path_based_on_user_id(me_or_user_id, 'followings')
