@@ -110,6 +110,22 @@ class Client(object):
         return self._perform_request(path='me/activities',
                                      headers={'Accept': 'application/json'})
 
+    def like_track(self, track_id, like=True):
+        method = 'PUT'
+        if not like:
+            method = 'DELETE'
+            pass
+
+        return self._perform_request(method=method,
+                                     path='e1/me/track_likes/%s' % unicode(track_id),
+                                     headers={'Accept': 'application/json'})
+
+    def get_favorites(self, me_or_user_id):
+        self.update_access_token()
+        path = self._create_path_based_on_user_id(me_or_user_id, 'favorites')
+        return self._perform_request(path=path,
+                                     headers={'Accept': 'application/json'})
+
     def follow_user(self, user_id, follow=True):
         method = 'PUT'
         if not follow:

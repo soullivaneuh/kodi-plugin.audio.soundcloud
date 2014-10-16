@@ -21,7 +21,9 @@ class Provider(kodimon.AbstractProvider):
                                'soundcloud.playlists': 30506,
                                'soundcloud.following': 30507,
                                'soundcloud.follow': 30508,
-                               'soundcloud.follower': 30509, })
+                               'soundcloud.follower': 30509,
+                               'soundcloud.likes': 30510,
+                               'soundcloud.like': 30511, })
 
         from resources.lib import soundcloud
 
@@ -312,6 +314,29 @@ class Provider(kodimon.AbstractProvider):
 
         return True
 
+    @kodimon.RegisterPath('^\/like\/(?P<category>\w+)\/(?P<content_id>.+)/$')
+    def _on_follow(self, path, params, re_match):
+        content_id = re_match.group('content_id')
+        category = re_match.group('category')
+        like = params.get('like', '') == '1'
+
+        if category == 'track':
+            json_data = self._client.like_track(content_id, like)
+
+        return True
+
+    @kodimon.RegisterPath('^\/user/favorites\/(?P<user_id>.+)/$')
+    def _on_favorites(self, path, params, re_match):
+        result = []
+
+        user_id = re_match.group('user_id')
+        json_data = self._client.get_favorites(user_id)
+        for json_item in json_data:
+            result.append(self._do_item(json_item))
+            pass
+
+        return result
+
     def on_search(self, search_text, path, params, re_match):
         page = params.get('page', 1)
         json_data = self.call_function_cached(partial(self._client.search, search_text, page=page),
@@ -352,6 +377,12 @@ class Provider(kodimon.AbstractProvider):
             playlists_item.set_fanart(self.get_fanart())
             result.append(playlists_item)
 
+            # likes
+            likes_item = DirectoryItem(self.localize('soundcloud.likes'),
+                                       self.create_uri('user/favorites/me'))
+            likes_item.set_fanart(self.get_fanart())
+            result.append(likes_item)
+
             # following
             following_item = DirectoryItem(self.localize('soundcloud.following'),
                                            self.create_uri('user/following/me'))
@@ -360,7 +391,7 @@ class Provider(kodimon.AbstractProvider):
 
             # follower
             follower_item = DirectoryItem(self.localize('soundcloud.follower'),
-                                           self.create_uri('user/follower/me'))
+                                          self.create_uri('user/follower/me'))
             follower_item.set_fanart(self.get_fanart())
             result.append(follower_item)
             pass
@@ -403,7 +434,7 @@ class Provider(kodimon.AbstractProvider):
 
         return result
 
-    def _do_item(self, json_item):
+    def _do_item(self, json_item, me=False):
         def _get_image(json_data):
             image_url = json_data.get('artwork_url', '')
 
@@ -463,6 +494,11 @@ class Provider(kodimon.AbstractProvider):
 
             # year
             track_item.set_year(self._get_track_year(json_item))
+
+            context_menu = [contextmenu.create_run_plugin(self.get_plugin(),
+                                                          self.localize('soundcloud.like'),
+                                                          ['like/track', unicode(json_item['id'])], {'like': '1'})]
+            track_item.set_context_menu(context_menu)
 
             return track_item
         elif kind == 'group':
