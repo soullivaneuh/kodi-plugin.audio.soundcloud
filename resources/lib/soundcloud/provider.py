@@ -1,7 +1,7 @@
 from functools import partial
 import re
 from resources.lib.kodimon.helper import FunctionCache
-from resources.lib.kodimon import DirectoryItem, AudioItem, constants
+from resources.lib.kodimon import DirectoryItem, AudioItem, constants, KodimonException
 from resources.lib import kodimon
 
 __author__ = 'bromix'
@@ -16,7 +16,8 @@ class Provider(kodimon.AbstractProvider):
                                'soundcloud.audio.trending': 30502,
                                'soundcloud.music.genre': 30503,
                                'soundcloud.audio.genre': 30504,
-                               'soundcloud.stream': 30505, })
+                               'soundcloud.stream': 30505,
+                               'soundcloud.playlists': 30506, })
 
         from resources.lib import soundcloud
 
@@ -263,6 +264,18 @@ class Provider(kodimon.AbstractProvider):
 
         return result
 
+    @kodimon.RegisterPath('^\/playlists\/(?P<user_id>.+)/$')
+    def _on_playlists(self, path, params, re_match):
+        result = []
+
+        user_id = re_match.group('user_id')
+        json_data = self._client.get_playlists(user_id)
+        for json_item in json_data:
+            result.append(self._json_item_to_item(json_item))
+            pass
+
+        return result
+
     @kodimon.RegisterPath('^\/stream\/$')
     def _on_stream(self, path, params, re_match):
         result = []
@@ -308,7 +321,7 @@ class Provider(kodimon.AbstractProvider):
             pass
 
         # next page works with an cursor?!?!?!?
-        #next_href=https://api.soundcloud.com/e1/me/stream?cursor=6e011980-48af-11e4-80d9-f79411997475&limit=100
+        # next_href=https://api.soundcloud.com/e1/me/stream?cursor=6e011980-48af-11e4-80d9-f79411997475&limit=100
 
         return result
 
@@ -328,8 +341,11 @@ class Provider(kodimon.AbstractProvider):
         search_item.set_fanart(self.get_fanart())
         result.append(search_item)
 
+        # is logged in?
+        is_logged_in = self._is_logged_in()
+
         # stream
-        if self._is_logged_in():
+        if is_logged_in:
             stream_item = DirectoryItem(self.localize('soundcloud.stream'),
                                         self.create_uri(['stream']))
             stream_item.set_fanart(self.get_fanart())
@@ -342,6 +358,14 @@ class Provider(kodimon.AbstractProvider):
         explore_item.set_fanart(self.get_fanart())
         result.append(explore_item)
 
+        # playlists
+        if is_logged_in:
+            playlists_item = DirectoryItem(self.localize('soundcloud.playlists'),
+                                           self.create_uri('playlists/me'))
+            playlists_item.set_fanart(self.get_fanart())
+            result.append(playlists_item)
+            pass
+
         return result
 
     def _is_logged_in(self):
@@ -349,5 +373,32 @@ class Provider(kodimon.AbstractProvider):
         access_token_client = self._client.get_access_token()
 
         return access_token != '' and access_token_client != '' and access_token == access_token_client
+
+    def _json_item_to_item(self, json_item):
+        def _get_image(json_data):
+            image_url = json_data.get('artwork_url', '')
+
+            # test tracks (used for playlists)
+            if not image_url:
+                tracks = json_data.get('tracks', [])
+                if len(tracks) > 0:
+                    return _get_image(tracks[0])
+
+                # fall back is the user avatar (at least)
+                image_url = json_data.get('user', {}).get('avatar_url', '')
+                pass
+
+            # try to convert the image to 500x500 pixel
+            return self._get_hires_image(image_url)
+
+        kind = json_item.get('kind', '')
+        if kind == 'playlist':
+            playlist_item = DirectoryItem(json_item['title'],
+                                          '',
+                                          image=_get_image(json_item))
+            playlist_item.set_fanart(self.get_fanart())
+            return playlist_item
+
+        raise KodimonException("Unknown kind of item '%s'" % kind)
 
     pass

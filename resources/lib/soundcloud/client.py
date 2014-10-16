@@ -31,6 +31,18 @@ class Client(object):
             pass
         pass
 
+    def _create_path_based_on_user_id(self, me_or_user_id, path):
+        """
+        Creates the API path based on 'me' otherwise for the given user id
+        :param me_or_user_id:
+        :param path:
+        :return:
+        """
+        user_id = unicode(me_or_user_id)
+        if user_id == 'me':
+            return 'me/%s' % path.strip('/')
+        return 'users/%s/%s' % (user_id, path.strip('/'))
+
     def get_trending(self, category='music', page=1, per_page=20):
         page = int(page)
         per_page = int(per_page)
@@ -98,10 +110,11 @@ class Client(object):
         return self._perform_request(path='me/activities',
                                      headers={'Accept': 'application/json'})
 
-    def get_me_playlists(self):
+    def get_playlists(self, me_or_user_id):
         self.update_access_token()
-        return self._perform_request(path='me/playlists',
-                                     headers={'Accept': 'application/json'})
+        path = self._create_path_based_on_user_id(me_or_user_id, 'playlists')
+        return self._perform_request(path=path,
+                                         headers={'Accept': 'application/json'})
 
     def get_me_following(self):
         self.update_access_token()

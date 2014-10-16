@@ -13,8 +13,22 @@ def print_items(items):
         pass
     pass
 
+
 class TestProvider(unittest.TestCase):
+    TOKEN = u'1-21686-117607613-e3c5bfa850da44'
+
     def setUp(self):
+        # with login
+        plugin = Plugin()
+        settings = plugin.get_settings()
+        settings.set_string(AbstractSettings.LOGIN_USERNAME, 'b194139@trbvm.com')
+        settings.set_string(AbstractSettings.LOGIN_PASSWORD, '1234567890')
+        settings.set_string(AbstractSettings.ACCESS_TOKEN, self.TOKEN)
+        self._provider = Provider(plugin)
+        pass
+
+    def test_playlists(self):
+        result = self._provider.navigate('/playlists/me/')
         pass
 
     def test_explore_trending(self):
@@ -99,7 +113,8 @@ class TestProvider(unittest.TestCase):
         provider = Provider(plugin)
         result = provider.navigate('/')
         items = result[0]
-        self.assertEqual(3, len(items))
+        self.assertEqual(4, len(items))
+
         print_items(items)
         pass
 

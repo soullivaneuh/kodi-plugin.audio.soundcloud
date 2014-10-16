@@ -7,7 +7,7 @@ from resources.lib.soundcloud import Client
 
 
 class TestClient(unittest.TestCase):
-    TOKEN = u'1-21686-31343147-274613f4c3e367e'
+    TOKEN = u'1-21686-117607613-e3c5bfa850da44'
 
     def setUp(self):
         pass
@@ -44,9 +44,14 @@ class TestClient(unittest.TestCase):
         json_data = client.get_me_posts()
         pass
 
-    def test_get_me_playlists(self):
+    def test_get_playlists(self):
+        # me
         client = Client(access_token=self.TOKEN)
-        json_data = client.get_me_playlists()
+        json_data = client.get_playlists('me')
+        self.assertGreater(len(json_data), 0)
+
+        json_data = client.get_playlists(2442230)
+        self.assertGreater(len(json_data), 0)
         pass
 
     def test_get_me_following(self):
