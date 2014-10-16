@@ -42,6 +42,13 @@ class TestClient(unittest.TestCase):
         json_data = client.get_me_posts()
         pass
 
+    def test_tracks(self):
+        client = Client(access_token=self.TOKEN)
+        json_data = client.get_tracks('me')
+
+        json_data = client.get_tracks(1701116)
+        pass
+
     def test_follow(self):
         client = Client(access_token=self.TOKEN)
         json_data = client.follow_user(1701116, False)

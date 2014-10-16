@@ -1,3 +1,7 @@
+1.0.0~alpha5 (2014-10-17)
+UPD: code cleaning
+ADD: support for playlists, likes, follower, following
+
 1.0.0~alpha4 (2014-10-14)
 ADD: login for stream (testing)
 ADD: 'explore' for trending and genres (finished)
