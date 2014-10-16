@@ -205,48 +205,7 @@ class Provider(kodimon.AbstractProvider):
         result = []
 
         json_data = self._client.get_stream()
-        collection = json_data.get('collection', [])
-        for collection_item in collection:
-            item_type = collection_item.get('type', '')
-            if item_type == 'track':
-                item = collection_item['track']
-                # some tracks don't provide an artwork so we do it like soundcloud and return the avatar of the user
-                image = item.get('artwork_url', '')
-                if not image:
-                    image = item.get('user', {}).get('avatar_url', '')
-                    pass
-                if image:
-                    image = self._get_hires_image(image)
-                    pass
-
-                title = item['title']
-                audio_item = AudioItem(title,
-                                       self.create_uri('play', {'id': unicode(item['id'])}),
-                                       image=image)
-                audio_item.set_fanart(self.get_fanart())
-
-                # title
-                audio_item.set_title(title)
-
-                # genre
-                audio_item.set_genre(item.get('genre', ''))
-
-                # duration
-                audio_item.set_duration_in_milli_seconds(item.get('duration', 0))
-
-                # artist
-                audio_item.set_artist_name(item.get('user', {}).get('username', ''))
-
-                # year
-                audio_item.set_year(self._get_track_year(item))
-
-                result.append(audio_item)
-                pass
-            pass
-
-        # next page works with an cursor?!?!?!?
-        # next_href=https://api.soundcloud.com/e1/me/stream?cursor=6e011980-48af-11e4-80d9-f79411997475&limit=100
-
+        result = self._do_collection(json_data, path, params)
         return result
 
     @kodimon.RegisterPath('^\/playlist\/(?P<playlist_id>.+)/$')
@@ -418,7 +377,9 @@ class Provider(kodimon.AbstractProvider):
         result = []
 
         collection = json_data.get('collection', [])
-        for item in collection:
+        for collection_item in collection:
+            # test if we have an 'origin' tag. If so we are in the activities
+            item = collection_item.get('origin', collection_item)
             result.append(self._do_item(item))
             pass
 

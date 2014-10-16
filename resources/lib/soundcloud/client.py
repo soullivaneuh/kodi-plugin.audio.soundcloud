@@ -91,17 +91,13 @@ class Client(object):
                                      headers={'Accept': 'application/json'},
                                      params=params)
 
-    def get_stream(self, page=1, per_page=100):
-        page = int(page)
-        per_page = int(per_page)
-
-        params = {'limit': str(per_page)}
-        if page > 1:
-            params['offset'] = str((page - 1) * per_page)
-            pass
+    def get_stream(self, page_cursor=None, limit=50):
+        params = {'limit': unicode(limit)}
+        if page_cursor is not None:
+            params['cursor'] = page_cursor
 
         self.update_access_token()
-        return self._perform_request(path='e1/me/stream',
+        return self._perform_request(path='me/activities/tracks/affiliated',
                                      headers={'Accept': 'application/json'},
                                      params=params)
 
