@@ -110,7 +110,11 @@ class Client(object):
         return self._perform_request(path='me/activities',
                                      headers={'Accept': 'application/json'})
 
-    def get_playlists(self, me_or_user_id):
+    def get_playlist(self, playlist_id):
+        return self._perform_request(path='playlists/%s' % unicode(playlist_id),
+                                     headers={'Accept': 'application/json'})
+
+    def get_user_playlists(self, me_or_user_id):
         self.update_access_token()
         path = self._create_path_based_on_user_id(me_or_user_id, 'playlists')
         return self._perform_request(path=path,

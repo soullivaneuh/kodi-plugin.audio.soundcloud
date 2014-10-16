@@ -27,8 +27,16 @@ class TestProvider(unittest.TestCase):
         self._provider = Provider(plugin)
         pass
 
-    def test_playlists(self):
-        result = self._provider.navigate('/playlists/me/')
+    def test_playlist(self):
+        result = self._provider.navigate('/playlist/54934787/')
+        items = result[0]
+        print_items(items)
+        pass
+
+    def test_user_playlists(self):
+        result = self._provider.navigate('/user/playlists/me/')
+        items = result[0]
+        print_items(items)
         pass
 
     def test_explore_trending(self):

@@ -264,12 +264,33 @@ class Provider(kodimon.AbstractProvider):
 
         return result
 
-    @kodimon.RegisterPath('^\/playlists\/(?P<user_id>.+)/$')
-    def _on_playlists(self, path, params, re_match):
+    @kodimon.RegisterPath('^\/playlist\/(?P<playlist_id>.+)/$')
+    def _on_playlist(self, path, params, re_match):
+        result = []
+
+        playlist_id = re_match.group('playlist_id')
+        json_data = self.call_function_cached(partial(self._client.get_playlist, playlist_id),
+                                              seconds=FunctionCache.ONE_MINUTE)
+        tracks = json_data['tracks']
+        track_number = 1
+        for track in tracks:
+            track_item = self._json_item_to_item(track)
+
+            # based on the position in the playlist we add a track number
+            track_item.set_track_number(track_number)
+            result.append(track_item)
+            track_number += 1
+            pass
+
+        return result
+
+    @kodimon.RegisterPath('^\/user/playlists\/(?P<user_id>.+)/$')
+    def _on_user_playlists(self, path, params, re_match):
         result = []
 
         user_id = re_match.group('user_id')
-        json_data = self._client.get_playlists(user_id)
+        json_data = self.call_function_cached(partial(self._client.get_user_playlists, user_id),
+                                              seconds=FunctionCache.ONE_MINUTE)
         for json_item in json_data:
             result.append(self._json_item_to_item(json_item))
             pass
@@ -361,7 +382,7 @@ class Provider(kodimon.AbstractProvider):
         # playlists
         if is_logged_in:
             playlists_item = DirectoryItem(self.localize('soundcloud.playlists'),
-                                           self.create_uri('playlists/me'))
+                                           self.create_uri('user/playlists/me'))
             playlists_item.set_fanart(self.get_fanart())
             result.append(playlists_item)
             pass
@@ -394,10 +415,33 @@ class Provider(kodimon.AbstractProvider):
         kind = json_item.get('kind', '')
         if kind == 'playlist':
             playlist_item = DirectoryItem(json_item['title'],
-                                          '',
+                                          self.create_uri(['playlist', unicode(json_item['id'])]),
                                           image=_get_image(json_item))
             playlist_item.set_fanart(self.get_fanart())
             return playlist_item
+        elif kind == 'track':
+            title = json_item['title']
+            track_item = AudioItem(title,
+                                   self.create_uri(['play', unicode(json_item['id'])]),
+                                   image=_get_image(json_item))
+            track_item.set_fanart(self.get_fanart())
+
+            # title
+            track_item.set_title(title)
+
+            # genre
+            track_item.set_genre(json_item.get('genre', ''))
+
+            # duration
+            track_item.set_duration_in_milli_seconds(json_item.get('duration', 0))
+
+            # artist
+            track_item.set_artist_name(json_item.get('user', {}).get('username', ''))
+
+            # year
+            track_item.set_year(self._get_track_year(json_item))
+
+            return track_item
 
         raise KodimonException("Unknown kind of item '%s'" % kind)
 
