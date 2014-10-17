@@ -25,7 +25,8 @@ class Provider(kodimon.AbstractProvider):
                                'soundcloud.likes': 30510,
                                'soundcloud.like': 30511,
                                'soundcloud.tracks': 30512,
-                               'soundcloud.unfollow': 30513, })
+                               'soundcloud.unfollow': 30513,
+                               'soundcloud.unlike': 30514, })
 
         from resources.lib import soundcloud
 
@@ -334,7 +335,7 @@ class Provider(kodimon.AbstractProvider):
         user_id = re_match.group('user_id')
         json_data = self._client.get_favorites(user_id)
         for json_item in json_data:
-            result.append(self._do_item(json_item))
+            result.append(self._do_item(json_item, me=user_id == 'me'))
             pass
 
         return result
@@ -449,7 +450,7 @@ class Provider(kodimon.AbstractProvider):
             username = json_item['username']
             if me:
                 user_id = 'me'
-                username = '[B]' + username + '[/B]'
+                #username = '[B]' + username + '[/B]'
                 pass
 
             user_item = DirectoryItem(username,
@@ -490,9 +491,14 @@ class Provider(kodimon.AbstractProvider):
             # year
             track_item.set_year(self._get_track_year(json_item))
 
-            context_menu = [contextmenu.create_run_plugin(self.get_plugin(),
-                                                          self.localize('soundcloud.like'),
-                                                          ['like/track', unicode(json_item['id'])], {'like': '1'})]
+            if me:
+                context_menu = [contextmenu.create_run_plugin(self.get_plugin(),
+                                                              self.localize('soundcloud.unlike'),
+                                                              ['like/track', unicode(json_item['id'])], {'like': '0'})]
+            else:
+                context_menu = [contextmenu.create_run_plugin(self.get_plugin(),
+                                                              self.localize('soundcloud.like'),
+                                                              ['like/track', unicode(json_item['id'])], {'like': '1'})]
             track_item.set_context_menu(context_menu)
 
             return track_item
