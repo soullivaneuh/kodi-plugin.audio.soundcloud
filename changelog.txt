@@ -1,4 +1,7 @@
 1.0.0~alpha6 (2014-10-17)
+UPD: moved user profile to root
+ADD: 'follow' and 'unfollow'
+ADD: 'like' and 'unlike'
 FIX: requesting a new access token after password or username have changed
 
 1.0.0~alpha5 (2014-10-17)
