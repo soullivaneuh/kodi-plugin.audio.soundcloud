@@ -227,6 +227,31 @@ class Provider(kodimon.AbstractProvider):
         result = []
 
         user_id = re_match.group('user_id')
+
+        # playlists
+        playlists_item = DirectoryItem(self.localize('soundcloud.playlists'),
+                                       self.create_uri(['user/playlists', user_id]))
+        playlists_item.set_fanart(self.get_fanart())
+        result.append(playlists_item)
+
+        # likes
+        likes_item = DirectoryItem(self.localize('soundcloud.likes'),
+                                   self.create_uri(['user/favorites', user_id]))
+        likes_item.set_fanart(self.get_fanart())
+        result.append(likes_item)
+
+        # following
+        following_item = DirectoryItem(self.localize('soundcloud.following'),
+                                       self.create_uri(['user/following', user_id]))
+        following_item.set_fanart(self.get_fanart())
+        result.append(following_item)
+
+        # follower
+        follower_item = DirectoryItem(self.localize('soundcloud.follower'),
+                                      self.create_uri(['user/follower', user_id]))
+        follower_item.set_fanart(self.get_fanart())
+        result.append(follower_item)
+
         json_data = self.call_function_cached(partial(self._client.get_tracks, user_id),
                                               seconds=FunctionCache.ONE_MINUTE)
         for json_item in json_data:
@@ -341,6 +366,22 @@ class Provider(kodimon.AbstractProvider):
     def on_root(self, path, params, re_match):
         result = []
 
+        # is logged in?
+        is_logged_in = self._is_logged_in()
+
+        if is_logged_in:
+            # track
+            json_data = self._client.get_user('me')
+            me_item = self._do_item(json_data)
+            result.append(me_item)
+
+            # stream
+            stream_item = DirectoryItem(self.localize('soundcloud.stream'),
+                                        self.create_uri(['stream']))
+            stream_item.set_fanart(self.get_fanart())
+            result.append(stream_item)
+            pass
+
         # search
         search_item = DirectoryItem(self.localize(self.LOCAL_SEARCH),
                                     self.create_uri([self.PATH_SEARCH, 'list']),
@@ -348,54 +389,11 @@ class Provider(kodimon.AbstractProvider):
         search_item.set_fanart(self.get_fanart())
         result.append(search_item)
 
-        # is logged in?
-        is_logged_in = self._is_logged_in()
-
-        # stream
-        if is_logged_in:
-            stream_item = DirectoryItem(self.localize('soundcloud.stream'),
-                                        self.create_uri(['stream']))
-            stream_item.set_fanart(self.get_fanart())
-            result.append(stream_item)
-            pass
-
         # explore
         explore_item = DirectoryItem(self.localize('soundcloud.explore'),
                                      self.create_uri('explore'))
         explore_item.set_fanart(self.get_fanart())
         result.append(explore_item)
-
-        if is_logged_in:
-            # tracks
-            tracks_item = DirectoryItem(self.localize('soundcloud.tracks'),
-                                        self.create_uri('user/tracks/me'))
-            tracks_item.set_fanart(self.get_fanart())
-            result.append(tracks_item)
-
-            # playlists
-            playlists_item = DirectoryItem(self.localize('soundcloud.playlists'),
-                                           self.create_uri('user/playlists/me'))
-            playlists_item.set_fanart(self.get_fanart())
-            result.append(playlists_item)
-
-            # likes
-            likes_item = DirectoryItem(self.localize('soundcloud.likes'),
-                                       self.create_uri('user/favorites/me'))
-            likes_item.set_fanart(self.get_fanart())
-            result.append(likes_item)
-
-            # following
-            following_item = DirectoryItem(self.localize('soundcloud.following'),
-                                           self.create_uri('user/following/me'))
-            following_item.set_fanart(self.get_fanart())
-            result.append(following_item)
-
-            # follower
-            follower_item = DirectoryItem(self.localize('soundcloud.follower'),
-                                          self.create_uri('user/follower/me'))
-            follower_item.set_fanart(self.get_fanart())
-            result.append(follower_item)
-            pass
 
         return result
 

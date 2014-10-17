@@ -93,9 +93,9 @@ class TestClient(unittest.TestCase):
         self.assertGreater(len(json_data), 0)
         pass
 
-    def test_get_me(self):
+    def test_user(self):
         client = Client(access_token=self.TOKEN)
-        json_data = client.get_me()
+        json_data = client.get_user('me')
 
         self.assertGreater(len(json_data), 0)
         pass

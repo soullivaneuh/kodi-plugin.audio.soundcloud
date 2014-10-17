@@ -160,9 +160,10 @@ class Client(object):
         return self._perform_request(path=path,
                                      headers={'Accept': 'application/json'})
 
-    def get_me(self):
+    def get_user(self, me_or_user_id):
         self.update_access_token()
-        return self._perform_request(path='me',
+        path = self._create_path_based_on_user_id(me_or_user_id, '')
+        return self._perform_request(path=path,
                                      headers={'Accept': 'application/json'})
 
     def get_access_token(self):
