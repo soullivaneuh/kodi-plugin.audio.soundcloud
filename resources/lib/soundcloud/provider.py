@@ -24,7 +24,8 @@ class Provider(kodimon.AbstractProvider):
                                'soundcloud.follower': 30509,
                                'soundcloud.likes': 30510,
                                'soundcloud.like': 30511,
-                               'soundcloud.tracks': 30512, })
+                               'soundcloud.tracks': 30512,
+                               'soundcloud.unfollow': 30513, })
 
         from resources.lib import soundcloud
 
@@ -46,7 +47,6 @@ class Provider(kodimon.AbstractProvider):
             self._client = soundcloud.Client()
         pass
 
-
     def get_fanart(self):
         """
             This will return a darker and (with blur) fanart
@@ -54,10 +54,8 @@ class Provider(kodimon.AbstractProvider):
             """
         return self.create_resource_path('media', 'fanart.jpg')
 
-
     def _get_hires_image(self, url):
         return re.sub('(.*)(-large.jpg\.*)(\?.*)?', r'\1-t500x500.jpg', url)
-
 
     def _get_track_year(self, collection_item_json):
         # this would be the default info, but is mostly not set :(
@@ -76,7 +74,6 @@ class Provider(kodimon.AbstractProvider):
 
         return ''
 
-
     @kodimon.RegisterPath('^/play/$')
     def _play(self, path, params, re_match):
         track_id = params.get('id', '')
@@ -90,7 +87,6 @@ class Provider(kodimon.AbstractProvider):
 
         item = kodimon.AudioItem(track_id, location)
         return item
-
 
     def _do_mobile_collection(self, json_data, path, params):
         result = []
@@ -143,7 +139,6 @@ class Provider(kodimon.AbstractProvider):
 
         return result
 
-
     @kodimon.RegisterPath('^\/explore\/trending\/((?P<category>\w+)/)?$')
     def _on_explore_trending(self, path, params, re_match):
         result = []
@@ -154,7 +149,6 @@ class Provider(kodimon.AbstractProvider):
         result = self._do_mobile_collection(json_data, path, params)
 
         return result
-
 
     @kodimon.RegisterPath('^\/explore\/genre\/((?P<category>\w+)\/)((?P<genre>.+)\/)?$')
     def _on_explore_genre(self, path, params, re_match):
@@ -180,7 +174,6 @@ class Provider(kodimon.AbstractProvider):
             pass
 
         return result
-
 
     @kodimon.RegisterPath('^\/explore\/?$')
     def _on_explore(self, path, params, re_match):
@@ -212,7 +205,6 @@ class Provider(kodimon.AbstractProvider):
 
         return result
 
-
     @kodimon.RegisterPath('^\/stream\/$')
     def _on_stream(self, path, params, re_match):
         result = []
@@ -220,7 +212,6 @@ class Provider(kodimon.AbstractProvider):
         json_data = self._client.get_stream()
         result = self._do_collection(json_data, path, params)
         return result
-
 
     @kodimon.RegisterPath('^\/user/tracks\/(?P<user_id>.+)/$')
     def _on_tracks(self, path, params, re_match):
@@ -260,7 +251,6 @@ class Provider(kodimon.AbstractProvider):
 
         return result
 
-
     @kodimon.RegisterPath('^\/playlist\/(?P<playlist_id>.+)/$')
     def _on_playlist(self, path, params, re_match):
         result = []
@@ -281,7 +271,6 @@ class Provider(kodimon.AbstractProvider):
 
         return result
 
-
     @kodimon.RegisterPath('^\/user/playlists\/(?P<user_id>.+)/$')
     def _on_playlists(self, path, params, re_match):
         result = []
@@ -290,11 +279,10 @@ class Provider(kodimon.AbstractProvider):
         json_data = self.call_function_cached(partial(self._client.get_playlists, user_id),
                                               seconds=FunctionCache.ONE_MINUTE)
         for json_item in json_data:
-            result.append(self._do_item(json_item))
+            result.append(self._do_item(json_item, me=user_id == 'me'))
             pass
 
         return result
-
 
     @kodimon.RegisterPath('^\/user/following\/(?P<user_id>.+)/$')
     def _on_following(self, path, params, re_match):
@@ -303,11 +291,10 @@ class Provider(kodimon.AbstractProvider):
         user_id = re_match.group('user_id')
         json_data = self._client.get_following(user_id)
         for json_item in json_data:
-            result.append(self._do_item(json_item))
+            result.append(self._do_item(json_item, me=user_id == 'me'))
             pass
 
         return result
-
 
     @kodimon.RegisterPath('^\/user/follower\/(?P<user_id>.+)/$')
     def _on_follower(self, path, params, re_match):
@@ -321,7 +308,6 @@ class Provider(kodimon.AbstractProvider):
 
         return result
 
-
     @kodimon.RegisterPath('^\/follow\/(?P<user_id>.+)/$')
     def _on_follow(self, path, params, re_match):
         user_id = re_match.group('user_id')
@@ -330,9 +316,8 @@ class Provider(kodimon.AbstractProvider):
 
         return True
 
-
     @kodimon.RegisterPath('^\/like\/(?P<category>\w+)\/(?P<content_id>.+)/$')
-    def _on_follow(self, path, params, re_match):
+    def _on_like(self, path, params, re_match):
         content_id = re_match.group('content_id')
         category = re_match.group('category')
         like = params.get('like', '') == '1'
@@ -341,7 +326,6 @@ class Provider(kodimon.AbstractProvider):
             json_data = self._client.like_track(content_id, like)
 
         return True
-
 
     @kodimon.RegisterPath('^\/user/favorites\/(?P<user_id>.+)/$')
     def _on_favorites(self, path, params, re_match):
@@ -355,13 +339,11 @@ class Provider(kodimon.AbstractProvider):
 
         return result
 
-
     def on_search(self, search_text, path, params, re_match):
         page = params.get('page', 1)
         json_data = self.call_function_cached(partial(self._client.search, search_text, page=page),
                                               seconds=FunctionCache.ONE_MINUTE)
         return self._do_collection(json_data, path, params)
-
 
     def on_root(self, path, params, re_match):
         result = []
@@ -372,7 +354,7 @@ class Provider(kodimon.AbstractProvider):
         if is_logged_in:
             # track
             json_data = self._client.get_user('me')
-            me_item = self._do_item(json_data)
+            me_item = self._do_item(json_data, me=True)
             result.append(me_item)
 
             # stream
@@ -397,13 +379,11 @@ class Provider(kodimon.AbstractProvider):
 
         return result
 
-
     def _is_logged_in(self):
         access_token = self.get_access_token()
         access_token_client = self._client.get_access_token()
 
         return access_token != '' and access_token_client != '' and access_token == access_token_client
-
 
     def _do_collection(self, json_data, path, params):
         self.set_content_type(constants.CONTENT_TYPE_SONGS)
@@ -436,7 +416,6 @@ class Provider(kodimon.AbstractProvider):
 
         return result
 
-
     def _do_item(self, json_item, me=False):
         def _get_image(json_data):
             image_url = json_data.get('artwork_url', '')
@@ -466,14 +445,27 @@ class Provider(kodimon.AbstractProvider):
             playlist_item.set_fanart(self.get_fanart())
             return playlist_item
         elif kind == 'user':
-            user_item = DirectoryItem(json_item['username'],
-                                      self.create_uri(['user/tracks', unicode(json_item['id'])]),
+            user_id = unicode(json_item['id'])
+            username = json_item['username']
+            if me:
+                user_id = 'me'
+                username = '[B]' + username + '[/B]'
+                pass
+
+            user_item = DirectoryItem(username,
+                                      self.create_uri(['user/tracks', user_id]),
                                       image=_get_image(json_item))
             user_item.set_fanart(self.get_fanart())
 
-            context_menu = [contextmenu.create_run_plugin(self.get_plugin(),
-                                                          self.localize('soundcloud.follow'),
-                                                          ['follow', unicode(json_item['id'])], {'follow': '1'})]
+            if me:
+                context_menu = [contextmenu.create_run_plugin(self.get_plugin(),
+                                                              self.localize('soundcloud.unfollow'),
+                                                              ['follow', unicode(json_item['id'])], {'follow': '0'})]
+            else:
+                context_menu = [contextmenu.create_run_plugin(self.get_plugin(),
+                                                              self.localize('soundcloud.follow'),
+                                                              ['follow', unicode(json_item['id'])], {'follow': '1'})]
+                pass
             user_item.set_context_menu(context_menu)
             return user_item
         elif kind == 'track':
@@ -510,6 +502,5 @@ class Provider(kodimon.AbstractProvider):
             return group_item
 
         raise KodimonException("Unknown kind of item '%s'" % kind)
-
 
     pass
