@@ -7,7 +7,7 @@ from resources.lib.soundcloud import Client
 
 
 class TestClient(unittest.TestCase):
-    TOKEN = u'1-21686-117607613-e3c5bfa850da44'
+    TOKEN = u'1-21686-118589874-262b20fc160e44'
 
     def setUp(self):
         pass
@@ -101,7 +101,7 @@ class TestClient(unittest.TestCase):
         pass
 
     def test_update_token(self):
-        client = Client(username='b194139@trbvm.com', password='1234567890')
+        client = Client(username='co4hu41hkqud5cm@my10minutemail.com', password='1234567890')
         token = client.update_access_token()
 
         self.assertTrue(token is not None)
