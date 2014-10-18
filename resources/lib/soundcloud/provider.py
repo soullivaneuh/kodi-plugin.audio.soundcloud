@@ -243,6 +243,9 @@ class Provider(kodimon.AbstractProvider):
         for track in tracks:
             track_item = self._do_item(track, path)
 
+            # set the name of the playlist for the albumname
+            track_item.set_album_name(json_data['title'])
+
             # based on the position in the playlist we add a track number
             track_item.set_track_number(track_number)
             result.append(track_item)
@@ -403,8 +406,6 @@ class Provider(kodimon.AbstractProvider):
         return re.sub('(.*)(-large.jpg\.*)(\?.*)?', r'\1-t500x500.jpg', url)
 
     def _do_item(self, json_item, path):
-
-
         def _get_track_year(collection_item_json):
             # this would be the default info, but is mostly not set :(
             year = collection_item_json.get('release_year', '')
