@@ -61,26 +61,6 @@ class Provider(kodimon.AbstractProvider):
             """
         return self.create_resource_path('media', 'fanart.jpg')
 
-    def _get_hires_image(self, url):
-        return re.sub('(.*)(-large.jpg\.*)(\?.*)?', r'\1-t500x500.jpg', url)
-
-    def _get_track_year(self, collection_item_json):
-        # this would be the default info, but is mostly not set :(
-        year = collection_item_json.get('release_year', '')
-        if year:
-            return year
-
-        # we use a fallback.
-        # created_at=2013/03/24 00:32:01 +0000
-        re_match = re.match('(?P<year>\d{4})(.*)', collection_item_json.get('created_at', ''))
-        if re_match:
-            year = re_match.group('year')
-            if year:
-                return year
-            pass
-
-        return ''
-
     @kodimon.RegisterPath('^/play/$')
     def _play(self, path, params, re_match):
         track_id = params.get('id', '')
@@ -98,40 +78,24 @@ class Provider(kodimon.AbstractProvider):
     def _do_mobile_collection(self, json_data, path, params):
         result = []
 
+        # this result is not quite the collection we expected, but with some conversion we can use our
+        # main routine for that.
         collection = json_data.get('collection', [])
-        for item in collection:
-            # some tracks don't provide an artwork so we do it like soundcloud and return the avatar of the user
-            image = item.get('artwork_url', '')
-            if not image:
-                image = item.get('_embedded', {}).get('user', {}).get('avatar_url', '')
-                pass
-            if image:
-                image = self._get_hires_image(image)
-                pass
+        for collection_item in collection:
+            # move user
+            user = collection_item.get('_embedded', {}).get('user', {})
+            collection_item['user'] = user
 
-            title = item['title']
-            track_id = item['urn'].split(':')[2]
-            audio_item = AudioItem(title,
-                                   self.create_uri('play', {'id': track_id}),
-                                   image=image)
-            audio_item.set_fanart(self.get_fanart())
+            # create track id of urn
+            track_id = collection_item['urn'].split(':')[2]
+            collection_item['id'] = track_id
 
-            # title
-            audio_item.set_title(title)
+            # is always a track
+            collection_item['kind'] = 'track'
 
-            # genre
-            audio_item.set_genre(item.get('genre', ''))
-
-            # duration
-            audio_item.set_duration_in_milli_seconds(item.get('duration', 0))
-
-            # artist
-            audio_item.set_artist_name(item.get('_embedded', {}).get('user', {}).get('username', ''))
-
-            # year
-            audio_item.set_year(self._get_track_year(item))
-
-            result.append(audio_item)
+            track_item = self._do_item(collection_item, path)
+            if track_item is not None:
+                result.append(track_item)
             pass
 
         # test for next page
@@ -435,7 +399,29 @@ class Provider(kodimon.AbstractProvider):
 
         return result
 
+    def _get_hires_image(self, url):
+        return re.sub('(.*)(-large.jpg\.*)(\?.*)?', r'\1-t500x500.jpg', url)
+
     def _do_item(self, json_item, path):
+
+
+        def _get_track_year(collection_item_json):
+            # this would be the default info, but is mostly not set :(
+            year = collection_item_json.get('release_year', '')
+            if year:
+                return year
+
+            # we use a fallback.
+            # created_at=2013/03/24 00:32:01 +0000
+            re_match = re.match('(?P<year>\d{4})(.*)', collection_item_json.get('created_at', ''))
+            if re_match:
+                year = re_match.group('year')
+                if year:
+                    return year
+                pass
+
+            return ''
+
         def _get_image(json_data):
             image_url = json_data.get('artwork_url', '')
 
@@ -517,7 +503,7 @@ class Provider(kodimon.AbstractProvider):
             track_item.set_artist_name(json_item.get('user', {}).get('username', ''))
 
             # year
-            track_item.set_year(self._get_track_year(json_item))
+            track_item.set_year(_get_track_year(json_item))
 
             if path == '/user/favorites/me/':
                 context_menu = [contextmenu.create_run_plugin(self.get_plugin(),

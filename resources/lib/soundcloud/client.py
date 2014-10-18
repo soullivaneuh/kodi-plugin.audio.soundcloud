@@ -43,7 +43,7 @@ class Client(object):
             return 'me/%s' % path.strip('/')
         return 'users/%s/%s' % (user_id, path.strip('/'))
 
-    def get_trending(self, category='music', page=1, per_page=20):
+    def get_trending(self, category='music', page=1, per_page=50):
         page = int(page)
         per_page = int(per_page)
 
@@ -56,7 +56,7 @@ class Client(object):
                                      headers={'Accept': 'application/json'},
                                      params=params)
 
-    def get_genre(self, genre, page=1, per_page=20):
+    def get_genre(self, genre, page=1, per_page=50):
         page = int(page)
         per_page = int(per_page)
 
