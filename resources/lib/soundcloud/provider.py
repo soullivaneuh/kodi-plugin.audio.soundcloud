@@ -32,7 +32,8 @@ class Provider(kodimon.AbstractProvider):
                                'soundcloud.like': 30511,
                                'soundcloud.tracks': 30512,
                                'soundcloud.unfollow': 30513,
-                               'soundcloud.unlike': 30514, })
+                               'soundcloud.unlike': 30514,
+                               'soundcloud.people': 30515, })
 
         from resources.lib import soundcloud
 
@@ -180,7 +181,8 @@ class Provider(kodimon.AbstractProvider):
     def _on_stream(self, path, params, re_match):
         result = []
 
-        json_data = self._client.get_stream()
+        cursor = params.get('cursor', None)
+        json_data = self._client.get_stream(page_cursor=cursor)
         result = self._do_collection(json_data, path, params)
         return result
 
@@ -323,10 +325,32 @@ class Provider(kodimon.AbstractProvider):
         return self._do_collection(json_data, path, params)
 
     def on_search(self, search_text, path, params, re_match):
-        page = params.get('page', 1)
-        json_data = self.call_function_cached(partial(self._client.search, search_text, page=page),
+        result = []
+        page = int(params.get('page', 1))
+        category = params.get('category', 'sounds')
+
+        if page == 1 and category == 'sounds':
+            people_params = {}
+            people_params.update(params)
+            people_params['category'] = 'people'
+            people_item = DirectoryItem(self.localize('soundcloud.people'),
+                                        self.create_uri(path, people_params))
+            people_item.set_fanart(self.get_fanart())
+            result.append(people_item)
+
+            playlist_params = {}
+            playlist_params.update(params)
+            playlist_params['category'] = 'sets'
+            playlist_item = DirectoryItem(self.localize('soundcloud.playlists'),
+                                        self.create_uri(path, playlist_params))
+            playlist_item.set_fanart(self.get_fanart())
+            result.append(playlist_item)
+            pass
+
+        json_data = self.call_function_cached(partial(self._client.search, search_text, category=category, page=page),
                                               seconds=FunctionCache.ONE_MINUTE)
-        return self._do_collection(json_data, path, params)
+        result.extend(self._do_collection(json_data, path, params))
+        return result
 
     def on_root(self, path, params, re_match):
         result = []
@@ -392,6 +416,11 @@ class Provider(kodimon.AbstractProvider):
 
         # test for next page
         next_href = json_data.get('next_href', '')
+        re_match = re.match('.*cursor\=(?P<cursor>[a-z0-9-]+).*', next_href)
+        if re_match:
+            params['cursor'] = re_match.group('cursor')
+            pass
+
         page = int(params.get('page', 1))
         if next_href and len(collection) > 0:
             next_page_item = self.create_next_page_item(page,

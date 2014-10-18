@@ -78,7 +78,15 @@ class Client(object):
                                      headers={'Accept': 'application/json'},
                                      allow_redirects=False)
 
-    def search(self, search_text, page=1, per_page=30):
+    def search(self, search_text, category='sounds', page=1, per_page=30):
+        """
+
+        :param search_text:
+        :param category: ['sounds', 'people', 'sets']
+        :param page:
+        :param per_page:
+        :return:
+        """
         page = int(page)
         per_page = int(per_page)
 
@@ -87,13 +95,14 @@ class Client(object):
         if page > 1:
             params['offset'] = str((page - 1) * per_page)
             pass
-        return self._perform_request(path='search',
-                                     headers={'Accept': 'application/json'},
+
+        headers = {'Accept': 'application/json'}
+        return self._perform_request(path='search/%s' % category,
+                                     headers=headers,
                                      params=params)
 
     def get_stream(self, page_cursor=None, limit=50):
-        #params = {'limit': unicode(limit)}
-        params = {}
+        params = {'limit': unicode(limit)}
         if page_cursor is not None:
             params['cursor'] = page_cursor
 

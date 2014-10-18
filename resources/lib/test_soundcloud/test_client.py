@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import re
 
 __author__ = 'bromix'
 
@@ -10,6 +11,13 @@ class TestClient(unittest.TestCase):
     TOKEN = u'1-21686-118589874-262b20fc160e44'
 
     def setUp(self):
+        pass
+
+    def test_cursor(self):
+        next_href = u'https://api.soundcloud.com/me/activities/tracks/affiliated?cursor=aedb3280-55fb-11e3-8019-38efa603dd45&limit=50'
+        re_match = re.match('.*cursor\=(?P<cursor>[a-z0-9-]+).*', next_href)
+        page_cursor = re_match.group('cursor')
+        self.assertEqual('aedb3280-55fb-11e3-8019-38efa603dd45', page_cursor)
         pass
 
     def test_get_likes(self):
@@ -43,7 +51,7 @@ class TestClient(unittest.TestCase):
 
     def test_search(self):
         client = Client()
-        json_data = client.search('bäume')
+        json_data = client.search('bäume', category='sounds')
         pass
 
     def test_get_stream(self):
