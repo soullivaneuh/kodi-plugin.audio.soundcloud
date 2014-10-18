@@ -1,3 +1,6 @@
+1.0.0~alpha7 (2014-10-18)
+FIX: playlist, likes, follower and following are working again
+
 1.0.0~alpha6 (2014-10-17)
 UPD: moved user profile to root
 ADD: 'follow' and 'unfollow'
