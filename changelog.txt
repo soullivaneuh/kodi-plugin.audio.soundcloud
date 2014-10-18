@@ -1,4 +1,5 @@
 1.0.0~alpha7 (2014-10-18)
+ADD: pagination for stream, playlists, likes, etc.
 FIX: playlist, likes, follower and following are working again
 
 1.0.0~alpha6 (2014-10-17)
