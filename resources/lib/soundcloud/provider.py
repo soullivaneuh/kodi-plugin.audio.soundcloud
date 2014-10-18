@@ -319,6 +319,14 @@ class Provider(kodimon.AbstractProvider):
 
         if category == 'track':
             json_data = self._client.like_track(content_id, like)
+        elif category == 'playlist':
+            json_data = self._client.like_playlist(content_id, like)
+        else:
+            raise KodimonException("Unknown category '%s' in 'on_like'" % category)
+
+        if not like:
+            self.refresh_container()
+            pass
 
         return True
 
@@ -326,17 +334,17 @@ class Provider(kodimon.AbstractProvider):
     def _on_favorites(self, path, params, re_match):
         user_id = re_match.group('user_id')
 
-        # we need a real id for this. We use the API of the app to get
-        # playlists and tracks together. The offiz. API of SoundCloud missing something here (the playlists)
+        # We use an API of th APP, this API only work with an user id. In the case of 'me' we gave to get our own
+        # user id to use this function.
         if user_id == 'me':
             json_data = self.call_function_cached(partial(self._client.get_user, 'me'),
-                                                  seconds=FunctionCache.ONE_MINUTE * 30)
+                                                  seconds=FunctionCache.ONE_MINUTE * 10)
             user_id = json_data['id']
             pass
 
         page = params.get('page', 1)
-        json_data = self.call_function_cached(partial(self._client.get_likes, user_id, page=page),
-                                              seconds=FunctionCache.ONE_MINUTE * 10)
+        # do not cache: in case of adding or deleting content
+        json_data = self._client.get_likes(user_id, page=page)
         return self._do_collection(json_data, path, params)
 
     def on_search(self, search_text, path, params, re_match):
@@ -446,6 +454,17 @@ class Provider(kodimon.AbstractProvider):
                                           self.create_uri(['playlist', unicode(json_item['id'])]),
                                           image=_get_image(json_item))
             playlist_item.set_fanart(self.get_fanart())
+
+            if path == '/user/favorites/me/':
+                context_menu = [contextmenu.create_run_plugin(self.get_plugin(),
+                                                              self.localize('soundcloud.unlike'),
+                                                              ['like/playlist', unicode(json_item['id'])], {'like': '0'})]
+            else:
+                context_menu = [contextmenu.create_run_plugin(self.get_plugin(),
+                                                              self.localize('soundcloud.like'),
+                                                              ['like/playlist', unicode(json_item['id'])], {'like': '1'})]
+
+            playlist_item.set_context_menu(context_menu)
             return playlist_item
         elif kind == 'user':
             username = json_item['username']
