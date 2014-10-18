@@ -112,6 +112,16 @@ class Client(object):
                                      path='e1/me/track_likes/%s' % unicode(track_id),
                                      headers={'Accept': 'application/json'})
 
+    def like_playlist(self, playlist_id, like=True):
+        method = 'PUT'
+        if not like:
+            method = 'DELETE'
+            pass
+
+        return self._perform_request(method=method,
+                                     path='e1/me/playlist_likes/%s' % unicode(playlist_id),
+                                     headers={'Accept': 'application/json'})
+
     def get_favorites(self, me_or_user_id, page=1, per_page=50):
         page = int(page)
         per_page = int(per_page)
@@ -125,6 +135,21 @@ class Client(object):
         self.update_access_token()
         path = self._create_path_based_on_user_id(me_or_user_id, 'favorites')
         return self._perform_request(path=path,
+                                     headers={'Accept': 'application/json'},
+                                     params=params)
+
+    def get_liked_tracks(self, page=1, per_page=50):
+        page = int(page)
+        per_page = int(per_page)
+
+        params = {'limit': str(per_page),
+                  'linked_partitioning': '1'}
+        if page > 1:
+            params['offset'] = str((page - 1) * per_page)
+            pass
+
+        self.update_access_token()
+        return self._perform_request(path='tracks',
                                      headers={'Accept': 'application/json'},
                                      params=params)
 

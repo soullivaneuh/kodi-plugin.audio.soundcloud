@@ -12,6 +12,11 @@ class TestClient(unittest.TestCase):
     def setUp(self):
         pass
 
+    def test_get_liked_tracks(self):
+        client = Client(access_token=self.TOKEN)
+        json_data = client.get_liked_tracks()
+        self.assertGreater(len(json_data), 0)
+
     def test_get_trending(self):
         client = Client()
         json_data = client.get_trending('audio')
