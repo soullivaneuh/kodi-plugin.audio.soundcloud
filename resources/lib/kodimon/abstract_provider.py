@@ -137,6 +137,9 @@ class AbstractProvider(object):
             pass
         pass
 
+    def get_settings(self):
+        return self._plugin.get_settings()
+
     def localize(self, text_id, default_text=None):
         """
         Returns the localized version of the given id. If no localization exists

@@ -15,7 +15,7 @@ def print_items(items):
 
 
 class TestProvider(unittest.TestCase):
-    TOKEN = u'1-21686-117607613-e3c5bfa850da44'
+    TOKEN = u'1-21686-118589874-2e78a9be01d463'
 
     def setUp(self):
         # with login
@@ -25,6 +25,12 @@ class TestProvider(unittest.TestCase):
         settings.set_string(AbstractSettings.LOGIN_PASSWORD, '1234567890')
         settings.set_string(AbstractSettings.ACCESS_TOKEN, self.TOKEN)
         self._provider = Provider(plugin)
+        pass
+
+    def test_get_favorites(self):
+        result = self._provider.navigate('/user/favorites/me/')
+        items = result[0]
+        print_items(items)
         pass
 
     def test_get_follower(self):

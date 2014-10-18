@@ -11,8 +11,12 @@ __author__ = 'bromix'
 
 
 class Provider(kodimon.AbstractProvider):
+    SETTINGS_USER_ID = 'soundcloud.user.id'
+
     def __init__(self, plugin=None):
         kodimon.AbstractProvider.__init__(self, plugin)
+
+        self._user_id = ''
 
         self.set_localization({'soundcloud.explore': 30500,
                                'soundcloud.music.trending': 30501,
@@ -250,7 +254,7 @@ class Provider(kodimon.AbstractProvider):
             pass
 
         json_data = self.call_function_cached(partial(self._client.get_tracks, user_id, page=page),
-                                              seconds=FunctionCache.ONE_MINUTE*10)
+                                              seconds=FunctionCache.ONE_MINUTE * 10)
 
         result.extend(self._do_collection(json_data, path, params))
         return result
@@ -321,8 +325,17 @@ class Provider(kodimon.AbstractProvider):
     @kodimon.RegisterPath('^\/user/favorites\/(?P<user_id>.+)/$')
     def _on_favorites(self, path, params, re_match):
         user_id = re_match.group('user_id')
+
+        # we need a real id for this. We use the API of the app to get
+        # playlists and tracks together. The offiz. API of SoundCloud missing something here (the playlists)
+        if user_id == 'me':
+            json_data = self.call_function_cached(partial(self._client.get_user, 'me'),
+                                                  seconds=FunctionCache.ONE_MINUTE * 30)
+            user_id = json_data['id']
+            pass
+
         page = params.get('page', 1)
-        json_data = self.call_function_cached(partial(self._client.get_favorites, user_id, page=page),
+        json_data = self.call_function_cached(partial(self._client.get_likes, user_id, page=page),
                                               seconds=FunctionCache.ONE_MINUTE * 10)
         return self._do_collection(json_data, path, params)
 
@@ -490,6 +503,17 @@ class Provider(kodimon.AbstractProvider):
             track_item.set_context_menu(context_menu)
 
             return track_item
+        elif kind == 'like':
+            # A like has 'playlist' or 'track' so we find one of them and call this routine again, because the
+            # data is same.
+            test_playlist = json_item.get('playlist', None)
+            if test_playlist is not None:
+                return self._do_item(test_playlist, path)
+
+            test_track = json_item.get('track', None)
+            if test_track is not None:
+                return self._do_item(test_track, path)
+            pass
         elif kind == 'group':
             # at the moment we don't support groups
             """

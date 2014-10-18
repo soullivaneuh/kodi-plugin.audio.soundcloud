@@ -12,10 +12,19 @@ class TestClient(unittest.TestCase):
     def setUp(self):
         pass
 
-    def test_get_liked_tracks(self):
+    def test_get_likes(self):
         client = Client(access_token=self.TOKEN)
-        json_data = client.get_liked_tracks()
+
+        # me
+        json_data = client.get_user('me')
+        user_id = json_data['id']
+        json_data = client.get_likes(user_id)
         self.assertGreater(len(json_data), 0)
+
+        # some user
+        json_data = client.get_likes('520685', page=2)
+        self.assertGreater(len(json_data), 0)
+        pass
 
     def test_get_trending(self):
         client = Client()

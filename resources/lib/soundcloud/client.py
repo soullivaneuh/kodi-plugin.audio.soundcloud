@@ -138,7 +138,7 @@ class Client(object):
                                      headers={'Accept': 'application/json'},
                                      params=params)
 
-    def get_liked_tracks(self, page=1, per_page=50):
+    def get_likes(self, user_id, page=1, per_page=50):
         page = int(page)
         per_page = int(per_page)
 
@@ -146,10 +146,12 @@ class Client(object):
                   'linked_partitioning': '1'}
         if page > 1:
             params['offset'] = str((page - 1) * per_page)
+            params['page_size'] = params['offset']
+            params['page_number'] = unicode(page)
             pass
 
         self.update_access_token()
-        return self._perform_request(path='tracks',
+        return self._perform_request(path='e1/users/%s/likes' % unicode(user_id),
                                      headers={'Accept': 'application/json'},
                                      params=params)
 
