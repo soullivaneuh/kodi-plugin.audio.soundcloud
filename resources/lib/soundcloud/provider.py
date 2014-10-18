@@ -446,11 +446,13 @@ class Provider(kodimon.AbstractProvider):
             playlist_item.set_fanart(self.get_fanart())
             return playlist_item
         elif kind == 'user':
+            username = json_item['username']
             user_id = unicode(json_item['id'])
             if path == '/':
                 user_id = 'me'
+                username = '[B]' + username + '[/B]'
                 pass
-            user_item = DirectoryItem(json_item['username'],
+            user_item = DirectoryItem(username,
                                       self.create_uri(['user/tracks', user_id]),
                                       image=_get_image(json_item))
             user_item.set_fanart(self.get_fanart())
