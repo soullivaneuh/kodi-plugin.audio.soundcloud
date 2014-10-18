@@ -92,7 +92,8 @@ class Client(object):
                                      params=params)
 
     def get_stream(self, page_cursor=None, limit=50):
-        params = {'limit': unicode(limit)}
+        #params = {'limit': unicode(limit)}
+        params = {}
         if page_cursor is not None:
             params['cursor'] = page_cursor
 
@@ -100,11 +101,6 @@ class Client(object):
         return self._perform_request(path='me/activities/tracks/affiliated',
                                      headers={'Accept': 'application/json'},
                                      params=params)
-
-    def get_me_posts(self):
-        self.update_access_token()
-        return self._perform_request(path='me/activities',
-                                     headers={'Accept': 'application/json'})
 
     def like_track(self, track_id, like=True):
         method = 'PUT'
@@ -116,11 +112,21 @@ class Client(object):
                                      path='e1/me/track_likes/%s' % unicode(track_id),
                                      headers={'Accept': 'application/json'})
 
-    def get_favorites(self, me_or_user_id):
+    def get_favorites(self, me_or_user_id, page=1, per_page=50):
+        page = int(page)
+        per_page = int(per_page)
+
+        params = {'limit': str(per_page),
+                  'linked_partitioning': '1'}
+        if page > 1:
+            params['offset'] = str((page - 1) * per_page)
+            pass
+
         self.update_access_token()
         path = self._create_path_based_on_user_id(me_or_user_id, 'favorites')
         return self._perform_request(path=path,
-                                     headers={'Accept': 'application/json'})
+                                     headers={'Accept': 'application/json'},
+                                     params=params)
 
     def follow_user(self, user_id, follow=True):
         method = 'PUT'
@@ -136,29 +142,69 @@ class Client(object):
         return self._perform_request(path='playlists/%s' % unicode(playlist_id),
                                      headers={'Accept': 'application/json'})
 
-    def get_playlists(self, me_or_user_id):
+    def get_playlists(self, me_or_user_id, page=1, per_page=50):
+        page = int(page)
+        per_page = int(per_page)
+
+        params = {'limit': str(per_page),
+                  'linked_partitioning': '1'}
+        if page > 1:
+            params['offset'] = str((page - 1) * per_page)
+            pass
+
         self.update_access_token()
         path = self._create_path_based_on_user_id(me_or_user_id, 'playlists')
         return self._perform_request(path=path,
-                                     headers={'Accept': 'application/json'})
+                                     headers={'Accept': 'application/json'},
+                                     params=params)
 
-    def get_follower(self, me_or_user_id):
+    def get_follower(self, me_or_user_id, page=1, per_page=50):
+        page = int(page)
+        per_page = int(per_page)
+
+        params = {'limit': str(per_page),
+                  'linked_partitioning': '1'}
+        if page > 1:
+            params['offset'] = str((page - 1) * per_page)
+            pass
+
         self.update_access_token()
         path = self._create_path_based_on_user_id(me_or_user_id, 'followers')
         return self._perform_request(path=path,
-                                     headers={'Accept': 'application/json'})
+                                     headers={'Accept': 'application/json'},
+                                     params=params)
 
-    def get_following(self, me_or_user_id):
+    def get_following(self, me_or_user_id, page=1, per_page=50):
+        page = int(page)
+        per_page = int(per_page)
+
+        params = {'limit': str(per_page),
+                  'linked_partitioning': '1'}
+        if page > 1:
+            params['offset'] = str((page - 1) * per_page)
+            pass
+
         self.update_access_token()
         path = self._create_path_based_on_user_id(me_or_user_id, 'followings')
         return self._perform_request(path=path,
-                                     headers={'Accept': 'application/json'})
+                                     headers={'Accept': 'application/json'},
+                                     params=params)
 
-    def get_tracks(self, me_or_user_id):
+    def get_tracks(self, me_or_user_id, page=1, per_page=50):
+        page = int(page)
+        per_page = int(per_page)
+
+        params = {'limit': str(per_page),
+                  'linked_partitioning': '1'}
+        if page > 1:
+            params['offset'] = str((page - 1) * per_page)
+            pass
+
         self.update_access_token()
         path = self._create_path_based_on_user_id(me_or_user_id, 'tracks')
         return self._perform_request(path=path,
-                                     headers={'Accept': 'application/json'})
+                                     headers={'Accept': 'application/json'},
+                                     params=params)
 
     def get_user(self, me_or_user_id):
         self.update_access_token()

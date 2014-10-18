@@ -1,9 +1,11 @@
-from encodings.punycode import selective_find
 from functools import partial
 import re
+
 from resources.lib.kodimon.helper import FunctionCache
+
 from resources.lib.kodimon import DirectoryItem, AudioItem, constants, KodimonException, contextmenu
 from resources.lib import kodimon
+
 
 __author__ = 'bromix'
 
@@ -219,37 +221,38 @@ class Provider(kodimon.AbstractProvider):
         result = []
 
         user_id = re_match.group('user_id')
+        page = int(params.get('page', 1))
 
-        # playlists
-        playlists_item = DirectoryItem(self.localize('soundcloud.playlists'),
-                                       self.create_uri(['user/playlists', user_id]))
-        playlists_item.set_fanart(self.get_fanart())
-        result.append(playlists_item)
+        if page == 1:
+            # playlists
+            playlists_item = DirectoryItem(self.localize('soundcloud.playlists'),
+                                           self.create_uri(['user/playlists', user_id]))
+            playlists_item.set_fanart(self.get_fanart())
+            result.append(playlists_item)
 
-        # likes
-        likes_item = DirectoryItem(self.localize('soundcloud.likes'),
-                                   self.create_uri(['user/favorites', user_id]))
-        likes_item.set_fanart(self.get_fanart())
-        result.append(likes_item)
+            # likes
+            likes_item = DirectoryItem(self.localize('soundcloud.likes'),
+                                       self.create_uri(['user/favorites', user_id]))
+            likes_item.set_fanart(self.get_fanart())
+            result.append(likes_item)
 
-        # following
-        following_item = DirectoryItem(self.localize('soundcloud.following'),
-                                       self.create_uri(['user/following', user_id]))
-        following_item.set_fanart(self.get_fanart())
-        result.append(following_item)
+            # following
+            following_item = DirectoryItem(self.localize('soundcloud.following'),
+                                           self.create_uri(['user/following', user_id]))
+            following_item.set_fanart(self.get_fanart())
+            result.append(following_item)
 
-        # follower
-        follower_item = DirectoryItem(self.localize('soundcloud.follower'),
-                                      self.create_uri(['user/follower', user_id]))
-        follower_item.set_fanart(self.get_fanart())
-        result.append(follower_item)
-
-        json_data = self.call_function_cached(partial(self._client.get_tracks, user_id),
-                                              seconds=FunctionCache.ONE_MINUTE)
-        for json_item in json_data:
-            result.append(self._do_item(json_item, path))
+            # follower
+            follower_item = DirectoryItem(self.localize('soundcloud.follower'),
+                                          self.create_uri(['user/follower', user_id]))
+            follower_item.set_fanart(self.get_fanart())
+            result.append(follower_item)
             pass
 
+        json_data = self.call_function_cached(partial(self._client.get_tracks, user_id, page=page),
+                                              seconds=FunctionCache.ONE_MINUTE*10)
+
+        result.extend(self._do_collection(json_data, path, params))
         return result
 
     @kodimon.RegisterPath('^\/playlist\/(?P<playlist_id>.+)/$')
@@ -274,40 +277,27 @@ class Provider(kodimon.AbstractProvider):
 
     @kodimon.RegisterPath('^\/user/playlists\/(?P<user_id>.+)/$')
     def _on_playlists(self, path, params, re_match):
-        result = []
-
         user_id = re_match.group('user_id')
-        json_data = self.call_function_cached(partial(self._client.get_playlists, user_id),
+        page = params.get('page', 1)
+        json_data = self.call_function_cached(partial(self._client.get_playlists, user_id, page=page),
                                               seconds=FunctionCache.ONE_MINUTE)
-        for json_item in json_data:
-            result.append(self._do_item(json_item, path))
-            pass
-
-        return result
+        return self._do_collection(json_data, path, params)
 
     @kodimon.RegisterPath('^\/user/following\/(?P<user_id>.+)/$')
     def _on_following(self, path, params, re_match):
-        result = []
-
         user_id = re_match.group('user_id')
-        json_data = self._client.get_following(user_id)
-        for json_item in json_data:
-            result.append(self._do_item(json_item, path))
-            pass
-
-        return result
+        page = params.get('page', 1)
+        json_data = self.call_function_cached(partial(self._client.get_following, user_id, page=page),
+                                              seconds=FunctionCache.ONE_MINUTE)
+        return self._do_collection(json_data, path, params)
 
     @kodimon.RegisterPath('^\/user/follower\/(?P<user_id>.+)/$')
     def _on_follower(self, path, params, re_match):
-        result = []
-
         user_id = re_match.group('user_id')
-        json_data = self._client.get_follower(user_id)
-        for json_item in json_data:
-            result.append(self._do_item(json_item, path))
-            pass
-
-        return result
+        page = params.get('page', 1)
+        json_data = self.call_function_cached(partial(self._client.get_follower, user_id, page=page),
+                                              seconds=FunctionCache.ONE_MINUTE)
+        return self._do_collection(json_data, path, params)
 
     @kodimon.RegisterPath('^\/follow\/(?P<user_id>.+)/$')
     def _on_follow(self, path, params, re_match):
@@ -330,15 +320,11 @@ class Provider(kodimon.AbstractProvider):
 
     @kodimon.RegisterPath('^\/user/favorites\/(?P<user_id>.+)/$')
     def _on_favorites(self, path, params, re_match):
-        result = []
-
         user_id = re_match.group('user_id')
-        json_data = self._client.get_favorites(user_id)
-        for json_item in json_data:
-            result.append(self._do_item(json_item, path))
-            pass
-
-        return result
+        page = params.get('page', 1)
+        json_data = self.call_function_cached(partial(self._client.get_favorites, user_id, page=page),
+                                              seconds=FunctionCache.ONE_MINUTE * 10)
+        return self._do_collection(json_data, path, params)
 
     def on_search(self, search_text, path, params, re_match):
         page = params.get('page', 1)
@@ -402,7 +388,10 @@ class Provider(kodimon.AbstractProvider):
         for collection_item in collection:
             # test if we have an 'origin' tag. If so we are in the activities
             item = collection_item.get('origin', collection_item)
-            result.append(self._do_item(item, path))
+            base_item = self._do_item(item, path)
+            if base_item is not None:
+                result.append(base_item)
+                pass
             pass
 
         # test for next page
@@ -502,9 +491,13 @@ class Provider(kodimon.AbstractProvider):
 
             return track_item
         elif kind == 'group':
+            # at the moment we don't support groups
+            """
             group_item = DirectoryItem('Group-Dummy',
                                        '')
             return group_item
+            """
+            return None
 
         raise KodimonException("Unknown kind of item '%s'" % kind)
 
