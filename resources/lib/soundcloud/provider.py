@@ -227,28 +227,36 @@ class Provider(kodimon.AbstractProvider):
         user_id = re_match.group('user_id')
         page = int(params.get('page', 1))
 
+        json_data = self.call_function_cached(partial(self._client.get_user, user_id), seconds=FunctionCache.ONE_DAY)
+        user_image = json_data.get('avatar_url', '')
+        user_image = self._get_hires_image(user_image)
+
         if page == 1:
             # playlists
             playlists_item = DirectoryItem(self.localize('soundcloud.playlists'),
-                                           self.create_uri(['user/playlists', user_id]))
+                                           self.create_uri(['user/playlists', user_id]),
+                                           image=user_image)
             playlists_item.set_fanart(self.get_fanart())
             result.append(playlists_item)
 
             # likes
             likes_item = DirectoryItem(self.localize('soundcloud.likes'),
-                                       self.create_uri(['user/favorites', user_id]))
+                                       self.create_uri(['user/favorites', user_id]),
+                                       image=user_image)
             likes_item.set_fanart(self.get_fanart())
             result.append(likes_item)
 
             # following
             following_item = DirectoryItem(self.localize('soundcloud.following'),
-                                           self.create_uri(['user/following', user_id]))
+                                           self.create_uri(['user/following', user_id]),
+                                           image=user_image)
             following_item.set_fanart(self.get_fanart())
             result.append(following_item)
 
             # follower
             follower_item = DirectoryItem(self.localize('soundcloud.follower'),
-                                          self.create_uri(['user/follower', user_id]))
+                                          self.create_uri(['user/follower', user_id]),
+                                          image=user_image)
             follower_item.set_fanart(self.get_fanart())
             result.append(follower_item)
             pass
