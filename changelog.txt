@@ -1,3 +1,6 @@
+1.0.0~alpha8 (2014-10-19)
+FIX: possible crash while accessing non existing folders
+
 1.0.0~alpha7 (2014-10-18)
 ADD: pagination for stream, playlists, likes, etc.
 FIX: playlist, likes, follower and following are working again
