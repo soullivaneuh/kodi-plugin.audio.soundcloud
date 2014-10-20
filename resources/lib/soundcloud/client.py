@@ -1,12 +1,11 @@
-import json
-import urllib
-import urllib2
-import urlparse
-from resources.lib.soundcloud.requests.api import post
-
 __author__ = 'bromix'
 
-import requests
+try:
+    # this only because of xbmc!
+    import requests2 as requests
+except ImportError:
+    import requests
+    pass
 
 
 class Client(object):
@@ -14,6 +13,8 @@ class Client(object):
     CLIENT_SECRET = '26a5240f7ee0ee2d4fa9956ed80616c2'
 
     def __init__(self, username='', password='', access_token='', client_id='', client_secret=''):
+        #requests.packages.urllib3.disable_warnings()
+
         self._username = username
         self._password = password
         self._access_token = access_token
