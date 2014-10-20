@@ -1,5 +1,5 @@
-1.0.0~beta1 (2014-10-20)
-UPD: removed 'requests' in favor of 'script.module.requests2'
+1.0.0~beta3 (2014-10-20)
+UPD: removed 'requests' in favor of 'script.module.requests'
 
 1.0.0~alpha8 (2014-10-19)
 FIX: possible crash while accessing non existing folders
