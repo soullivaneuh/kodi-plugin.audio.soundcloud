@@ -294,7 +294,7 @@ class Client(object):
         return result.json()
 
     def update_access_token(self):
-        if not self._access_token and self._username and self._password:
+        if self._username and self._password:
             post_data = {'grant_type': 'password',
                          'client_id': self._client_id,
                          'client_secret': self._client_secret,
@@ -304,8 +304,8 @@ class Client(object):
 
             json_data = self._perform_request(method='POST', path='oauth2/token', post_data=post_data)
             self._access_token = json_data.get('access_token', None)
-            pass
+            return self._access_token
 
-        return self._access_token
+        return ''
 
     pass

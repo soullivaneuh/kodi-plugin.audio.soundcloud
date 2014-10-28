@@ -16,8 +16,7 @@ class Provider(kodimon.AbstractProvider):
     def __init__(self, plugin=None):
         kodimon.AbstractProvider.__init__(self, plugin)
 
-        self._user_id = ''
-
+        self._is_logged_in = False
         self.set_localization({'soundcloud.explore': 30500,
                                'soundcloud.music.trending': 30501,
                                'soundcloud.audio.trending': 30502,
@@ -36,21 +35,21 @@ class Provider(kodimon.AbstractProvider):
                                'soundcloud.people': 30515, })
 
         from resources.lib import soundcloud
+        access_manager = self.get_access_manager()
+        if access_manager.has_login_credentials():
+            username, password = access_manager.get_login_credentials()
+            access_token = access_manager.get_access_token()
 
-        if self.has_login_credentials():
-            username, password = self.get_login_credentials()
-            access_token = self.get_access_token()
-
-            refresh_token = self.is_new_login_credential()
-            if refresh_token:
+            # reset the access_token if the credentials have changed
+            if access_manager.is_new_login_credential():
                 access_token = ''
+                self._client = soundcloud.Client(username=username, password=password)
+                access_token = self._client.update_access_token()
+                access_manager.update_access_token(access_token)
                 pass
 
+            self._is_logged_in = access_token != ''
             self._client = soundcloud.Client(username=username, password=password, access_token=access_token)
-
-            # create a new access_token and store it!
-            access_token = self._client.update_access_token()
-            self.update_access_token(access_token)
         else:
             self._client = soundcloud.Client()
         pass
@@ -356,9 +355,7 @@ class Provider(kodimon.AbstractProvider):
         result = []
 
         # is logged in?
-        is_logged_in = self._is_logged_in()
-
-        if is_logged_in:
+        if self._is_logged_in:
             # track
             json_data = self._client.get_user('me')
             me_item = self._do_item(json_data, path)
@@ -385,12 +382,6 @@ class Provider(kodimon.AbstractProvider):
         result.append(explore_item)
 
         return result
-
-    def _is_logged_in(self):
-        access_token = self.get_access_token()
-        access_token_client = self._client.get_access_token()
-
-        return access_token != '' and access_token_client != '' and access_token == access_token_client
 
     def _do_collection(self, json_data, path, params):
         self.set_content_type(constants.CONTENT_TYPE_SONGS)

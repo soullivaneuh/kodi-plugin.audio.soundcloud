@@ -1,6 +1,7 @@
 import hashlib
 import os
 import re
+import time
 
 
 class AbstractProvider(object):
@@ -406,7 +407,13 @@ class AbstractProvider(object):
             result, text = input.on_keyboard_input(self.localize(self.LOCAL_SEARCH_TITLE))
             if result:
                 self._search.update(text)
-                return self.on_search(text, path, params, re_match)
+
+                # we adjust the path and params as would it be a normal query
+                new_path = self.PATH_SEARCH+'/query/'
+                new_params = {}
+                new_params.update(params)
+                new_params['q'] = text
+                return self.on_search(text, new_path, new_params, re_match)
             pass
         elif command == 'remove':
             query = params['q']
@@ -466,73 +473,12 @@ class AbstractProvider(object):
 
         return create_plugin_uri(self._plugin, path, params)
 
-    def has_login_credentials(self):
+    def get_access_manager(self):
         """
-        Returns True if we have a username and password.
-        :return: True if username and password exists
+        Returns an AccessManager to help with credentials and access_tokens
+        :return: AccessManager
         """
-        from abstract_settings import AbstractSettings
-
-        settings = self.get_plugin().get_settings()
-        username = settings.get_string(AbstractSettings.LOGIN_USERNAME, '')
-        password = settings.get_string(AbstractSettings.LOGIN_PASSWORD, '')
-        return username != '' and password != ''
-
-    def get_login_credentials(self):
-        """
-        Returns the username and password (Tuple)
-        :return: (username, password)
-        """
-        from abstract_settings import AbstractSettings
-
-        settings = self.get_plugin().get_settings()
-        username = settings.get_string(AbstractSettings.LOGIN_USERNAME, '')
-        password = settings.get_string(AbstractSettings.LOGIN_PASSWORD, '')
-        return username, password
-
-    def is_new_login_credential(self, update_hash=True):
-        """
-        Returns True if username or/and password are new.
-        :return:
-        """
-        from abstract_settings import AbstractSettings
-
-        settings = self.get_plugin().get_settings()
-        username = settings.get_string(AbstractSettings.LOGIN_USERNAME, '')
-        password = settings.get_string(AbstractSettings.LOGIN_PASSWORD, '')
-
-        m = hashlib.md5()
-        m.update(username.encode('utf-8')+password.encode('utf-8'))
-        current_hash = m.hexdigest()
-        old_hash = settings.get_string(AbstractSettings.LOGIN_HASH, '')
-        if current_hash != old_hash:
-            if update_hash:
-                settings.set_string(AbstractSettings.LOGIN_HASH, current_hash)
-                pass
-            return True
-
-        return False
-
-    def get_access_token(self):
-        """
-        Returns the access token for some API
-        :return: access_token
-        """
-        from abstract_settings import AbstractSettings
-
-        settings = self.get_plugin().get_settings()
-        return settings.get_string(AbstractSettings.ACCESS_TOKEN, '')
-
-    def update_access_token(self, access_token):
-        """
-        Updates the old access token with the new one.
-        :param access_token:
-        :return:
-        """
-        from abstract_settings import AbstractSettings
-
-        settings = self.get_plugin().get_settings()
-        settings.set_string(AbstractSettings.ACCESS_TOKEN, access_token)
-        pass
+        from helper import AccessManager
+        return AccessManager(self._plugin.get_settings())
 
     pass

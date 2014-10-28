@@ -1,3 +1,6 @@
+1.0.0~beta4 (2014-10-28)
+UPD: using AccessManager of Kodimon
+
 1.0.0~beta3 (2014-10-20)
 UPD: removed 'requests' in favor of 'script.module.requests'
 
