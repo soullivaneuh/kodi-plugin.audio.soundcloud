@@ -174,25 +174,29 @@ class Provider(kodimon.AbstractProvider):
 
         # trending music
         music_trending_item = DirectoryItem(self.localize('soundcloud.music.trending'),
-                                            self.create_uri(['explore', 'trending', 'music']))
+                                            self.create_uri(['explore', 'trending', 'music']),
+                                            image=self.create_resource_path('media', 'music.png'))
         music_trending_item.set_fanart(self.get_fanart())
         result.append(music_trending_item)
 
         # trending audio
         audio_trending_item = DirectoryItem(self.localize('soundcloud.audio.trending'),
-                                            self.create_uri(['explore', 'trending', 'audio']))
+                                            self.create_uri(['explore', 'trending', 'audio']),
+                                            image=self.create_resource_path('media', 'audio.png'))
         audio_trending_item.set_fanart(self.get_fanart())
         result.append(audio_trending_item)
 
         # genre music
         music_genre_item = DirectoryItem(self.localize('soundcloud.music.genre'),
-                                         self.create_uri(['explore', 'genre', 'music']))
+                                         self.create_uri(['explore', 'genre', 'music']),
+                                         image=self.create_resource_path('media', 'music.png'))
         music_genre_item.set_fanart(self.get_fanart())
         result.append(music_genre_item)
 
         # genre audio
         audio_genre_item = DirectoryItem(self.localize('soundcloud.audio.genre'),
-                                         self.create_uri(['explore', 'genre', 'audio']))
+                                         self.create_uri(['explore', 'genre', 'audio']),
+                                         image=self.create_resource_path('media', 'audio.png'))
         audio_genre_item.set_fanart(self.get_fanart())
         result.append(audio_genre_item)
 
