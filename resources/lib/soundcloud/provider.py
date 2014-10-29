@@ -449,7 +449,7 @@ class Provider(kodimon.AbstractProvider):
         return result
 
     def _get_hires_image(self, url):
-        return re.sub('(.*)(-large.jpg\.*)(\?.*)?', r'\1-t500x500.jpg', url)
+        return re.sub('(.*)(-large.jpg\.*)(\?.*)?', r'\1-t300x300.jpg', url)
 
     def _do_item(self, json_item, path):
         def _get_track_year(collection_item_json):
