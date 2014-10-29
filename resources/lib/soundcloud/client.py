@@ -1,9 +1,11 @@
+from resources.lib.kodimon import KodimonException
+
 __author__ = 'bromix'
 
 import requests
 
 
-class ClientException(Exception):
+class ClientException(KodimonException):
     def __init__(self, status_code, *args, **kwargs):
         Exception.__init__(self, *args, **kwargs)
         self._status_code = status_code

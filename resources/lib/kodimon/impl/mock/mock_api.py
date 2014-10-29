@@ -9,9 +9,9 @@ def run(provider):
     results = None
     try:
         results = provider.navigate(plugin.get_path(), plugin.get_params())
-    except Exception, ex:
+    except KodimonException, ex:
         if provider.handle_exception(ex):
-            log(ex.__str__(), constants.LOG_ERROR)
+            provider.log(ex.message, constants.LOG_ERROR)
             pass
         return
 

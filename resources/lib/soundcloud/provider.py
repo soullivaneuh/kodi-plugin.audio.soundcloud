@@ -41,12 +41,11 @@ class Provider(kodimon.AbstractProvider):
         if self._client is not None:
             return self._client
 
+        from resources.lib import soundcloud
         access_manager = self.get_access_manager()
         if access_manager.has_login_credentials():
             username, password = access_manager.get_login_credentials()
             access_token = access_manager.get_access_token()
-
-            from resources.lib import soundcloud
 
             # new credentials of no access_token
             if access_manager.is_new_login_credential() or not access_token:
