@@ -355,7 +355,8 @@ class Provider(kodimon.AbstractProvider):
             people_params.update(params)
             people_params['category'] = 'people'
             people_item = DirectoryItem(self.localize('soundcloud.people'),
-                                        self.create_uri(path, people_params))
+                                        self.create_uri(path, people_params),
+                                        image=self.create_resource_path('media', 'users.png'))
             people_item.set_fanart(self.get_fanart())
             result.append(people_item)
 
@@ -363,7 +364,8 @@ class Provider(kodimon.AbstractProvider):
             playlist_params.update(params)
             playlist_params['category'] = 'sets'
             playlist_item = DirectoryItem(self.localize('soundcloud.playlists'),
-                                        self.create_uri(path, playlist_params))
+                                        self.create_uri(path, playlist_params),
+                                        image=self.create_resource_path('media', 'playlists.png'))
             playlist_item.set_fanart(self.get_fanart())
             result.append(playlist_item)
             pass
@@ -449,7 +451,7 @@ class Provider(kodimon.AbstractProvider):
         return result
 
     def _get_hires_image(self, url):
-        return re.sub('(.*)(-large.jpg\.*)(\?.*)?', r'\1-t300x300.jpg', url)
+        return re.sub('(.*)(-large.jpg\.*)(\?.*)?', r'\1-t500x500.jpg', url)
 
     def _do_item(self, json_item, path):
         def _get_track_year(collection_item_json):
