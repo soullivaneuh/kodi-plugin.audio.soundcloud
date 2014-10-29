@@ -102,7 +102,6 @@ class Client(object):
         if page_cursor is not None:
             params['cursor'] = page_cursor
 
-        self.update_access_token()
         return self._perform_request(path='me/activities/tracks/affiliated',
                                      headers={'Accept': 'application/json'},
                                      params=params)
@@ -137,7 +136,6 @@ class Client(object):
             params['offset'] = str((page - 1) * per_page)
             pass
 
-        self.update_access_token()
         path = self._create_path_based_on_user_id(me_or_user_id, 'favorites')
         return self._perform_request(path=path,
                                      headers={'Accept': 'application/json'},
@@ -155,7 +153,6 @@ class Client(object):
             params['page_number'] = unicode(page)
             pass
 
-        self.update_access_token()
         return self._perform_request(path='e1/users/%s/likes' % unicode(user_id),
                                      headers={'Accept': 'application/json'},
                                      params=params)
@@ -184,7 +181,6 @@ class Client(object):
             params['offset'] = str((page - 1) * per_page)
             pass
 
-        self.update_access_token()
         path = self._create_path_based_on_user_id(me_or_user_id, 'playlists')
         return self._perform_request(path=path,
                                      headers={'Accept': 'application/json'},
@@ -200,7 +196,6 @@ class Client(object):
             params['offset'] = str((page - 1) * per_page)
             pass
 
-        self.update_access_token()
         path = self._create_path_based_on_user_id(me_or_user_id, 'followers')
         return self._perform_request(path=path,
                                      headers={'Accept': 'application/json'},
@@ -216,7 +211,6 @@ class Client(object):
             params['offset'] = str((page - 1) * per_page)
             pass
 
-        self.update_access_token()
         path = self._create_path_based_on_user_id(me_or_user_id, 'followings')
         return self._perform_request(path=path,
                                      headers={'Accept': 'application/json'},
@@ -232,7 +226,6 @@ class Client(object):
             params['offset'] = str((page - 1) * per_page)
             pass
 
-        self.update_access_token()
         path = self._create_path_based_on_user_id(me_or_user_id, 'tracks')
         return self._perform_request(path=path,
                                      headers={'Accept': 'application/json'},
@@ -294,7 +287,7 @@ class Client(object):
         return result.json()
 
     def update_access_token(self):
-        if self._username and self._password:
+        if not self._access_token and self._username and self._password:
             post_data = {'grant_type': 'password',
                          'client_id': self._client_id,
                          'client_secret': self._client_secret,
