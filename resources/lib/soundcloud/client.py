@@ -3,6 +3,18 @@ __author__ = 'bromix'
 import requests
 
 
+class ClientException(Exception):
+    def __init__(self, status_code, *args, **kwargs):
+        Exception.__init__(self, *args, **kwargs)
+        self._status_code = status_code
+        pass
+
+    def get_status_code(self):
+        return self._status_code
+
+    pass
+
+
 class Client(object):
     CLIENT_ID = '40ccfee680a844780a41fbe23ea89934'
     CLIENT_SECRET = '26a5240f7ee0ee2d4fa9956ed80616c2'
@@ -283,6 +295,9 @@ class Client(object):
 
         if result is None:
             return {}
+
+        if result.status_code == requests.codes.unauthorized:
+            raise ClientException(status_code=result.status_code)
 
         return result.json()
 

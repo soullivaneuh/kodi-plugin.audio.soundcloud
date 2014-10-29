@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import re
+from resources.lib.soundcloud.client import ClientException
 
 __author__ = 'bromix'
 
@@ -9,8 +10,16 @@ from resources.lib.soundcloud import Client
 
 class TestClient(unittest.TestCase):
     TOKEN = u'1-21686-118589874-262b20fc160e44'
+    FALSE_TOKEN = u'1-21686-118589874-262b20fc160e456'
 
     def setUp(self):
+        pass
+
+    def test_false_token(self):
+        client = Client(access_token=self.FALSE_TOKEN)
+
+        # me
+        self.assertRaises(ClientException, client.get_user, 'me')
         pass
 
     def test_cursor(self):

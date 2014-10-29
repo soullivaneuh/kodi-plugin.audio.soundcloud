@@ -11,12 +11,13 @@ def run(provider):
     results = None
     try:
         results = provider.navigate(plugin.get_path(), plugin.get_params())
-    except KodimonException, ex:
-        from ... import constants
-
-        log(ex[0], constants.LOG_ERROR)
-        xbmcgui.Dialog().ok("Exception in ContentProvider", ex.__str__())
-        pass
+    except Exception, ex:
+        if provider.handle_exception(ex):
+            from ... import constants
+            log(ex.__str__(), constants.LOG_ERROR)
+            xbmcgui.Dialog().ok("Exception in ContentProvider", ex.__str__())
+            pass
+        return
 
     result = results[0]
     options = {}

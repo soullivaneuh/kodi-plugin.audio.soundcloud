@@ -52,6 +52,9 @@ class AbstractPlugin(object):
     def get_native_path(self):
         raise NotImplementedError()
 
+    def get_icon(self):
+        return os.path.join(self.get_native_path(), 'icon.png')
+
     def get_fanart(self):
         return os.path.join(self.get_native_path(), 'fanart.jpg')
 

@@ -457,12 +457,18 @@ class AbstractProvider(object):
 
         return False
 
+    def handle_exception(self, exception_to_handle):
+        return True
+
     def refresh_container(self):
         """
         Needs to be implemented by a mock for testing or the real deal.
         This will refresh the current container or list.
         :return:
         """
+        raise NotImplementedError()
+
+    def show_notification(self, message, header='', image_uri='', time_milliseconds=5000):
         raise NotImplementedError()
 
     def create_resource_path(self, *args):
