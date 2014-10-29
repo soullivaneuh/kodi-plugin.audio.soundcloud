@@ -363,7 +363,8 @@ class Provider(kodimon.AbstractProvider):
 
             # stream
             stream_item = DirectoryItem(self.localize('soundcloud.stream'),
-                                        self.create_uri(['stream']))
+                                        self.create_uri(['stream']),
+                                        image=self.create_resource_path('media', 'stream.png'))
             stream_item.set_fanart(self.get_fanart())
             result.append(stream_item)
             pass
@@ -377,7 +378,8 @@ class Provider(kodimon.AbstractProvider):
 
         # explore
         explore_item = DirectoryItem(self.localize('soundcloud.explore'),
-                                     self.create_uri('explore'))
+                                     self.create_uri('explore'),
+                                     image=self.create_resource_path('media', 'explore.png'))
         explore_item.set_fanart(self.get_fanart())
         result.append(explore_item)
 
