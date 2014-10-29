@@ -1,3 +1,7 @@
+1.0.0 (2014-10-29)
+UPD: removed beta status
+UPD: changed addon to from 'plugin.audio.bromix.soundcloud' to 'plugin.audio.soundcloud'
+
 1.0.0~beta4 (2014-10-29)
 FIX: client was always requesting a new token
 UPD: using AccessManager of Kodimon
