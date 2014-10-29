@@ -19,6 +19,6 @@
 		<forum></forum>
 		<website>http://www.soundcloud.com/</website>
 		<email>bromix at gmx dot net</email>
-		<source>https://github.com/bromix/plugin.audio.bromix.soundcloud</source>
+		<source>https://github.com/bromix/plugin.audio.soundcloud</source>
 	</extension>
 </addon>
