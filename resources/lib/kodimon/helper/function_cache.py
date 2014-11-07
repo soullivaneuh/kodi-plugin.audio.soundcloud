@@ -1,3 +1,4 @@
+from functools import partial
 import hashlib
 import datetime
 
@@ -46,7 +47,25 @@ class FunctionCache(Storage):
         m.update(str(partial_func.keywords))
         return m.hexdigest()
 
-    def get(self, partial_func, seconds=ONE_DAY, return_cached_only=False):
+    def _get_cached_data(self, partial_func):
+        cache_id = self._create_id_from_func(partial_func)
+        return self._get(cache_id), cache_id
+
+    def get_cached_only(self, func, *args, **keywords):
+        partial_func = partial(func, *args, **keywords)
+
+        # if caching is disabled call the function
+        if not self._enabled:
+            return partial_func()
+
+        # only return before cached data
+        data, cache_id = self._get_cached_data(partial_func)
+        if data is not None:
+            return data[0]
+
+        return None
+
+    def get(self, seconds, func, *args, **keywords):
         """
         Returns the cached data of the given function.
         :param partial_func: function to cache
@@ -55,22 +74,19 @@ class FunctionCache(Storage):
         :return:
         """
 
+        partial_func = partial(func, *args, **keywords)
+
         # if caching is disabled call the function
         if not self._enabled:
             return partial_func()
 
-        cache_id = self._create_id_from_func(partial_func)
-        data = self._get(cache_id)
-
         cached_data = None
         cached_time = None
+        data, cache_id = self._get_cached_data(partial_func)
         if data is not None:
             cached_data = data[0]
             cached_time = data[1]
             pass
-
-        if return_cached_only:
-            return cached_data
 
         diff = -1
         now = datetime.datetime.now()

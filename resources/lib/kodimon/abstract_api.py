@@ -2,31 +2,19 @@ import json
 import urllib
 import re
 
-"""
-Abstract declaration of global methods. The methods must be implemented and will
-be overridden by the import of the implementation.
-
-This prevents us from forgetting to write methods in the implementation.
-"""
-
-
 def debug_here():
     """
-    For debugging at a particular position in your plugin call this method.
-    :return:
+    Call this method at a position in your code where you want to start debugging.
     """
     import pydevd
-
     pydevd.settrace('localhost', stdoutToServer=True, stderrToServer=True)
     pass
 
 
 def run(provider):
     """
-    Needs to be implemented by a mock for testing or the real deal.
-    This will execute the provider and pipe the content to kodi.
+    Must be implemented.
     :param provider:
-    :return:
     """
     raise NotImplementedError()
 
@@ -122,17 +110,17 @@ def sort_items_by_name(content_items=None, reverse=False):
     return sorted(content_items, key=_sort, reverse=reverse)
 
 
-def sort_items_by_info_label(content_items, info_type, reverse=False):
+def sort_items_by_info(content_items, info, reverse=False):
     """
     Sort the list of item based on the given info label.
     :param content_items:
-    :param info_type:
+    :param info:
     :param reverse:
     :return:
     """
 
     def _sort(item):
-        return item.get_info(info_type)
+        return item.get_info().get(info, u'')
 
     sorted_list = sorted(content_items, key=_sort, reverse=reverse)
     return sorted_list
@@ -234,9 +222,9 @@ def create_uri_path(*args):
             pass
         return _path
 
-    def _process_string(str):
-        str = str.replace('\\', '/')
-        return _process_list(str.split('/'))
+    def _process_string(_str):
+        _str = _str.replace('\\', '/')
+        return _process_list(_str.split('/'))
 
     path = []
     for arg in args:

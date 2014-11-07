@@ -2,6 +2,36 @@ import xbmc
 import xbmcgui
 import xbmcplugin
 
+"""
+BASE
+INFO_DATE = ('date', unicode) (CONVERT)
+
+AUDIO
+INFO_DURATION = ('duration', int)
+INFO_TRACKNUMBER = ('tracknumber', int) (CONVERT)
+INFO_YEAR = ('year', int)
+INFO_GENRE = ('genre', unicode)
+INFO_ALBUM = ('album', unicode)
+INFO_ARTIST = ('artist', unicode)
+INFO_TITLE = ('title', unicode)
+INFO_RATING = ('rating', unicode) (CONVERT)
+
+VIDEO
+INFO_GENRE = ('genre', unicode)
+INFO_AIRED = ('aired', unicode)
+INFO_DURATION = ('duration', unicode) (CONVERT)
+INFO_DIRECTOR = ('director', unicode)
+INFO_PREMIERED = ('premiered', unicode)
+INFO_EPISODE = ('episode', int)
+INFO_SEASON = ('season', int)
+INFO_YEAR = ('year', int)
+INFO_PLOT = ('plot', unicode)
+INFO_TITLE = ('title', unicode)
+INFO_CODE = ('code', unicode) (CONVERT)
+INFO_CAST = ('cast', list)
+INFO_RATING = ('rating', float)
+"""
+
 
 def run(provider):
     from ... import KodimonException, VideoItem, AudioItem, DirectoryItem, AbstractProvider
@@ -72,6 +102,56 @@ def _set_resolved_url(plugin, base_item, succeeded=True):
             tries-=1
     """
 
+def _item_to_info_labels(base_item):
+    info_labels = {}
+    info_labels.update(base_item.get_info())
+
+    date_string = info_labels.get('date', u'')
+    if date_string:
+        # '2014-11-12' => '12.11.2014'
+        from ...abstract_api import parse_iso_8601
+        date = parse_iso_8601(date_string)
+        date = '%02d.%02d.%04d' % (date['day'], date['month'], date['year'])
+        info_labels['date'] = date
+        pass
+
+    from ...items import AudioItem
+    if isinstance(base_item, AudioItem):
+        # 'track_number' => 'tracknumber'
+        if AudioItem.INFO_TRACK_NUMBER in info_labels:
+            info_labels['tracknumber'] = info_labels[AudioItem.INFO_TRACK_NUMBER]
+            del info_labels[AudioItem.INFO_TRACK_NUMBER]
+            pass
+
+        # 1.0 = '1' (0-5)
+        if AudioItem.INFO_RATING in info_labels:
+            rating = int(base_item.get_rating())
+            if rating > 5:
+                rating = 5
+                pass
+            info_labels['rating'] = '%d' % rating
+            pass
+        pass
+
+    from ...items import VideoItem
+    if isinstance(base_item, VideoItem):
+        # 'imdb_id' => 'code'
+        if VideoItem.INFO_IMDB_ID in info_labels:
+            info_labels['code'] = info_labels[VideoItem.INFO_IMDB_ID]
+            del info_labels[VideoItem.INFO_IMDB_ID]
+            pass
+
+        # 120 => '2:00'
+        duration = base_item.get_duration()
+        if duration:
+            minutes = duration / 60
+            seconds = duration % 60
+            duration = '%02d:%02d' % (minutes, seconds)
+            info_labels['duration'] = duration
+            pass
+        pass
+
+    return info_labels
 
 def _add_directory(plugin, directory_item, item_count=0):
     item = xbmcgui.ListItem(label=directory_item.get_name(),
@@ -115,8 +195,7 @@ def _add_video(plugin, video_item, item_count=0):
 
     item.setProperty(u'IsPlayable', u'true')
 
-    item.setInfo(type=u'video',
-                 infoLabels=video_item.get_info_labels())
+    item.setInfo(type=u'video', infoLabels=_item_to_info_labels(video_item))
 
     xbmcplugin.addDirectoryItem(handle=plugin.get_handle(),
                                 url=video_item.get_uri(),
@@ -143,8 +222,7 @@ def _add_audio(plugin, audio_item, item_count):
 
     item.setProperty(u'IsPlayable', u'true')
 
-    item.setInfo(type=u'music',
-                 infoLabels=audio_item.get_info_labels())
+    item.setInfo(type=u'music', infoLabels=_item_to_info_labels(audio_item))
 
     xbmcplugin.addDirectoryItem(handle=plugin.get_handle(),
                                 url=audio_item.get_uri(),

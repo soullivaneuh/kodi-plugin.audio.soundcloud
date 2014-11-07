@@ -25,9 +25,8 @@ class WatchLaterList(Storage):
             result.append(item)
             pass
 
-        from .. import sort_items_by_info_label, VideoItem
-
-        return sort_items_by_info_label(result, VideoItem.INFO_DATEADDED)
+        from .. import sort_items_by_info, VideoItem
+        return sort_items_by_info(result, VideoItem.INFO_DATE_ADDED)
 
     def add(self, base_item):
         now = datetime.datetime.now()

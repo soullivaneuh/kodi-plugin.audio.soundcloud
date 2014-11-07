@@ -1,8 +1,6 @@
-from functools import partial
 import re
 
 from resources.lib.kodimon.helper import FunctionCache
-
 from resources.lib.kodimon import DirectoryItem, AudioItem, constants, KodimonException, contextmenu
 from resources.lib import kodimon
 from resources.lib.soundcloud.client import ClientException
@@ -42,6 +40,7 @@ class Provider(kodimon.AbstractProvider):
             return self._client
 
         from resources.lib import soundcloud
+
         access_manager = self.get_access_manager()
         if access_manager.has_login_credentials():
             username, password = access_manager.get_login_credentials()
@@ -136,8 +135,8 @@ class Provider(kodimon.AbstractProvider):
         result = []
         category = re_match.group('category')
         page = int(params.get('page', 1))
-        json_data = self.call_function_cached(partial(self.get_client().get_trending, category=category, page=page),
-                                              seconds=FunctionCache.ONE_HOUR)
+        json_data = self.get_function_cache().get(FunctionCache.ONE_HOUR, self.get_client().get_trending,
+                                                  category=category, page=page)
         result = self._do_mobile_collection(json_data, path, params)
 
         return result
@@ -148,7 +147,7 @@ class Provider(kodimon.AbstractProvider):
 
         genre = re_match.group('genre')
         if not genre:
-            json_data = self.call_function_cached(partial(self.get_client().get_categories), seconds=FunctionCache.ONE_DAY)
+            json_data = self.get_function_cache().get(FunctionCache.ONE_DAY, self.get_client().get_categories)
             category = re_match.group('category')
             genres = json_data.get(category, [])
             for genre in genres:
@@ -160,8 +159,8 @@ class Provider(kodimon.AbstractProvider):
                 pass
         else:
             page = int(params.get('page', 1))
-            json_data = self.call_function_cached(partial(self.get_client().get_genre, genre=genre, page=page),
-                                                  seconds=FunctionCache.ONE_HOUR)
+            json_data = self.get_function_cache().get(FunctionCache.ONE_HOUR, self.get_client().get_genre, genre=genre,
+                                                      page=page)
             result = self._do_mobile_collection(json_data, path, params)
             pass
 
@@ -217,7 +216,7 @@ class Provider(kodimon.AbstractProvider):
         user_id = re_match.group('user_id')
         page = int(params.get('page', 1))
 
-        json_data = self.call_function_cached(partial(self.get_client().get_user, user_id), seconds=FunctionCache.ONE_DAY)
+        json_data = self.get_function_cache().get(FunctionCache.ONE_DAY, self.get_client().get_user, user_id)
         user_image = json_data.get('avatar_url', '')
         user_image = self._get_hires_image(user_image)
 
@@ -251,9 +250,8 @@ class Provider(kodimon.AbstractProvider):
             result.append(follower_item)
             pass
 
-        json_data = self.call_function_cached(partial(self.get_client().get_tracks, user_id, page=page),
-                                              seconds=FunctionCache.ONE_MINUTE * 10)
-
+        json_data = self.get_function_cache().get(FunctionCache.ONE_MINUTE * 10, self.get_client().get_tracks, user_id,
+                                                  page=page)
         result.extend(self._do_collection(json_data, path, params))
         return result
 
@@ -262,8 +260,7 @@ class Provider(kodimon.AbstractProvider):
         result = []
 
         playlist_id = re_match.group('playlist_id')
-        json_data = self.call_function_cached(partial(self.get_client().get_playlist, playlist_id),
-                                              seconds=FunctionCache.ONE_MINUTE)
+        json_data = self.get_function_cache().get(FunctionCache.ONE_MINUTE, self.get_client().get_playlist, playlist_id)
         tracks = json_data['tracks']
         track_number = 1
         for track in tracks:
@@ -284,24 +281,24 @@ class Provider(kodimon.AbstractProvider):
     def _on_playlists(self, path, params, re_match):
         user_id = re_match.group('user_id')
         page = params.get('page', 1)
-        json_data = self.call_function_cached(partial(self.get_client().get_playlists, user_id, page=page),
-                                              seconds=FunctionCache.ONE_MINUTE)
+        json_data = self.get_function_cache().get(FunctionCache.ONE_MINUTE, self.get_client().get_playlists, user_id,
+                                                  page=page)
         return self._do_collection(json_data, path, params)
 
     @kodimon.RegisterPath('^\/user/following\/(?P<user_id>.+)/$')
     def _on_following(self, path, params, re_match):
         user_id = re_match.group('user_id')
         page = params.get('page', 1)
-        json_data = self.call_function_cached(partial(self.get_client().get_following, user_id, page=page),
-                                              seconds=FunctionCache.ONE_MINUTE)
+        json_data = self.get_function_cache().get(FunctionCache.ONE_MINUTE, self.get_client().get_following, user_id,
+                                                  page=page)
         return self._do_collection(json_data, path, params)
 
     @kodimon.RegisterPath('^\/user/follower\/(?P<user_id>.+)/$')
     def _on_follower(self, path, params, re_match):
         user_id = re_match.group('user_id')
         page = params.get('page', 1)
-        json_data = self.call_function_cached(partial(self.get_client().get_follower, user_id, page=page),
-                                              seconds=FunctionCache.ONE_MINUTE)
+        json_data = self.get_function_cache().get(FunctionCache.ONE_MINUTE, self.get_client().get_follower, user_id,
+                                                  page=page)
         return self._do_collection(json_data, path, params)
 
     @kodimon.RegisterPath('^\/follow\/(?P<user_id>.+)/$')
@@ -338,8 +335,7 @@ class Provider(kodimon.AbstractProvider):
         # We use an API of th APP, this API only work with an user id. In the case of 'me' we gave to get our own
         # user id to use this function.
         if user_id == 'me':
-            json_data = self.call_function_cached(partial(self.get_client().get_user, 'me'),
-                                                  seconds=FunctionCache.ONE_MINUTE * 10)
+            json_data = self.get_function_cache().get(FunctionCache.ONE_MINUTE * 10, self.get_client().get_user, 'me')
             user_id = json_data['id']
             pass
 
@@ -367,14 +363,14 @@ class Provider(kodimon.AbstractProvider):
             playlist_params.update(params)
             playlist_params['category'] = 'sets'
             playlist_item = DirectoryItem(self.localize('soundcloud.playlists'),
-                                        self.create_uri(path, playlist_params),
-                                        image=self.create_resource_path('media', 'playlists.png'))
+                                          self.create_uri(path, playlist_params),
+                                          image=self.create_resource_path('media', 'playlists.png'))
             playlist_item.set_fanart(self.get_fanart())
             result.append(playlist_item)
             pass
 
-        json_data = self.call_function_cached(partial(self.get_client().search, search_text, category=category, page=page),
-                                              seconds=FunctionCache.ONE_MINUTE)
+        json_data = self.get_function_cache().get(FunctionCache.ONE_MINUTE, self.get_client().search, search_text,
+                                                  category=category, page=page)
         result.extend(self._do_collection(json_data, path, params))
         return result
 
@@ -504,11 +500,13 @@ class Provider(kodimon.AbstractProvider):
             if path == '/user/favorites/me/':
                 context_menu = [contextmenu.create_run_plugin(self.get_plugin(),
                                                               self.localize('soundcloud.unlike'),
-                                                              ['like/playlist', unicode(json_item['id'])], {'like': '0'})]
+                                                              ['like/playlist', unicode(json_item['id'])],
+                                                              {'like': '0'})]
             else:
                 context_menu = [contextmenu.create_run_plugin(self.get_plugin(),
                                                               self.localize('soundcloud.like'),
-                                                              ['like/playlist', unicode(json_item['id'])], {'like': '1'})]
+                                                              ['like/playlist', unicode(json_item['id'])],
+                                                              {'like': '1'})]
 
             playlist_item.set_context_menu(context_menu)
             return playlist_item
@@ -549,7 +547,7 @@ class Provider(kodimon.AbstractProvider):
             track_item.set_genre(json_item.get('genre', ''))
 
             # duration
-            track_item.set_duration_in_milli_seconds(json_item.get('duration', 0))
+            track_item.set_duration_from_milli_seconds(json_item.get('duration', 0))
 
             # artist
             track_item.set_artist_name(json_item.get('user', {}).get('username', ''))

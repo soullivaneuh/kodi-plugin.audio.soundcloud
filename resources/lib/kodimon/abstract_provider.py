@@ -40,7 +40,6 @@ class AbstractProvider(object):
         # if no plugin is given (should be default) we create our own implementation
         if plugin is None:
             from . import Plugin
-
             self._plugin = Plugin()
         else:
             self._plugin = plugin
@@ -103,6 +102,9 @@ class AbstractProvider(object):
                                self.LOCAL_WATCH_LATER_REMOVE: 30108,
                                self.LOCAL_LATEST_VIDEOS: 30109})
         pass
+
+    def get_id(self):
+        return self._plugin.get_id()
 
     def shut_down(self):
         self._search = None
@@ -196,17 +198,6 @@ class AbstractProvider(object):
         :return:
         """
         return self._plugin
-
-    def call_function_cached(self, partial_func, seconds, return_cached_only=False):
-        """
-        Use this method to cache the result of a (partial) given method.
-        :param partial_func:
-        :param seconds: Time to live.
-        :param return_cached_only: if True returns only a cached result without calling the given method.
-        :return:
-        """
-        return self._cache.get(partial_func=partial_func, seconds=seconds,
-                               return_cached_only=return_cached_only)
 
     def set_content_type(self, content_type):
         """
@@ -482,7 +473,6 @@ class AbstractProvider(object):
 
     def create_uri(self, path=None, params=None):
         from . import create_plugin_uri
-
         return create_plugin_uri(self._plugin, path, params)
 
     def get_access_manager(self):
