@@ -1,5 +1,5 @@
-from resources.lib.kodimon.abstract_settings import AbstractSettings
 from resources.lib.kodimon import Plugin
+from resources.lib.kodimon.constants import *
 
 __author__ = 'bromix'
 
@@ -21,9 +21,9 @@ class TestProvider(unittest.TestCase):
         # with login
         plugin = Plugin()
         settings = plugin.get_settings()
-        settings.set_string(AbstractSettings.LOGIN_USERNAME, 'b194139@trbvm.com')
-        settings.set_string(AbstractSettings.LOGIN_PASSWORD, '1234567890')
-        settings.set_string(AbstractSettings.ACCESS_TOKEN, self.TOKEN)
+        settings.set_string(SETTING_LOGIN_USERNAME, 'b194139@trbvm.com')
+        settings.set_string(SETTING_LOGIN_PASSWORD, '1234567890')
+        settings.set_string(SETTING_ACCESS_TOKEN, self.TOKEN)
         self._provider = Provider(plugin)
         pass
 
@@ -123,7 +123,7 @@ class TestProvider(unittest.TestCase):
         provider = Provider()
         plugin = provider.get_plugin()
         settings = plugin.get_settings()
-        settings.set_string(AbstractSettings.LOGIN_USERNAME, '')
+        settings.set_string(SETTING_LOGIN_USERNAME, '')
 
         # without login
         result = provider.navigate('/')
@@ -134,8 +134,8 @@ class TestProvider(unittest.TestCase):
         # with login
         plugin = Plugin()
         settings = plugin.get_settings()
-        settings.set_string(AbstractSettings.LOGIN_USERNAME, 'b194139@trbvm.com')
-        settings.set_string(AbstractSettings.LOGIN_PASSWORD, '1234567890')
+        settings.set_string(SETTING_LOGIN_USERNAME, 'b194139@trbvm.com')
+        settings.set_string(SETTING_LOGIN_PASSWORD, '1234567890')
         provider = Provider(plugin)
         result = provider.navigate('/')
         items = result[0]

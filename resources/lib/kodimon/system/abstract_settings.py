@@ -1,10 +1,7 @@
-class AbstractSettings(object):
-    LOGIN_USERNAME = 'kodimon.login.username'
-    LOGIN_PASSWORD = 'kodimon.login.password'
-    LOGIN_HASH = 'kodimon.login.hash'
-    ACCESS_TOKEN = 'kodimon.access_token'
-    ACCESS_TOKEN_EXPIRES = 'kodimon.access_token.expires'
+from ..constants import *
 
+
+class AbstractSettings(object):
     def __init__(self):
         object.__init__(self)
         pass
@@ -31,6 +28,7 @@ class AbstractSettings(object):
             return converter(int(value))
         except Exception, ex:
             from . import log
+
             log("Failed to get setting '%s' as 'int' (%s)" % setting_id, ex.__str__())
             pass
 
@@ -57,16 +55,14 @@ class AbstractSettings(object):
         return value == 'true'
 
     def get_items_per_page(self):
-        import constants
-        return self.get_int(constants.SETTING_ITEMS_PER_PAGE, 50, lambda x: (x+1)*5)
+        return self.get_int(SETTING_ITEMS_PER_PAGE, 50, lambda x: (x + 1) * 5)
 
     def get_video_quality(self):
-        import constants
         vq_dict = {0: 576,
                    1: 720,
                    2: 1080,
                    3: 2160}
-        vq = self.get_int(constants.SETTING_VIDEO_QUALITY, 1)
+        vq = self.get_int(SETTING_VIDEO_QUALITY, 1)
         return vq_dict[vq]
 
     pass

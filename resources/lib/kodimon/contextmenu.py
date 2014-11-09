@@ -18,9 +18,9 @@ def create_run_plugin(plugin, label, path, params=None):
 
 
 def create_add_to_favs(plugin, label, base_item):
-    from . import item_to_json, AbstractProvider
+    from . import to_json, AbstractProvider
 
-    params = {'item': json.dumps(item_to_json(base_item))}
+    params = {'item': json.dumps(to_json(base_item))}
 
     return create_run_plugin(plugin,
                              label,
@@ -29,9 +29,9 @@ def create_add_to_favs(plugin, label, base_item):
 
 
 def create_remove_from_favs(plugin, label, base_item):
-    from . import item_to_json, AbstractProvider
+    from . import to_json, AbstractProvider
 
-    params = {'item': json.dumps(item_to_json(base_item))}
+    params = {'item': json.dumps(to_json(base_item))}
 
     return create_run_plugin(plugin,
                              label,
@@ -40,9 +40,9 @@ def create_remove_from_favs(plugin, label, base_item):
 
 
 def create_add_to_watch_later(plugin, label, base_item):
-    from . import item_to_json, AbstractProvider
+    from . import to_json, AbstractProvider
 
-    params = {'item': json.dumps(item_to_json(base_item))}
+    params = {'item': json.dumps(to_json(base_item))}
 
     return create_run_plugin(plugin,
                              label,
@@ -51,9 +51,9 @@ def create_add_to_watch_later(plugin, label, base_item):
 
 
 def create_remove_from_watch_later(plugin, label, base_item):
-    from . import item_to_json, AbstractProvider
+    from . import to_json, AbstractProvider
 
-    params = {'item': json.dumps(item_to_json(base_item))}
+    params = {'item': json.dumps(to_json(base_item))}
 
     return create_run_plugin(plugin,
                              label,

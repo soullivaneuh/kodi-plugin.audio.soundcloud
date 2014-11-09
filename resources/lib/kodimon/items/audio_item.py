@@ -1,6 +1,6 @@
 __author__ = 'bromix'
 
-from . import BaseItem
+from .base_item import BaseItem
 
 
 class AudioItem(BaseItem):
@@ -15,63 +15,71 @@ class AudioItem(BaseItem):
 
     def __init__(self, name, uri, image=u'', fanart=u''):
         BaseItem.__init__(self, name, uri, image, fanart)
+        self._duration = None
+        self._track_number = None
+        self._year = None
+        self._genre = None
+        self._album = None
+        self._artist = None
+        self._title = None
+        self._rating = None
         pass
 
     def set_rating(self, rating):
-        self._info_data[self.INFO_RATING] = float(rating)
+        self._rating = float(rating)
         pass
 
     def get_rating(self):
-        return self._info_data.get(self.INFO_RATING, -1.0)
+        return self._rating
 
     def set_title(self, title):
-        self._info_data[self.INFO_TITLE] = title
+        self._title = unicode(title)
         pass
 
     def get_title(self):
-        return self._info_data.get(self.INFO_TITLE, u'')
+        return self._title
 
     def set_artist_name(self, artist_name):
-        self._info_data[self.INFO_ARTIST] = artist_name
+        self._artist = unicode(artist_name)
         pass
 
     def get_artist_name(self):
-        return self._info_data.get(self.INFO_ARTIST, u'')
+        return self._artist
 
     def set_album_name(self, album_name):
-        self._info_data[self.INFO_ALBUM] = album_name
+        self._album = unicode(album_name)
         pass
 
     def get_album_name(self):
-        return self._info_data.get(self.INFO_ALBUM, u'')
+        return self._album
 
     def set_genre(self, genre):
-        self._info_data[self.INFO_GENRE] = genre
+        self._genre = unicode(genre)
         pass
 
     def get_genre(self):
-        return self._info_data.get(self.INFO_GENRE, u'')
+        return self._genre
 
     def set_year(self, year):
-        self._info_data[self.INFO_YEAR] = int(year)
+        self._year = int(year)
         pass
 
     def get_year(self):
-        return self._info_data.get(self.INFO_YEAR, -1)
+        return self._year
 
     def set_track_number(self, track_number):
-        self._info_data[self.INFO_TRACK_NUMBER] = int(track_number)
+        self._track_number = int(track_number)
         pass
 
     def get_track_number(self):
-        return self._info_data.get(self.INFO_TRACK_NUMBER, -1)
+        return self._track_number
 
     def set_duration_from_milli_seconds(self, milli_seconds):
         self.set_duration_from_seconds(int(milli_seconds)/1000)
         pass
 
     def set_duration_from_seconds(self, seconds):
-        self._info_data[self.INFO_DURATION] = int(seconds)
+        self._duration = int(seconds)
         pass
 
     def set_duration_from_minutes(self, minutes):
@@ -79,6 +87,6 @@ class AudioItem(BaseItem):
         pass
 
     def get_duration(self):
-        return self._info_data.get(self.INFO_DURATION, 0)
+        return self._duration
 
     pass

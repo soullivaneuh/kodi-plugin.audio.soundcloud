@@ -1,4 +1,4 @@
-from ...abstract_settings import AbstractSettings
+from ..abstract_settings import AbstractSettings
 
 
 class XbmcPluginSettings(AbstractSettings):

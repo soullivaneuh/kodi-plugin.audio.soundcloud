@@ -5,13 +5,6 @@ import urlparse
 
 class AbstractPlugin(object):
     def __init__(self, plugin_name=None, plugin_id=None):
-        """
-
-        :param plugin_name:
-        :param plugin_id:
-        """
-        object.__init__(self)
-
         self._plugin_name = unicode(plugin_name)
         self._plugin_id = plugin_id
         self._path = None

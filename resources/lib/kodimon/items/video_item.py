@@ -1,6 +1,6 @@
 import re
 
-from . import BaseItem
+from .base_item import BaseItem
 import datetime
 
 
@@ -22,94 +22,106 @@ class VideoItem(BaseItem):
 
     def __init__(self, name, uri, image=u'', fanart=u''):
         BaseItem.__init__(self, name, uri, image, fanart)
+        self._genre = None
+        self._aired = None
+        self._duration = None
+        self._director = None
+        self._premiered = None
+        self._episode = None
+        self._season = None
+        self._year = None
+        self._plot = None
+        self._title = None
+        self._imdb_id = None
+        self._cast = None
+        self._rating = None
+        self._track_number = None
         pass
 
     def set_title(self, title):
-        self._info_data[self.INFO_TITLE] = title
+        self._title = unicode(title)
         pass
 
     def get_title(self):
-        return self._info_data.get(self.INFO_TITLE, u'')
+        return self._title
 
-    def set_date_added(self, year, month, day, hour, minute, second=0):
-        date = datetime.datetime(year, month, day, hour, minute, second)
-        date = date.isoformat(sep=' ')
-        self._info_data[self.INFO_DATE_ADDED] = date
+    def set_track_number(self, track_number):
+        self._track_number = track_number
         pass
 
-    def get_date_added(self):
-        return self._info_data.get(self.INFO_DATE_ADDED, u'')
+    def get_track_number(self):
+        return self._track_number
 
     def set_year(self, year):
-        self._info_data[self.INFO_YEAR] = int(year)
+        self._year = int(year)
         pass
 
     def get_year(self):
-        return self._info_data.get(self.INFO_YEAR, -1)
+        return self._year
 
     def set_premiered(self, year, month, day):
         date = datetime.date(year, month, day)
-        date = date.isoformat()
-        self._info_data[self.INFO_PREMIERED] = date
+        self._premiered =date.isoformat()
         pass
 
     def get_premiered(self):
-        return self._info_data.get(self.INFO_PREMIERED, u'')
+        return self._premiered
 
     def set_plot(self, plot):
-        self._info_data[self.INFO_PLOT] = plot
+        self._plot = unicode(plot)
         pass
 
     def get_plot(self):
-        return self._info_data.get(self.INFO_PLOT, u'')
+        return self._plot
 
     def set_rating(self, rating):
-        self._info_data[self.INFO_RATING] = float(rating)
+        self._rating = float(rating)
         pass
 
     def get_rating(self):
-        return self._info_data.get(self.INFO_RATING, -1.0)
+        return self._rating
 
     def set_director(self, director_name):
-        self._info_data[self.INFO_DIRECTOR] = director_name
+        self._director = unicode(director_name)
         pass
 
     def get_director(self):
-        return self._info_data.get(self.INFO_DIRECTOR, u'')
+        return self._director
 
     def add_cast(self, cast):
-        cast_list = self._info_data.get(self.INFO_CAST, [])
-        cast_list.append(cast)
-        self._info_data[self.INFO_CAST] = cast_list
+        if self._cast is None:
+            self._cast = []
+            pass
+        self._cast.append(cast)
         pass
 
     def get_cast(self):
-        return self._info_data.get(self.INFO_CAST, [])
+        return self._cast
 
     def set_imdb_id(self, url_or_id):
         re_match = re.match('(http\:\/\/)?www.imdb.(com|de)\/title\/(?P<imdbid>[t0-9]+)(\/)?', url_or_id)
         if re_match:
-            self._info_data[self.INFO_IMDB_ID] = re_match.group('imdbid')
+            self._imdb_id = re_match.group('imdbid')
         else:
-            self._info_data[self.INFO_IMDB_ID] = url_or_id
+            self._imdb_id = url_or_id
         pass
 
     def get_imdb_id(self):
-        return self._info_data.get(self.INFO_IMDB_ID, u'')
+        return self._imdb_id
 
     def set_episode(self, episode):
-        self._info_data[self.INFO_EPISODE] = int(episode)
+        self._episode = int(episode)
         pass
 
     def get_episode(self):
-        return self._info_data.get(self.INFO_EPISODE, -1)
+        return self._episode
 
     def set_season(self, season):
-        self._info_data[self.INFO_SEASON] = int(season)
+        self._season = int(season)
         pass
 
     def get_season(self):
-        return self._info_data.get(self.INFO_SEASON, -1)
+        return self._season
 
     def set_duration(self, hours, minutes, seconds=0):
         _seconds = seconds
@@ -123,26 +135,25 @@ class VideoItem(BaseItem):
         pass
 
     def set_duration_from_seconds(self, seconds):
-        self._info_data[self.INFO_DURATION] = seconds
+        self._duration = int(seconds)
         pass
 
     def get_duration(self):
-        return self._info_data.get(self.INFO_DURATION, 0)
+        return self._duration
 
     def set_aired(self, year, month, day):
         date = datetime.date(year, month, day)
-        date = date.isoformat()
-        self._info_data[self.INFO_AIRED] = date
+        self._aired = date.isoformat()
         pass
 
     def get_aired(self):
-        return self._info_data.get(self.INFO_AIRED, u'')
+        return self._aired
 
     def set_genre(self, genre):
-        self._info_data[self.INFO_GENRE] = genre
+        self._genre = unicode(genre)
         pass
 
     def get_genre(self):
-        return self._info_data.get(self.INFO_GENRE, u'')
+        return self._genre
 
     pass

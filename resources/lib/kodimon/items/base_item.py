@@ -5,7 +5,6 @@ import datetime
 class BaseItem(object):
     VERSION = 3
     INFO_DATE = 'date'  # (string) iso 8601
-    #INFO_DATEADDED = ('dateadded', unicode)
 
     def __init__(self, name, uri, image=u'', fanart=u''):
         self._version = BaseItem.VERSION
@@ -14,7 +13,7 @@ class BaseItem(object):
         self._image = image
         self._fanart = fanart
         self._context_menu = None
-        self._info_data = {}
+        self._date = None
         pass
 
     def __str__(self):
@@ -26,9 +25,6 @@ class BaseItem(object):
         obj_str = "------------------------------\n'%s'\nURI: %s\nImage: %s\n------------------------------" % (
             name, uri, self._image)
         return obj_str
-
-    def get_info(self):
-        return self._info_data
 
     def get_id(self):
         """
@@ -75,15 +71,12 @@ class BaseItem(object):
     def get_context_menu(self):
         return self._context_menu
 
-    def set_date(self, year, month, day):
-        date = datetime.date(year, month, day)
-        date = date.isoformat()
-        self._info_data[self.INFO_DATE] = date
+    def set_date(self, year, month, day, hour=0, minute=0, second=0):
+        date = datetime.datetime(year, month, day, hour, minute, second)
+        self._date = date.isoformat(sep=' ')
         pass
 
     def get_date(self):
-        if self.INFO_DATE in self._info_data:
-            return self._info_data[self.INFO_DATE]
-        return u''
+        return self._date
 
     pass

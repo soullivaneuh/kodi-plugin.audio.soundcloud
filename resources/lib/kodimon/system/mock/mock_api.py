@@ -1,5 +1,5 @@
 from ... import constants
-import urlparse
+from .mock_log import log
 
 
 def run(provider):
@@ -33,20 +33,6 @@ def run(provider):
         pass
 
     provider.shut_down()
-    pass
-
-
-def log(text, log_level=2):
-    log_level_2_string = {0: 'DEBUG',
-                          1: 'INFO',
-                          2: 'NOTICE',
-                          3: 'WARNING',
-                          4: 'ERROR',
-                          5: 'SEVERE',
-                          6: 'FATAL',
-                          7: 'NONE'}
-
-    print "[%s] %s" % (log_level_2_string.get(log_level, 'UNKNOWN'), text)
     pass
 
 

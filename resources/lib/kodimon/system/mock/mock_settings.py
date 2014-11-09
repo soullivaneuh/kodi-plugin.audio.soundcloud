@@ -1,4 +1,5 @@
-from ...abstract_settings import AbstractSettings
+from ..abstract_settings import AbstractSettings
+from ...log import *
 
 
 class MockSettings(AbstractSettings):
@@ -16,7 +17,6 @@ class MockSettings(AbstractSettings):
         pass
 
     def open_settings(self):
-        from ... import log
         log("called 'open_settings'")
         pass
 

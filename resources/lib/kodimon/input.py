@@ -1,7 +1,10 @@
 __author__ = 'bromix'
 
+def on_keyboard_input(title, default='', hidden=False):
+    raise NotImplementedError()
+
 try:
-    from .impl.xbmc.xbmc_input import *
+    from .system.xbmc.xbmc_input import *
 except ImportError:
-    from .impl.mock.mock_input import *
+    from .system.mock.mock_input import *
     pass

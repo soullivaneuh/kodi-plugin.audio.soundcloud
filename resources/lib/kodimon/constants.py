@@ -1,14 +1,5 @@
 __author__ = 'bromix'
 
-CONTENT_TYPE_FILES = 'files'
-CONTENT_TYPE_SONGS = 'songs'
-CONTENT_TYPE_ARTISTS = 'artists'
-CONTENT_TYPE_ALBUMS = 'albums'
-CONTENT_TYPE_MOVIES = 'movies'
-CONTENT_TYPE_TVSHOWS = 'tvshows'
-CONTENT_TYPE_EPISODES = 'episodes'
-CONTENT_TYPE_MUSICVIDEOS = 'musicvideos'
-
 LOG_DEBUG = 0
 LOG_INFO = 1
 LOG_NOTICE = 2
@@ -17,6 +8,26 @@ LOG_ERROR = 4
 LOG_SEVERE = 5
 LOG_FATAL = 6
 LOG_NONE = 7
+
+SETTING_SHOW_FANART = 'kodimon.fanart.show'  # (bool)
+SETTING_ITEMS_PER_PAGE = 'kodimon.content.max_per_page'  # (int)
+SETTING_SEARCH_SIZE = 'kodimon.search.size'  # (int)
+SETTING_CACHE_SIZE = 'kodimon.cache.size'  # (int)
+SETTING_VIDEO_QUALITY = 'kodimon.video.quality'  # (int)
+SETTING_LOGIN_USERNAME = 'kodimon.login.username'
+SETTING_LOGIN_PASSWORD = 'kodimon.login.password'
+SETTING_LOGIN_HASH = 'kodimon.login.hash'
+SETTING_ACCESS_TOKEN = 'kodimon.access_token'
+SETTING_ACCESS_TOKEN_EXPIRES = 'kodimon.access_token.expires'
+
+CONTENT_TYPE_FILES = 'files'
+CONTENT_TYPE_SONGS = 'songs'
+CONTENT_TYPE_ARTISTS = 'artists'
+CONTENT_TYPE_ALBUMS = 'albums'
+CONTENT_TYPE_MOVIES = 'movies'
+CONTENT_TYPE_TVSHOWS = 'tvshows'
+CONTENT_TYPE_EPISODES = 'episodes'
+CONTENT_TYPE_MUSICVIDEOS = 'musicvideos'
 
 SORT_METHOD_ALBUM = 13
 SORT_METHOD_ALBUM_IGNORE_THE = 14
@@ -59,9 +70,3 @@ SORT_METHOD_VIDEO_SORT_TITLE = 24
 SORT_METHOD_VIDEO_SORT_TITLE_IGNORE_THE = 25
 SORT_METHOD_VIDEO_TITLE = 23
 SORT_METHOD_VIDEO_YEAR = 17
-
-SETTING_SHOW_FANART = 'kodimon.fanart.show' #(bool)
-SETTING_ITEMS_PER_PAGE = 'kodimon.content.max_per_page' #(int)
-SETTING_SEARCH_SIZE = 'kodimon.search.size' #(int)
-SETTING_CACHE_SIZE = 'kodimon.cache.size' #(int)
-SETTING_VIDEO_QUALITY = 'kodimon.video.quality' #(int)

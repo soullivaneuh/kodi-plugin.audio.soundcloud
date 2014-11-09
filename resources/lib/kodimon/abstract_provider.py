@@ -1,7 +1,8 @@
-import hashlib
 import os
 import re
-import time
+
+from .constants import *
+from .log import *
 
 
 class AbstractProvider(object):
@@ -50,12 +51,12 @@ class AbstractProvider(object):
         import constants
 
         # initialize cache
-        cache_path = os.path.join(self.get_plugin().get_data_path(), u'kodimon')
-        max_cache_size_mb = self.get_plugin().get_settings().get_int(constants.SETTING_CACHE_SIZE, 5)
+        cache_path = os.path.join(self._plugin.get_data_path(), u'kodimon')
+        max_cache_size_mb = self._plugin.get_settings().get_int(constants.SETTING_CACHE_SIZE, 5)
         self._cache = FunctionCache(os.path.join(cache_path, u'cache'), max_file_size_kb=max_cache_size_mb * 1024)
 
         # initialize search history
-        max_search_history_items = self.get_plugin().get_settings().get_int(constants.SETTING_SEARCH_SIZE, 50,
+        max_search_history_items = self._plugin.get_settings().get_int(constants.SETTING_SEARCH_SIZE, 50,
                                                                             lambda x: x * 10)
         self._search = SearchHistory(os.path.join(cache_path, u'search'), max_search_history_items)
         self._favorites = FavoriteList(os.path.join(cache_path, u'favorites'))
@@ -159,7 +160,7 @@ class AbstractProvider(object):
                 return default_text
             return unicode(text_id)
 
-        return self.get_plugin().localize(mapped_id, default_text)
+        return self._plugin.localize(mapped_id, default_text)
 
     def create_next_page_item(self, current_page_index, path, params=None):
         """
@@ -190,7 +191,7 @@ class AbstractProvider(object):
         Returns the fanart of the plugin
         :return:
         """
-        return self.get_plugin().get_fanart()
+        return self._plugin.get_fanart()
 
     def get_plugin(self):
         """
@@ -205,7 +206,7 @@ class AbstractProvider(object):
         :param content_type:
         :return:
         """
-        self.get_plugin().set_content_type(content_type)
+        self._plugin.set_content_type(content_type)
         pass
 
     def add_sort_method(self, *sort_methods):
@@ -215,7 +216,7 @@ class AbstractProvider(object):
         :return:
         """
         for sort_method in sort_methods:
-            self.get_plugin().add_sort_method(sort_method)
+            self._plugin.add_sort_method(sort_method)
             pass
         pass
 
@@ -306,15 +307,15 @@ class AbstractProvider(object):
 
         command = re_match.group('command')
         if command == 'add':
-            from . import json_to_item
+            from . import from_json
 
-            fav_item = json_to_item(params['item'])
+            fav_item = from_json(params['item'])
             self._favorites.add(fav_item)
             pass
         elif command == 'remove':
-            from . import json_to_item
+            from . import from_json
 
-            fav_item = json_to_item(params['item'])
+            fav_item = from_json(params['item'])
             self._favorites.remove(fav_item)
             self.refresh_container()
             pass
@@ -349,15 +350,15 @@ class AbstractProvider(object):
 
         command = re_match.group('command')
         if command == 'add':
-            from . import json_to_item
+            from . import from_json
 
-            item = json_to_item(params['item'])
+            item = from_json(params['item'])
             self._watch_later.add(item)
             pass
         elif command == 'remove':
-            from . import json_to_item
+            from . import from_json
 
-            item = json_to_item(params['item'])
+            item = from_json(params['item'])
             self._watch_later.remove(item)
             self.refresh_container()
             pass
@@ -389,7 +390,7 @@ class AbstractProvider(object):
         :param re_match:
         :return:
         """
-        from . import json_to_item, DirectoryItem
+        from . import DirectoryItem
 
         command = re_match.group('command')
         if command == 'new' or (command == 'list' and self._search.is_empty()):
@@ -462,9 +463,8 @@ class AbstractProvider(object):
     def show_notification(self, message, header='', image_uri='', time_milliseconds=5000):
         raise NotImplementedError()
 
-    def log(self, text, log_level=2):
-        from . import log
-        log_line = '[%s] %s' % (self.get_plugin().get_id(), text)
+    def log(self, text, log_level=LOG_NOTICE):
+        log_line = '[%s] %s' % (self.get_id(), text)
         log(log_line, log_level)
         pass
 

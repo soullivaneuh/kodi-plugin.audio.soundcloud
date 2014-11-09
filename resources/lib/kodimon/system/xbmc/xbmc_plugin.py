@@ -6,8 +6,9 @@ import xbmc
 import xbmcaddon
 import xbmcplugin
 import xbmcvfs
-from ...abstract_plugin import AbstractPlugin
-from xbmc_plugin_settings import XbmcPluginSettings
+
+from ..abstract_plugin import AbstractPlugin
+from .xbmc_plugin_settings import XbmcPluginSettings
 
 
 class XbmcPlugin(AbstractPlugin):
@@ -32,7 +33,7 @@ class XbmcPlugin(AbstractPlugin):
 
         # after that try to get the params
         params = sys.argv[2][1:]
-        if len(params)>0:
+        if len(params) > 0:
             self._uri = self._uri+'?'+params
 
             self._params = {}

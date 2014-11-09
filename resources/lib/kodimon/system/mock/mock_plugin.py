@@ -1,11 +1,12 @@
 import tempfile
 
-from ...abstract_plugin import AbstractPlugin
-from mock_settings import MockSettings
+from ..abstract_plugin import AbstractPlugin
+from .mock_settings import MockSettings
+from ...log import *
 
 
 class MockPlugin(AbstractPlugin):
-    def __init__(self, plugin_name='Kodimon Plugin', plugin_id='kodimon.plugin', path=None, params=None):
+    def __init__(self, plugin_name='MOCK Plugin', plugin_id='mock.plugin', path=None, params=None):
         AbstractPlugin.__init__(self, plugin_name, plugin_id)
         if not params:
             params = {}
@@ -20,7 +21,7 @@ class MockPlugin(AbstractPlugin):
         self._data_path = tempfile.gettempdir()
         self._settings = MockSettings()
         self._dict_localization = {5000: u'Hello World',
-                                   5001: u'Kodimon Plugin'}
+                                   5001: u'MOCK Plugin'}
         pass
 
     def get_handle(self):
@@ -49,12 +50,10 @@ class MockPlugin(AbstractPlugin):
         return mapped_text
 
     def set_content_type(self, content_type):
-        from ... import log
         log("Set ContentType to '%s'" % content_type)
         pass
 
     def add_sort_method(self, sort_method):
-        from ... import log
         log("add SortMethod '%s'" % (str(sort_method)))
         pass
 

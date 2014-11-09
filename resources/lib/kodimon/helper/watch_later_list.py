@@ -15,26 +15,29 @@ class WatchLaterList(Storage):
         pass
 
     def list(self):
-        from .. import json_to_item
+        from .. import from_json
 
         result = []
 
         for key in self._get_ids():
             data = self._get(key)
-            item = json_to_item(data[0])
+            item = from_json(data[0])
             result.append(item)
             pass
 
-        from .. import sort_items_by_info, VideoItem
-        return sort_items_by_info(result, VideoItem.INFO_DATE_ADDED)
+        def _sort(video_item):
+            return video_item.get_date()
+
+        sorted_list = sorted(result, key=_sort, reverse=False)
+        return sorted_list
 
     def add(self, base_item):
         now = datetime.datetime.now()
-        base_item.set_date_added(now.year, now.month, now.day, now.hour, now.minute, now.second)
+        base_item.set_date(now.year, now.month, now.day, now.hour, now.minute, now.second)
 
-        from .. import item_to_json
+        from .. import to_json
 
-        item_json_data = item_to_json(base_item)
+        item_json_data = to_json(base_item)
         self._set(base_item.get_id(), item_json_data)
         pass
 

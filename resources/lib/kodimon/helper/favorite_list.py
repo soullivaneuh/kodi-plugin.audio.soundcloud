@@ -13,12 +13,12 @@ class FavoriteList(Storage):
         pass
 
     def list(self):
-        from .. import json_to_item
+        from .. import from_json
         result = []
 
         for key in self._get_ids():
             data = self._get(key)
-            item = json_to_item(data[0])
+            item = from_json(data[0])
             result.append(item)
             pass
 
@@ -26,8 +26,8 @@ class FavoriteList(Storage):
         return sort_items_by_name(result)
 
     def add(self, base_item):
-        from .. import item_to_json
-        item_json_data = item_to_json(base_item)
+        from .. import to_json
+        item_json_data = to_json(base_item)
         self._set(base_item.get_id(), item_json_data)
         pass
 
