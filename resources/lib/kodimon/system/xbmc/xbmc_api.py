@@ -1,7 +1,11 @@
 import xbmc
 import xbmcgui
 import xbmcplugin
+
 from ..info_labels import create_info_labels_from_item
+from ...exceptions import KodimonException
+from ...items import *
+from ...abstract_provider import AbstractProvider
 
 
 def run(provider):
@@ -10,8 +14,6 @@ def run(provider):
     :param provider:
     :return:
     """
-    from ... import KodimonException, VideoItem, AudioItem, DirectoryItem, AbstractProvider
-
     plugin = provider.get_plugin()
 
     results = None

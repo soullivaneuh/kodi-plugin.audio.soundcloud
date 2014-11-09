@@ -1,8 +1,8 @@
 import os
 import re
 
-from .constants import *
 from .log import *
+from .exceptions import KodimonException
 
 
 class AbstractProvider(object):
@@ -247,8 +247,6 @@ class AbstractProvider(object):
                     return result
                 pass
             pass
-
-        from . import KodimonException
 
         raise KodimonException("Mapping for path '%s' not found" % path)
 
