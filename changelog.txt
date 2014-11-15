@@ -1,3 +1,6 @@
+1.0.1~beta (2014-11-15)
+UPD: kodion tests
+
 1.0.0 (2014-10-29)
 UPD: removed beta status
 UPD: changed addon to from 'plugin.audio.bromix.soundcloud' to 'plugin.audio.soundcloud'
