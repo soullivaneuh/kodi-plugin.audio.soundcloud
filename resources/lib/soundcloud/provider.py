@@ -49,9 +49,11 @@ class Provider(kodion.AbstractProvider):
                 access_token = access_manager.get_access_token()
 
                 # create a new access_token
-                self._client = Client(username=username, password=password, access_token='')
-                access_token = self._client.update_access_token()
-                access_manager.update_access_token(access_token)
+                if not access_token:
+                    self._client = Client(username=username, password=password, access_token='')
+                    access_token = self._client.update_access_token()
+                    access_manager.update_access_token(access_token)
+                    pass
 
                 self._is_logged_in = access_token != ''
                 self._client = Client(username=username, password=password, access_token=access_token)
