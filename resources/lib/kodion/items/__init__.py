@@ -1,7 +1,8 @@
 __all__ = ['BaseItem', 'AudioItem', 'DirectoryItem', 'VideoItem', 'ImageItem',
-           'from_json', 'to_json', 'create_next_page_item']
+           'from_json', 'to_json',
+           'create_next_page_item', 'create_search_item']
 
-from utils import to_json, from_json, create_next_page_item
+from utils import to_json, from_json, create_next_page_item, create_search_item
 
 from .base_item import BaseItem
 from .audio_item import AudioItem

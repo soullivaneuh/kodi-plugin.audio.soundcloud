@@ -7,21 +7,23 @@ import xbmc
 import xbmcaddon
 import xbmcplugin
 import xbmcvfs
-
 from ..abstract_context import AbstractContext
 from .xbmc_plugin_settings import XbmcPluginSettings
 from .xbmc_context_ui import XbmcContextUI
+from .xbmc_system_version import XbmcSystemVersion
 
 
 class XbmcContext(AbstractContext):
-    def __init__(self, path=u'/', params=None, plugin_name=u'', plugin_id=u''):
+    def __init__(self, path='/', params=None, plugin_name=u'', plugin_id=u'', override=True):
         AbstractContext.__init__(self, path, params, plugin_name, plugin_id)
 
         if plugin_id:
             self._addon = xbmcaddon.Addon(id=plugin_id)
         else:
             self._addon = xbmcaddon.Addon()
+            pass
 
+        self._system_version = XbmcSystemVersion()
 
         """
         I don't know what xbmc/kodi is doing with a simple uri, but we have to extract the information from the
@@ -29,20 +31,22 @@ class XbmcContext(AbstractContext):
         Also we extract the path and parameters - man, that would be so simple with the normal url-parsing routines.
         """
         # first the path of the uri
-        self._uri = sys.argv[0]
-        comps = urlparse.urlparse(self._uri)
-        self._path = urllib.unquote(comps[2]).decode('utf-8')
+        if override:
+            self._uri = sys.argv[0]
+            comps = urlparse.urlparse(self._uri)
+            self._path = urllib.unquote(comps.path).decode('utf-8')
 
-        # after that try to get the params
-        params = sys.argv[2][1:]
-        if len(params) > 0:
-            self._uri = self._uri+'?'+params
+            # after that try to get the params
+            params = sys.argv[2][1:]
+            if len(params) > 0:
+                self._uri = self._uri + '?' + params
 
-            self._params = {}
-            params = dict(urlparse.parse_qsl(params))
-            for _param in params:
-                item = params[_param]
-                self._params[_param] = item.decode('utf-8')
+                self._params = {}
+                params = dict(urlparse.parse_qsl(params))
+                for _param in params:
+                    item = params[_param]
+                    self._params[_param] = item.decode('utf-8')
+                    pass
                 pass
             pass
 
@@ -61,6 +65,9 @@ class XbmcContext(AbstractContext):
             xbmcvfs.mkdir(self._data_path)
             pass
         pass
+
+    def get_system_version(self):
+        return self._system_version
 
     def get_ui(self):
         if not self._ui:
@@ -106,6 +113,14 @@ class XbmcContext(AbstractContext):
             new_params = self.get_params()
             pass
 
-        return XbmcContext(path=new_path, params=new_params, plugin_name=self._plugin_name, plugin_id=self._plugin_id)
+        new_context = XbmcContext(path=new_path, params=new_params, plugin_name=self._plugin_name,
+                                  plugin_id=self._plugin_id, override=False)
+        new_context._function_cache = self._function_cache
+        new_context._search_history = self._search_history
+        new_context._favorite_list = self._favorite_list
+        new_context._watch_later_list = self._watch_later_list
+        new_context._access_manager = self._access_manager
+
+        return new_context
 
     pass

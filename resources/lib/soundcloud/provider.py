@@ -75,6 +75,9 @@ class Provider(kodion.AbstractProvider):
 
         return True
 
+    def get_alternative_fanart(self, context):
+        return self.get_fanart(context)
+
     def get_fanart(self, context):
         """
             This will return a darker and (with blur) fanart
@@ -124,10 +127,7 @@ class Provider(kodion.AbstractProvider):
         page = int(params.get('page', 1))
         next_href = json_data.get('_links', {}).get('next', {}).get('href', '')
         if next_href and len(result) > 0:
-            next_page_item = kodion.items.create_next_page_item(context,
-                                                                page,
-                                                                path,
-                                                                params)
+            next_page_item = kodion.items.create_next_page_item(context, page)
             next_page_item.set_fanart(self.get_fanart(context))
             result.append(next_page_item)
             pass
@@ -216,7 +216,7 @@ class Provider(kodion.AbstractProvider):
 
         params = context.get_params()
         cursor = params.get('cursor', None)
-        json_data = self.get_client(context).get_stream(page_cursor=cursor)
+        json_data = context.get_function_cache().get(FunctionCache.ONE_MINUTE*5, self.get_client(context).get_stream, page_cursor=cursor)
         path = context.get_path()
         result = self._do_collection(context, json_data, path, params)
         return result
@@ -387,7 +387,7 @@ class Provider(kodion.AbstractProvider):
             people_params = {}
             people_params.update(params)
             people_params['category'] = 'people'
-            people_item = DirectoryItem(context.localize(self._local_map['soundcloud.people']),
+            people_item = DirectoryItem('[B]'+context.localize(self._local_map['soundcloud.people'])+'[/B]',
                                         context.create_uri(path, people_params),
                                         image=context.create_resource_path('media', 'users.png'))
             people_item.set_fanart(self.get_fanart(context))
@@ -396,7 +396,7 @@ class Provider(kodion.AbstractProvider):
             playlist_params = {}
             playlist_params.update(params)
             playlist_params['category'] = 'sets'
-            playlist_item = DirectoryItem(context.localize(self._local_map['soundcloud.playlists']),
+            playlist_item = DirectoryItem('[B]'+context.localize(self._local_map['soundcloud.playlists'])+'[/B]',
                                           context.create_uri(path, playlist_params),
                                           image=context.create_resource_path('media', 'playlists.png'))
             playlist_item.set_fanart(self.get_fanart(context))
@@ -477,10 +477,7 @@ class Provider(kodion.AbstractProvider):
 
         page = int(params.get('page', 1))
         if next_href and len(collection) > 0:
-            next_page_item = kodion.items.create_next_page_item(context,
-                                                                page,
-                                                                path,
-                                                                params)
+            next_page_item = kodion.items.create_next_page_item(context, page)
             next_page_item.set_fanart(self.get_fanart(context))
             result.append(next_page_item)
             pass

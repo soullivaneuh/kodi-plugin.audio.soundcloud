@@ -1,3 +1,6 @@
+1.0.1~beta2 (2014-11-21)
+UPD: improved performance
+
 1.0.1~beta (2014-11-15)
 UPD: kodion tests
 

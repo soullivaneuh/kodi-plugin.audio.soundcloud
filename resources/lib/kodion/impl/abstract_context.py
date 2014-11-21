@@ -74,6 +74,9 @@ class AbstractContext(object):
     def get_ui(self):
         raise NotImplementedError()
 
+    def get_system_version(self):
+        raise NotImplementedError()
+
     def create_uri(self, path=u'/', params=None):
         if not params:
             params = {}
@@ -105,6 +108,9 @@ class AbstractContext(object):
 
     def get_params(self):
         return self._params
+
+    def get_param(self, name, default=None):
+        return self.get_params().get(name, default)
 
     def get_data_path(self):
         """

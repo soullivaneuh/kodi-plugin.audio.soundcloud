@@ -1,6 +1,6 @@
 __author__ = 'bromix'
 
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, tzinfo
 import re
 
 from .exceptions import KodimonException
@@ -20,7 +20,9 @@ def parse(datetime_string):
                     _to_int(date_only_match.group('day')))
 
     # full date time
-    date_time_match = re.match("^(?P<year>[0-9]{4})[-]?(?P<month>[0-9]{2})[-]?(?P<day>[0-9]{2})[' ''T'](?P<hour>[0-9]{2})[:]?(?P<minute>[0-9]{2})[:]?(?P<second>[0-9]{2})$", datetime_string)
+    date_time_match = re.match(
+        "^(?P<year>[0-9]{4})[-]?(?P<month>[0-9]{2})[-]?(?P<day>[0-9]{2})[' ''T'](?P<hour>[0-9]{2})[:]?(?P<minute>[0-9]{2})[:]?(?P<second>[0-9]{2})",
+        datetime_string)
     if date_time_match:
         return datetime(_to_int(date_time_match.group('year')),
                         _to_int(date_time_match.group('month')),
@@ -30,7 +32,9 @@ def parse(datetime_string):
                         _to_int(date_time_match.group('second')))
 
     # period - at the moment we support only hours, minutes and seconds (e.g. videos and audio)
-    period_match = re.match('P((?P<years>\d+)Y)?((?P<months>\d+)M)?((?P<days>\d+)D)?(T((?P<hours>\d+)H)?((?P<minutes>\d+)M)?((?P<seconds>\d+)S)?)?', datetime_string)
+    period_match = re.match(
+        'P((?P<years>\d+)Y)?((?P<months>\d+)M)?((?P<days>\d+)D)?(T((?P<hours>\d+)H)?((?P<minutes>\d+)M)?((?P<seconds>\d+)S)?)?',
+        datetime_string)
     if period_match:
         return timedelta(hours=_to_int(period_match.group('hours')),
                          minutes=_to_int(period_match.group('minutes')),
