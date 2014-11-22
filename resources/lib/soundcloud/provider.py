@@ -2,7 +2,7 @@ __author__ = 'bromix'
 
 import re
 
-from resources.lib.kodion.utils import FunctionCache, build_in_functions
+from resources.lib.kodion.utils import FunctionCache
 from resources.lib.kodion.items import DirectoryItem, AudioItem
 from resources.lib import kodion
 from resources.lib.soundcloud.client import ClientException
@@ -64,12 +64,12 @@ class Provider(kodion.AbstractProvider):
 
         return self._client
 
-    def handle_exception(self, exception_to_handle):
+    def handle_exception(self, context, exception_to_handle):
         if isinstance(exception_to_handle, ClientException):
             if exception_to_handle.get_status_code() == 401:
-                self.get_access_manager().update_access_token('')
-                self.show_notification('Login Failed')
-                self.get_settings().open_settings()
+                context.get_access_manager().update_access_token('')
+                context.get_ui().show_notification('Login Failed')
+                context.get_ui().open_settings()
                 return False
             pass
 
@@ -216,7 +216,8 @@ class Provider(kodion.AbstractProvider):
 
         params = context.get_params()
         cursor = params.get('cursor', None)
-        json_data = context.get_function_cache().get(FunctionCache.ONE_MINUTE*5, self.get_client(context).get_stream, page_cursor=cursor)
+        json_data = context.get_function_cache().get(FunctionCache.ONE_MINUTE * 5, self.get_client(context).get_stream,
+                                                     page_cursor=cursor)
         path = context.get_path()
         result = self._do_collection(context, json_data, path, params)
         return result
@@ -387,7 +388,7 @@ class Provider(kodion.AbstractProvider):
             people_params = {}
             people_params.update(params)
             people_params['category'] = 'people'
-            people_item = DirectoryItem('[B]'+context.localize(self._local_map['soundcloud.people'])+'[/B]',
+            people_item = DirectoryItem('[B]' + context.localize(self._local_map['soundcloud.people']) + '[/B]',
                                         context.create_uri(path, people_params),
                                         image=context.create_resource_path('media', 'users.png'))
             people_item.set_fanart(self.get_fanart(context))
@@ -396,7 +397,7 @@ class Provider(kodion.AbstractProvider):
             playlist_params = {}
             playlist_params.update(params)
             playlist_params['category'] = 'sets'
-            playlist_item = DirectoryItem('[B]'+context.localize(self._local_map['soundcloud.playlists'])+'[/B]',
+            playlist_item = DirectoryItem('[B]' + context.localize(self._local_map['soundcloud.playlists']) + '[/B]',
                                           context.create_uri(path, playlist_params),
                                           image=context.create_resource_path('media', 'playlists.png'))
             playlist_item.set_fanart(self.get_fanart(context))
@@ -534,14 +535,12 @@ class Provider(kodion.AbstractProvider):
 
             if path == '/user/favorites/me/':
                 context_menu = [(context.localize(self._local_map['soundcloud.unlike']),
-                                 build_in_functions.run_plugin(context,
-                                                               ['like/playlist', unicode(json_item['id'])],
-                                                               {'like': '0'}))]
+                                 'RunPlugin(%s)' % context.create_uri(['like/playlist', unicode(json_item['id'])],
+                                                                      {'like': '0'}))]
             else:
                 context_menu = [(context.localize(self._local_map['soundcloud.like']),
-                                 build_in_functions.run_plugin(context,
-                                                               ['like/playlist', unicode(json_item['id'])],
-                                                               {'like': '1'}))]
+                                 'RunPlugin(%s)' % context.create_uri(['like/playlist', unicode(json_item['id'])],
+                                                                      {'like': '1'}))]
 
             playlist_item.set_context_menu(context_menu)
             return playlist_item
@@ -559,13 +558,13 @@ class Provider(kodion.AbstractProvider):
 
             if path == '/user/following/me/':
                 context_menu = [(context.localize(self._local_map['soundcloud.unfollow']),
-                                 build_in_functions.run_plugin(context,
-                                                               ['follow', unicode(json_item['id'])], {'follow': '0'}))]
+                                 'RunPlugin(%s)' % context.create_uri(['follow', unicode(json_item['id'])],
+                                                                      {'follow': '0'}))]
+                pass
             else:
                 context_menu = [(context.localize(self._local_map['soundcloud.follow']),
-                                 build_in_functions.run_plugin(context,
-                                                               ['follow', unicode(json_item['id'])],
-                                                               {'follow': '1'}))]
+                                 'RunPlugin(%s)' % context.create_uri(['follow', unicode(json_item['id'])],
+                                                                      {'follow': '1'}))]
                 pass
             user_item.set_context_menu(context_menu)
             return user_item
@@ -593,14 +592,13 @@ class Provider(kodion.AbstractProvider):
 
             if path == '/user/favorites/me/':
                 context_menu = [(context.localize(self._local_map['soundcloud.unlike']),
-                                 build_in_functions.run_plugin(context,
-                                                               ['like/track', unicode(json_item['id'])],
-                                                               {'like': '0'}))]
+                                 'RunPlugin(%s)' % context.create_uri(['like/track', unicode(json_item['id'])],
+                                                                      {'like': '0'}))]
+                pass
             else:
                 context_menu = [(context.localize(self._local_map['soundcloud.like']),
-                                 build_in_functions.run_plugin(context,
-                                                               ['like/track', unicode(json_item['id'])],
-                                                               {'like': '1'}))]
+                                 'RunPlugin(%s)' % context.create_uri(['like/track', unicode(json_item['id'])],
+                                                                      {'like': '1'}))]
             track_item.set_context_menu(context_menu)
 
             return track_item
