@@ -1,3 +1,6 @@
+1.0.1~beta4 (2014-11-24)
+FIX: use correct IDs for kodion settings
+
 1.0.1~beta3 (2014-11-22)
 UPD: kodion
 

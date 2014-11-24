@@ -36,6 +36,11 @@ class Provider(kodion.AbstractProvider):
         pass
 
     def get_client(self, context):
+        # copy old stuff
+        settings = context.get_settings()
+        settings.set_string(kodion.constants.setting.LOGIN_USERNAME, settings.get_string('kodimon.login.username', ''))
+        settings.set_string(kodion.constants.setting.LOGIN_PASSWORD, settings.get_string('kodimon.login.password', ''))
+
         access_manager = context.get_access_manager()
         access_token = access_manager.get_access_token()
         if access_manager.is_new_login_credential() or not access_token:
