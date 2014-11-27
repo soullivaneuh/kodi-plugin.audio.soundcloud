@@ -1,3 +1,6 @@
+1.0.1 (2014-11-27)
+FIX: skins call '/extrafanart/'
+
 1.0.1~beta4 (2014-11-24)
 FIX: use correct IDs for kodion settings
 
