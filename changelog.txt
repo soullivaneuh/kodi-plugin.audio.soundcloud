@@ -1,3 +1,7 @@
+1.0.2 (2014-11-29)
+FIX: disable verification warnings
+FIX: login got lost
+
 1.0.1 (2014-11-27)
 FIX: skins call '/extrafanart/'
 
