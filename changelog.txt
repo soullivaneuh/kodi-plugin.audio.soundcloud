@@ -1,4 +1,5 @@
 1.2.0 (2015-05-09)
+FIX: exception while using regex for the next page cursor
 UPD: kodion
 
 1.1.2 (2015-02-27)

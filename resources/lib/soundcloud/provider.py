@@ -524,9 +524,11 @@ class Provider(kodion.AbstractProvider):
 
         # test for next page
         next_href = json_data.get('next_href', '')
-        re_match = re.match('.*cursor\=(?P<cursor>[a-z0-9-]+).*', next_href)
-        if re_match:
-            params['cursor'] = re_match.group('cursor')
+        if next_href:
+            re_match = re.match(r'.*cursor=(?P<cursor>[a-z0-9-]+).*', next_href)
+            if re_match:
+                params['cursor'] = re_match.group('cursor')
+                pass
             pass
 
         page = int(params.get('page', 1))
