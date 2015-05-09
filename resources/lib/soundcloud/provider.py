@@ -89,10 +89,8 @@ class Provider(kodion.AbstractProvider):
         return self.get_fanart(context)
 
     def get_fanart(self, context):
-        """
-            This will return a darker and (with blur) fanart
-            :return:
-            """
+        if context.get_settings().get_bool('soundcloud.fanart_dark.show', True):
+            return context.create_resource_path('media', 'fanart_dark.jpg')
         return context.create_resource_path('media', 'fanart.jpg')
 
     @kodion.RegisterProviderPath('^/play/$')

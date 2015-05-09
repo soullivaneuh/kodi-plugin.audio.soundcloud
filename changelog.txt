@@ -1,6 +1,7 @@
 1.2.0 (2015-05-09)
-FIX: exception while using regex for the next page cursor
+ADD: dark fanart to work better with visualizations
 UPD: kodion
+FIX: exception while using regex for the next page cursor
 
 1.1.2 (2015-02-27)
 ADD: Recommended Tracks (via context menu of a track)
