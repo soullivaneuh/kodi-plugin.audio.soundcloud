@@ -1,3 +1,6 @@
+1.2.0 (2015-05-09)
+UPD: kodion
+
 1.1.2 (2015-02-27)
 ADD: Recommended Tracks (via context menu of a track)
 ADD: setting for items per page
