@@ -11,6 +11,10 @@ class Provider(nightcrawler.Provider):
     SOUNDCLOUD_LOCAL_RECOMMENDED = 30517
     SOUNDCLOUD_LOCAL_GO_TO_USER = 30516
     SOUNDCLOUD_LOCAL_PLAYLISTS = 30506
+    SOUNDCLOUD_LOCAL_PEOPLE = 30515
+    SOUNDCLOUD_LOCAL_LIKES = 30510
+    SOUNDCLOUD_LOCAL_FOLLOWING = 30507
+    SOUNDCLOUD_LOCAL_FOLLOWER = 30509
 
     SOUNDCLOUD_LOCAL_MUSIC_TRENDING = 30501
     SOUNDCLOUD_LOCAL_AUDIO_TRENDING = 30502
@@ -27,15 +31,11 @@ class Provider(nightcrawler.Provider):
         """
         self._local_map.update(
              'soundcloud.stream': 30505,
-             'soundcloud.following': 30507,
              'soundcloud.follow': 30508,
-             'soundcloud.follower': 30509,
-             'soundcloud.likes': 30510,
              'soundcloud.like': 30511,
              'soundcloud.tracks': 30512,
              'soundcloud.unfollow': 30513,
              'soundcloud.unlike': 30514,
-             'soundcloud.people': 30515,
         )
         """
         pass
@@ -319,34 +319,30 @@ class Provider(nightcrawler.Provider):
     def on_search(self, context, search_text, category, page):
         result = []
 
-        path = context.get_path()
-        # TODO: add sub-category searches
-        """
+        # first page of search
         if page == 1 and category == 'sounds':
             people_params = {}
-            people_params.update(params)
+            people_params.update(context.get_params())
             people_params['category'] = 'people'
-            people_item = DirectoryItem('[B]' + context.localize(self._local_map['soundcloud.people']) + '[/B]',
-                                        context.create_uri(path, people_params),
-                                        image=context.create_resource_path('media', 'users.png'))
-            people_item.set_fanart(self.get_fanart(context))
-            result.append(people_item)
+            result.append({'type': 'folder',
+                           'title': '[B]%s[/B]' % context.localize(self.SOUNDCLOUD_LOCAL_PEOPLE),
+                           'uri': context.create_uri(context.get_path(), people_params),
+                           'images': {'thumbnail': context.create_resource_path('media/users.png'),
+                                      'fanart': self.get_fanart(context)}})
 
             playlist_params = {}
-            playlist_params.update(params)
+            playlist_params.update(context.get_params())
             playlist_params['category'] = 'sets'
-            playlist_item = DirectoryItem('[B]' + context.localize(self._local_map['soundcloud.playlists']) + '[/B]',
-                                          context.create_uri(path, playlist_params),
-                                          image=context.create_resource_path('media', 'playlists.png'))
-            playlist_item.set_fanart(self.get_fanart(context))
-            result.append(playlist_item)
-            pass
-        """
+            result.append({'type': 'folder',
+                           'title': '[B]%s[/B]' % context.localize(self.SOUNDCLOUD_LOCAL_PLAYLISTS),
+                           'uri': context.create_uri(context.get_path(), playlist_params),
+                           'images': {'thumbnail': context.create_resource_path('media/playlists.png'),
+                                      'fanart': self.get_fanart(context)}})
 
-        json_data = context.get_function_cache().get(FunctionCache.ONE_MINUTE, self.get_client(context).search,
-                                                     search_text,
-                                                     category=category, page=page)
-        result.extend(self._do_collection(context, json_data, path, params))
+            pass
+
+        search_result = self.get_client(context).search(search_text, category, page=page)
+        result.extend(self.process_result(context, search_result))
         return result
 
     @nightcrawler.register_path('/user/tracks/(?P<user_id>.+)/')
@@ -357,6 +353,7 @@ class Provider(nightcrawler.Provider):
         result = []
 
         # on the first page add some extra stuff to navigate to
+        # TODO: add Likes, Following and Follower
         if page == 1:
             # TODO: get correct user image
             #json_data = self.get_client(context).get_user(user_id)
@@ -370,38 +367,28 @@ class Provider(nightcrawler.Provider):
                            'uri': context.create_uri('/user/playlists/%s' % user_id),
                            'images': {'thumbnail': user_image,
                                       'fanart': self.get_fanart(context)}})
-            pass
-
-        # TODO: add Likes, Following and Follower
-        """
-        json_data = context.get_function_cache().get(FunctionCache.ONE_DAY, self.get_client(context).get_user, user_id)
-        user_image = json_data.get('avatar_url', '')
-        user_image = self._get_hires_image(user_image)
-
-        if page == 1:
 
             # likes
-            likes_item = DirectoryItem(context.localize(self._local_map['soundcloud.likes']),
-                                       context.create_uri(['user/favorites', user_id]),
-                                       image=user_image)
-            likes_item.set_fanart(self.get_fanart(context))
-            result.append(likes_item)
+            result.append({'type': 'folder',
+                           'title': context.localize(self.SOUNDCLOUD_LOCAL_LIKES),
+                           'uri': context.create_uri('/user/favorites/%s' % user_id),
+                           'images': {'thumbnail': user_image,
+                                      'fanart': self.get_fanart(context)}})
 
             # following
-            following_item = DirectoryItem(context.localize(self._local_map['soundcloud.following']),
-                                           context.create_uri(['user/following', user_id]),
-                                           image=user_image)
-            following_item.set_fanart(self.get_fanart(context))
-            result.append(following_item)
+            result.append({'type': 'folder',
+                           'title': context.localize(self.SOUNDCLOUD_LOCAL_FOLLOWING),
+                           'uri': context.create_uri('/user/following/%s' % user_id),
+                           'images': {'thumbnail': user_image,
+                                      'fanart': self.get_fanart(context)}})
 
             # follower
-            follower_item = DirectoryItem(context.localize(self._local_map['soundcloud.follower']),
-                                          context.create_uri(['user/follower', user_id]),
-                                          image=user_image)
-            follower_item.set_fanart(self.get_fanart(context))
-            result.append(follower_item)
+            result.append({'type': 'folder',
+                           'title': context.localize(self.SOUNDCLOUD_LOCAL_FOLLOWER),
+                           'uri': context.create_uri('/user/follower/%s' % user_id),
+                           'images': {'thumbnail': user_image,
+                                      'fanart': self.get_fanart(context)}})
             pass
-        """
 
         tracks_result = self.get_client(context).get_tracks(user_id, page=page)
         result.extend(self.process_result(context, tracks_result))
