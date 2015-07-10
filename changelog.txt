@@ -1,3 +1,6 @@
+2.0.0~alpha1 (2015-07-10)
+UPD: framework update
+
 1.2.1 (2015-05-17)
 UPD: resized fanart for better support of visualization
 UPD: kodion
