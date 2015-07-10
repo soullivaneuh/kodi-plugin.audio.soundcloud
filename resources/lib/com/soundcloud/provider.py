@@ -225,26 +225,6 @@ class Provider(nightcrawler.Provider):
 
         return True
 
-    #@kodion.RegisterProviderPath('^\/user/favorites\/(?P<user_id>.+)/$')
-    def _on_favorites(self, context, re_match):
-        user_id = re_match.group('user_id')
-
-        # We use an API of th APP, this API only work with an user id. In the case of 'me' we gave to get our own
-        # user id to use this function.
-        if user_id == 'me':
-            json_data = context.get_function_cache().get(FunctionCache.ONE_MINUTE * 10,
-                                                         self.get_client(context).get_user,
-                                                         'me')
-            user_id = json_data['id']
-            pass
-
-        params = context.get_params()
-        page = params.get('page', 1)
-        # do not cache: in case of adding or deleting content
-        json_data = self.get_client(context).get_likes(user_id, page=page)
-        path = context.get_path()
-        return self._do_collection(context, json_data, path, params)
-
     # ===================================
 
     def get_fanart(self, context):
@@ -361,6 +341,25 @@ class Provider(nightcrawler.Provider):
         search_result = self.get_client(context).search(search_text, category, page=page)
         result.extend(self.process_result(context, search_result))
         return result
+
+    @nightcrawler.register_path('^/user/favorites/(?P<user_id>.+)/')
+    @nightcrawler.register_path_value('user_id', unicode)
+    @nightcrawler.register_context_value('page', int, default=1)
+    def on_favorites(self, context, user_id, page):
+        context.set_content_type(context.CONTENT_TYPE_SONGS)
+
+        # We use an API of th APP, this API only work with an user id. In the case of 'me' we gave to get our own
+        # user id to use this function.
+        # TODO: this isn't finished yet
+        if user_id == 'me':
+            json_data = context.get_function_cache().get(FunctionCache.ONE_MINUTE * 10,
+                                                         self.get_client(context).get_user,
+                                                         'me')
+            user_id = json_data['id']
+            pass
+
+        # do not cache: in case of adding or deleting content
+        return self.process_result(context, self.get_client(context).get_likes(user_id, page=page))
 
     @nightcrawler.register_path('/user/tracks/(?P<user_id>.+)/')
     @nightcrawler.register_path_value('user_id', unicode)

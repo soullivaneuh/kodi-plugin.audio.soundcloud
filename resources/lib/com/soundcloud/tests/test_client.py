@@ -31,6 +31,16 @@ class TestClient(unittest.TestCase):
         tracks = client.search('angerfist', category='sounds')
         pass
 
+    def test_get_favorites(self):
+        client = Client()
+        json_data = client.get_favorites('1701116')
+        pass
+
+    def test_get_likes(self):
+        client = Client()
+        json_data = client.get_likes('1701116')
+        pass
+
     # ==================
 
     def test_resolve_url(self):
@@ -53,20 +63,6 @@ class TestClient(unittest.TestCase):
         re_match = re.match('.*cursor\=(?P<cursor>[a-z0-9-]+).*', next_href)
         page_cursor = re_match.group('cursor')
         self.assertEqual('aedb3280-55fb-11e3-8019-38efa603dd45', page_cursor)
-        pass
-
-    def test_get_likes(self):
-        client = Client(access_token=self.TOKEN)
-
-        # me
-        json_data = client.get_user('me')
-        user_id = json_data['id']
-        json_data = client.get_likes(user_id)
-        self.assertGreater(len(json_data), 0)
-
-        # some user
-        json_data = client.get_likes('520685', page=2)
-        self.assertGreater(len(json_data), 0)
         pass
 
     def test_get_track_url(self):
@@ -114,12 +110,6 @@ class TestClient(unittest.TestCase):
 
         # some user
         json_data = client.get_playlists(2442230)
-        self.assertGreater(len(json_data), 0)
-        pass
-
-    def test_get_favorites(self):
-        client = Client(access_token=self.TOKEN)
-        json_data = client.get_favorites('me')
         self.assertGreater(len(json_data), 0)
         pass
 

@@ -133,7 +133,36 @@ class Client(nightcrawler.HttpClient):
         self._handle_error(response)
         return items.convert_to_items(response.json())
 
+    def get_favorites(self, user_id, page=1):
+        params = {'limit': str(self._items_per_page),
+                  'linked_partitioning': '1'}
+        if page > 1:
+            params['offset'] = str((page - 1) * self._items_per_page)
+            pass
+
+        response = self._request(self._create_url('favorites', user_id=user_id),
+                                 headers={'Accept': 'application/json'},
+                                 params=params)
+        self._handle_error(response)
+        return items.convert_to_items(response.json())
+
+    def get_likes(self, user_id, page=1):
+        params = {'limit': str(self._items_per_page),
+                  'linked_partitioning': '1'}
+        if page > 1:
+            params['offset'] = str((page - 1) * self._items_per_page)
+            params['page_size'] = params['offset']
+            params['page_number'] = unicode(page)
+            pass
+
+        response = self._request(self._create_url('e1/users/%s/likes' % unicode(user_id)),
+                                 headers={'Accept': 'application/json'},
+                                 params=params)
+        self._handle_error(response)
+        return items.convert_to_items(response.json())
+
     def search(self, search_text, category='sounds', page=1):
+
         if not category in ['sounds', 'people', 'sets']:
             raise NightcrawlerException('Unknown category "%s"' % category)
 
@@ -144,7 +173,7 @@ class Client(nightcrawler.HttpClient):
             pass
 
         response = self._request(self._create_url('search/%s' % category),
-                                 headers = {'Accept': 'application/json'},
+                                 headers={'Accept': 'application/json'},
                                  params=params)
         self._handle_error(response)
         return items.convert_to_items(response.json())
@@ -190,37 +219,6 @@ class Client(nightcrawler.HttpClient):
         return self._perform_request(method=method,
                                      path='e1/me/playlist_likes/%s' % unicode(playlist_id),
                                      headers={'Accept': 'application/json'})
-
-    def get_favorites(self, me_or_user_id, page=1):
-        page = int(page)
-        per_page = int(self._items_per_page)
-
-        params = {'limit': str(per_page),
-                  'linked_partitioning': '1'}
-        if page > 1:
-            params['offset'] = str((page - 1) * per_page)
-            pass
-
-        path = self._create_path_based_on_user_id(me_or_user_id, 'favorites')
-        return self._perform_request(path=path,
-                                     headers={'Accept': 'application/json'},
-                                     params=params)
-
-    def get_likes(self, user_id, page=1):
-        page = int(page)
-        per_page = int(self._items_per_page)
-
-        params = {'limit': str(per_page),
-                  'linked_partitioning': '1'}
-        if page > 1:
-            params['offset'] = str((page - 1) * per_page)
-            params['page_size'] = params['offset']
-            params['page_number'] = unicode(page)
-            pass
-
-        return self._perform_request(path='e1/users/%s/likes' % unicode(user_id),
-                                     headers={'Accept': 'application/json'},
-                                     params=params)
 
     def follow_user(self, user_id, follow=True):
         method = 'PUT'
