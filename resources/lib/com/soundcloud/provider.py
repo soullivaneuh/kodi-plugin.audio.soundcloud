@@ -423,7 +423,8 @@ class Provider(nightcrawler.Provider):
         result = []
         for item in items:
             item.update({'uri': context.create_uri('/explore/genre/%s/%s/' % (category, item['title'])),
-                         'images': {'fanart': self.get_fanart(context)}})
+                         'images': {'fanart': self.get_fanart(context),
+                                    'thumbnail': context.create_resource_path('media/%s.png' % category)}})
             result.append(item)
             pass
 
