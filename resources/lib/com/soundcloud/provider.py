@@ -278,7 +278,8 @@ class Provider(nightcrawler.Provider):
         result.extend(self._do_collection(context, json_data, path, params))
         return result
 
-    # =========
+    # ===================================
+
     def get_fanart(self, context):
         if context.get_settings().get_bool('soundcloud.fanart_dark.show', True):
             return context.create_resource_path('media/fanart_dark.jpg')
