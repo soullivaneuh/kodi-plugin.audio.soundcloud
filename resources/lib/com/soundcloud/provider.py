@@ -277,6 +277,22 @@ class Provider(nightcrawler.Provider):
                         'Container.Update(%s)' % context.create_uri('/user/tracks/%s/' % user_id)))
                     pass
                 pass
+            elif type == 'playlist':
+                item['type'] = 'folder'
+                item['uri'] = context.create_uri('/playlist/%s/' % item['id'])
+
+                # TODO: set context menu
+                """
+                    if path == '/user/favorites/me/':
+                    context_menu = [(context.localize(self._local_map['soundcloud.unlike']),
+                                     'RunPlugin(%s)' % context.create_uri(['like/playlist', unicode(json_item['id'])],
+                                                                          {'like': '0'}))]
+                else:
+                    context_menu = [(context.localize(self._local_map['soundcloud.like']),
+                                     'RunPlugin(%s)' % context.create_uri(['like/playlist', unicode(json_item['id'])],
+                                                                          {'like': '1'}))]
+                """
+                pass
 
             if context_menu:
                 item['context-menu'] = {'items': context_menu}
@@ -345,7 +361,7 @@ class Provider(nightcrawler.Provider):
     @nightcrawler.register_path('^/user/favorites/(?P<user_id>.+)/')
     @nightcrawler.register_path_value('user_id', unicode)
     @nightcrawler.register_context_value('page', int, default=1)
-    def on_favorites(self, context, user_id, page):
+    def on_user_favorites(self, context, user_id, page):
         context.set_content_type(context.CONTENT_TYPE_SONGS)
 
         # We use an API of th APP, this API only work with an user id. In the case of 'me' we gave to get our own
@@ -360,6 +376,7 @@ class Provider(nightcrawler.Provider):
 
         # do not cache: in case of adding or deleting content
         return self.process_result(context, self.get_client(context).get_likes(user_id, page=page))
+        #return self.process_result(context, self.get_client(context).get_favorites(user_id, page=page))
 
     @nightcrawler.register_path('/user/tracks/(?P<user_id>.+)/')
     @nightcrawler.register_path_value('user_id', unicode)

@@ -30,6 +30,15 @@ def _get_thumbnail(json_data):
     return _get_hires_image(image_url)
 
 
+def _convert_to_playlist_item(json_item):
+    item = {'type': 'playlist',
+            'title': json_item['title'],
+            'id': unicode(json_item['id']),
+            'images': {'thumbnail': _get_thumbnail(json_item)}}
+
+    return item
+
+
 def _convert_to_track_item(json_item):
     def _get_track_year(_item_json):
         # this would be the default info, but is mostly not set :(
@@ -65,6 +74,17 @@ def convert_to_item(json_item):
     kind = json_item.get('kind', '')
     if kind == 'track':
         return _convert_to_track_item(json_item)
+    elif kind == 'playlist':
+        return _convert_to_playlist_item(json_item)
+    elif kind == 'like':
+        # a like includes the liked track or playlist.
+        if json_item.get('playlist', None):
+            return convert_to_item(json_item['playlist'])
+
+        if json_item.get('track', None):
+            return convert_to_item(json_item['track'])
+
+        pass
 
     raise NightcrawlerException('Unknown kind of item "%s"' % kind)
 
@@ -86,23 +106,6 @@ def convert_to_item(json_item):
                 track_number += 1
                 pass
             return result
-        else:
-            playlist_item = DirectoryItem(json_item['title'],
-                                          context.create_uri(['playlist', unicode(json_item['id'])]),
-                                          image=_get_image(json_item))
-            playlist_item.set_fanart(self.get_fanart(context))
-
-            if path == '/user/favorites/me/':
-                context_menu = [(context.localize(self._local_map['soundcloud.unlike']),
-                                 'RunPlugin(%s)' % context.create_uri(['like/playlist', unicode(json_item['id'])],
-                                                                      {'like': '0'}))]
-            else:
-                context_menu = [(context.localize(self._local_map['soundcloud.like']),
-                                 'RunPlugin(%s)' % context.create_uri(['like/playlist', unicode(json_item['id'])],
-                                                                      {'like': '1'}))]
-
-            playlist_item.set_context_menu(context_menu)
-            return playlist_item
         pass
     elif kind == 'user':
         username = json_item['username']

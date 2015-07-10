@@ -33,12 +33,12 @@ class TestClient(unittest.TestCase):
 
     def test_get_favorites(self):
         client = Client()
-        json_data = client.get_favorites('1701116')
+        json_data = client.get_favorites('520685')
         pass
 
     def test_get_likes(self):
         client = Client()
-        json_data = client.get_likes('1701116')
+        json_data = client.get_likes('520685')
         pass
 
     # ==================
