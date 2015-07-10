@@ -39,7 +39,7 @@ def _convert_to_track_item(json_item):
 
         # we use a fallback.
         # created_at=2013/03/24 00:32:01 +0000
-        re_match = re.match('(?P<year>\d{4})(.*)', _item_json.get('created_at', ''))
+        re_match = re.match(r'(?P<year>\d{4})(.*)', _item_json.get('created_at', ''))
         if re_match:
             year = re_match.group('year')
             if year:

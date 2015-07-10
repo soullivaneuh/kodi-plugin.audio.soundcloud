@@ -308,9 +308,15 @@ class Provider(nightcrawler.Provider):
             items.append(item)
             pass
 
-        # TODO: next page for mobile and normal request
+        # create next page item
         if result.get('continue', False):
-            items.append(nightcrawler.items.create_next_page_item(context, fanart=self.get_fanart(context)))
+            new_params = {}
+            new_params.update(context.get_params())
+            if 'cursor' in result:
+                new_params['cursor'] = result['cursor']
+                pass
+            new_context = context.clone(new_params=new_params)
+            items.append(nightcrawler.items.create_next_page_item(new_context, fanart=self.get_fanart(context)))
             pass
         return items
 
@@ -513,46 +519,6 @@ class Provider(nightcrawler.Provider):
                        'uri': context.create_uri('explore'),
                        'images': {'thumbnail': context.create_resource_path('media/explore.png'),
                                   'fanart': self.get_fanart(context)}})
-        return result
-
-    def _do_collection(self, context, json_data, path, params, content_type):
-        context.set_content_type(content_type)
-
-        """
-            Helper function to display the items of a collection
-            :param json_data:
-            :param path:
-            :param params:
-            :return:
-            """
-        result = []
-
-        collection = json_data.get('collection', [])
-        for collection_item in collection:
-            # test if we have an 'origin' tag. If so we are in the activities
-            item = collection_item.get('origin', collection_item)
-            base_item = self._do_item(context, item, path)
-            if base_item is not None:
-                result.append(base_item)
-                pass
-            pass
-
-        # test for next page
-        next_href = json_data.get('next_href', '')
-        if next_href:
-            re_match = re.match(r'.*cursor=(?P<cursor>[a-z0-9-]+).*', next_href)
-            if re_match:
-                params['cursor'] = re_match.group('cursor')
-                pass
-            pass
-
-        page = int(params.get('page', 1))
-        if next_href and len(collection) > 0:
-            next_page_item = kodion.items.NextPageItem(context, page)
-            next_page_item.set_fanart(self.get_fanart(context))
-            result.append(next_page_item)
-            pass
-
         return result
 
     pass
