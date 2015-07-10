@@ -1,7 +1,5 @@
 __author__ = 'bromix'
 
-import re
-
 from resources.lib.org.bromix import nightcrawler
 from .client import Client
 
@@ -382,11 +380,15 @@ class Provider(nightcrawler.Provider):
     @nightcrawler.register_path_value('user_id', unicode)
     @nightcrawler.register_context_value('page', int, default=1)
     def on_user_tracks(self, context, user_id, page):
+        def _make_bold(user_id, title):
+            if user_id != 'me':
+                return '[B]%s[/B]' % title
+            return title
+
         context.set_content_type(context.CONTENT_TYPE_SONGS)
         result = []
 
         # on the first page add some extra stuff to navigate to
-        # TODO: add Likes, Following and Follower
         if page == 1:
             # TODO: get correct user image
             #json_data = self.get_client(context).get_user(user_id)
@@ -396,28 +398,28 @@ class Provider(nightcrawler.Provider):
 
             # playlists
             result.append({'type': 'folder',
-                           'title': context.localize(self.SOUNDCLOUD_LOCAL_PLAYLISTS),
+                           'title': _make_bold(user_id, context.localize(self.SOUNDCLOUD_LOCAL_PLAYLISTS)),
                            'uri': context.create_uri('/user/playlists/%s' % user_id),
                            'images': {'thumbnail': user_image,
                                       'fanart': self.get_fanart(context)}})
 
             # likes
             result.append({'type': 'folder',
-                           'title': context.localize(self.SOUNDCLOUD_LOCAL_LIKES),
+                           'title': _make_bold(user_id, context.localize(self.SOUNDCLOUD_LOCAL_LIKES)),
                            'uri': context.create_uri('/user/favorites/%s' % user_id),
                            'images': {'thumbnail': user_image,
                                       'fanart': self.get_fanart(context)}})
 
             # following
             result.append({'type': 'folder',
-                           'title': context.localize(self.SOUNDCLOUD_LOCAL_FOLLOWING),
+                           'title': _make_bold(user_id, context.localize(self.SOUNDCLOUD_LOCAL_FOLLOWING)),
                            'uri': context.create_uri('/user/following/%s' % user_id),
                            'images': {'thumbnail': user_image,
                                       'fanart': self.get_fanart(context)}})
 
             # follower
             result.append({'type': 'folder',
-                           'title': context.localize(self.SOUNDCLOUD_LOCAL_FOLLOWER),
+                           'title': _make_bold(user_id, context.localize(self.SOUNDCLOUD_LOCAL_FOLLOWER)),
                            'uri': context.create_uri('/user/follower/%s' % user_id),
                            'images': {'thumbnail': user_image,
                                       'fanart': self.get_fanart(context)}})
