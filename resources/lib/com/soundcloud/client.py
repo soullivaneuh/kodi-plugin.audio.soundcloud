@@ -119,6 +119,19 @@ class Client(nightcrawler.HttpClient):
         self._handle_error(response)
         return items.convert_to_items(response.json())
 
+    def get_tracks(self, user_id, page=1):
+        params = {'limit': str(self._items_per_page),
+                  'linked_partitioning': '1'}
+        if page > 1:
+            params['offset'] = str((page - 1) * self._items_per_page)
+            pass
+
+        response = self._request(self._create_url('tracks', user_id=user_id),
+                                 headers={'Accept': 'application/json'},
+                                 params=params)
+        self._handle_error(response)
+        return items.convert_to_items(response.json())
+
     # ===============================================================
 
     def resolve_url(self, url):
@@ -278,21 +291,6 @@ class Client(nightcrawler.HttpClient):
         path = 'tracks/%s' % str(track_id)
         return self._perform_request(path=path,
                                      headers={'Accept': 'application/json'})
-
-    def get_tracks(self, me_or_user_id, page=1):
-        page = int(page)
-        per_page = int(self._items_per_page)
-
-        params = {'limit': str(per_page),
-                  'linked_partitioning': '1'}
-        if page > 1:
-            params['offset'] = str((page - 1) * per_page)
-            pass
-
-        path = self._create_path_based_on_user_id(me_or_user_id, 'tracks')
-        return self._perform_request(path=path,
-                                     headers={'Accept': 'application/json'},
-                                     params=params)
 
     def get_user(self, me_or_user_id):
         self.update_access_token()

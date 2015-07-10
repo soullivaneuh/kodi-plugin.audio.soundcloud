@@ -150,55 +150,6 @@ class Provider(nightcrawler.Provider):
         result = self._do_collection(context, json_data, path, params)
         return result
 
-    #@kodion.RegisterProviderPath('^\/user/tracks\/(?P<user_id>.+)/$')
-    def _on_tracks(self, context, re_match):
-        result = []
-
-        user_id = re_match.group('user_id')
-        params = context.get_params()
-        page = int(params.get('page', 1))
-
-        json_data = context.get_function_cache().get(FunctionCache.ONE_DAY, self.get_client(context).get_user, user_id)
-        user_image = json_data.get('avatar_url', '')
-        user_image = self._get_hires_image(user_image)
-
-        if page == 1:
-            # playlists
-            playlists_item = DirectoryItem(context.localize(self._local_map['soundcloud.playlists']),
-                                           context.create_uri(['user/playlists', user_id]),
-                                           image=user_image)
-            playlists_item.set_fanart(self.get_fanart(context))
-            result.append(playlists_item)
-
-            # likes
-            likes_item = DirectoryItem(context.localize(self._local_map['soundcloud.likes']),
-                                       context.create_uri(['user/favorites', user_id]),
-                                       image=user_image)
-            likes_item.set_fanart(self.get_fanart(context))
-            result.append(likes_item)
-
-            # following
-            following_item = DirectoryItem(context.localize(self._local_map['soundcloud.following']),
-                                           context.create_uri(['user/following', user_id]),
-                                           image=user_image)
-            following_item.set_fanart(self.get_fanart(context))
-            result.append(following_item)
-
-            # follower
-            follower_item = DirectoryItem(context.localize(self._local_map['soundcloud.follower']),
-                                          context.create_uri(['user/follower', user_id]),
-                                          image=user_image)
-            follower_item.set_fanart(self.get_fanart(context))
-            result.append(follower_item)
-            pass
-
-        json_data = context.get_function_cache().get(FunctionCache.ONE_MINUTE * 10, self.get_client(context).get_tracks,
-                                                     user_id,
-                                                     page=page)
-        path = context.get_path()
-        result.extend(self._do_collection(context, json_data, path, params))
-        return result
-
     #@kodion.RegisterProviderPath('^\/playlist\/(?P<playlist_id>.+)/$')
     def _on_playlist(self, context, re_match):
         context.set_content_type(kodion.constants.content_type.SONGS)
@@ -394,6 +345,54 @@ class Provider(nightcrawler.Provider):
             items.append(nightcrawler.items.create_next_page_item(context, fanart=self.get_fanart(context)))
             pass
         return items
+
+    @nightcrawler.register_path('/user/tracks/(?P<user_id>.+)/')
+    @nightcrawler.register_path_value('user_id', unicode)
+    @nightcrawler.register_context_value('page', int, default=1)
+    def on_user_tracks(self, context, user_id, page):
+        context.set_content_type(context.CONTENT_TYPE_SONGS)
+        result = []
+
+        # TODO: add Playlist, Likes, Following and Follower
+        """
+        json_data = context.get_function_cache().get(FunctionCache.ONE_DAY, self.get_client(context).get_user, user_id)
+        user_image = json_data.get('avatar_url', '')
+        user_image = self._get_hires_image(user_image)
+
+        if page == 1:
+            # playlists
+            playlists_item = DirectoryItem(context.localize(self._local_map['soundcloud.playlists']),
+                                           context.create_uri(['user/playlists', user_id]),
+                                           image=user_image)
+            playlists_item.set_fanart(self.get_fanart(context))
+            result.append(playlists_item)
+
+            # likes
+            likes_item = DirectoryItem(context.localize(self._local_map['soundcloud.likes']),
+                                       context.create_uri(['user/favorites', user_id]),
+                                       image=user_image)
+            likes_item.set_fanart(self.get_fanart(context))
+            result.append(likes_item)
+
+            # following
+            following_item = DirectoryItem(context.localize(self._local_map['soundcloud.following']),
+                                           context.create_uri(['user/following', user_id]),
+                                           image=user_image)
+            following_item.set_fanart(self.get_fanart(context))
+            result.append(following_item)
+
+            # follower
+            follower_item = DirectoryItem(context.localize(self._local_map['soundcloud.follower']),
+                                          context.create_uri(['user/follower', user_id]),
+                                          image=user_image)
+            follower_item.set_fanart(self.get_fanart(context))
+            result.append(follower_item)
+            pass
+        """
+
+        tracks_result = self.get_client(context).get_tracks(user_id, page=page)
+        result.extend(self.process_result(context, tracks_result))
+        return result
 
     @nightcrawler.register_path('/explore/recommended/tracks\/(?P<track_id>.+)/')
     @nightcrawler.register_path_value('track_id', unicode)
