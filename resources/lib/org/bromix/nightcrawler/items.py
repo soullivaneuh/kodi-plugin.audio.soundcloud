@@ -23,7 +23,7 @@ def create_next_page_item(context, thumbnail=None, fanart=None):
 
     title = context.localize(30106)
     if title.find('%d') != -1:
-        title % page
+        title %= page
         pass
 
     return {'type': 'folder',
@@ -34,7 +34,6 @@ def create_next_page_item(context, thumbnail=None, fanart=None):
 
 
 def create_search_item(context, thumbnail=None, fanart=None):
-    # TODO: switch from list to query if the history size is 0
     if not thumbnail:
         thumbnail = context.create_resource_path('media/search.png')
         pass

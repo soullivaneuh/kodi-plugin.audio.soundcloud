@@ -1,5 +1,6 @@
-from resources.lib.kodion import runner
+__author__ = 'bromix'
+
+from resources.lib.org.bromix import nightcrawler
 from resources.lib.com import soundcloud
 
-__provider__ = soundcloud.Provider()
-runner.run(__provider__)
+nightcrawler.run(soundcloud.Provider())

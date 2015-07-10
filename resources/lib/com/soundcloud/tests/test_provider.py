@@ -2,19 +2,42 @@ __author__ = 'bromix'
 
 import unittest
 
-from resources.lib import kodion
-from resources.lib.com.soundcloud.provider import Provider
-
-
-def print_items(items):
-    for item in items:
-        print item
-        pass
-    pass
+from resources.lib.org.bromix import nightcrawler
+from resources.lib.com import soundcloud
 
 
 class TestProvider(unittest.TestCase):
     TOKEN = u'1-21686-118589874-2e78a9be01d463'
+
+    def test_on_explore(self):
+        context = nightcrawler.Context('/explore/')
+        result = soundcloud.Provider().navigate(context)
+        self.assertEquals(len(result), 4)
+        pass
+
+    def test_explore_trending(self):
+        provider = soundcloud.Provider()
+
+        # music
+        context = nightcrawler.Context('/explore/trending/music/')
+        result = provider.navigate(context)
+        self.assertEquals(len(result), 51)  # 50 + next page
+
+        # audio
+        context = nightcrawler.Context('/explore/trending/audio/')
+        result = provider.navigate(context)
+        self.assertEquals(len(result), 51)  # 50 + next page
+        pass
+
+    def test_explore_genres_drum_bass(self):
+        provider = soundcloud.Provider()
+
+        context = nightcrawler.Context('/explore/genre/music/Drum & Bass/')
+        result = provider.navigate(context)
+        self.assertEquals(len(result), 51)  # 50 + next page
+        pass
+
+    # =======
 
     def _create_context(self, path):
         context = kodion.Context(path=path)
@@ -79,28 +102,6 @@ class TestProvider(unittest.TestCase):
         print_items(items)
         pass
 
-    def test_explore_trending(self):
-        provider = Provider()
-
-        # music
-        context = self._create_context('/explore/trending/music/')
-        context.set_localization(30516, 'TEST %s')
-        context.get_function_cache().disable()
-        result = provider.navigate(context)
-        items = result[0]
-        self.assertGreater(len(items), 0)
-        print_items(items)
-
-        # audio
-        context = self._create_context('/explore/trending/audio/')
-        context.set_localization(30516, 'TEST %s')
-        context.get_function_cache().disable()
-        result = provider.navigate(context)
-        items = result[0]
-        self.assertGreater(len(items), 0)
-        print_items(items)
-        pass
-
     def test_search(self):
         provider = Provider()
 
@@ -108,20 +109,6 @@ class TestProvider(unittest.TestCase):
         context = kodion.Context(path=path, params={'q': 'angerfist'})
         context.set_localization(30516, 'TEST %s')
         result = provider.navigate(context)
-        pass
-
-    def test_explore_genres_drum_bass(self):
-        provider = Provider()
-
-        context = self._create_context('/explore/genre/music/Drum & Bass/')
-        context.set_localization(30516, 'TEST %s')
-        context.get_function_cache().disable()
-
-        # music
-        result = provider.navigate(context)
-        items = result[0]
-        self.assertGreater(len(items), 0)
-        print_items(items)
         pass
 
     def test_explore_genres(self):

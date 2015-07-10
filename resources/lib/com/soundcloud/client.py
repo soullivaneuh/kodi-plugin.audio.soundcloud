@@ -1,11 +1,9 @@
-from resources.lib import kodion
-
 __author__ = 'bromix'
 
-#import requests
-from resources.lib.kodion import simple_requests as requests
+from resources.lib.org.bromix import nightcrawler
+from . import items
 
-
+"""
 class ClientException(kodion.KodionException):
     def __init__(self, status_code, *args, **kwargs):
         Exception.__init__(self, *args, **kwargs)
@@ -16,13 +14,18 @@ class ClientException(kodion.KodionException):
         return self._status_code
 
     pass
+"""
 
 
-class Client(object):
+class Client(nightcrawler.HttpClient):
     CLIENT_ID = '40ccfee680a844780a41fbe23ea89934'
     CLIENT_SECRET = '26a5240f7ee0ee2d4fa9956ed80616c2'
 
     def __init__(self, username='', password='', access_token='', client_id='', client_secret='', items_per_page=50):
+        nightcrawler.HttpClient.__init__(self, default_header={'Accept-Encoding': 'gzip',
+                                                               'Host': 'api.soundcloud.com:443',
+                                                               'Connection': 'Keep-Alive',
+                                                               'User-Agent': 'SoundCloud-Android/14.10.01-27 (Android 4.4.4; samsung GT-I9100'})
         self._username = username
         self._password = password
         self._access_token = access_token
@@ -41,53 +44,75 @@ class Client(object):
             pass
         pass
 
-    def _create_path_based_on_user_id(self, me_or_user_id, path):
-        """
-        Creates the API path based on 'me' otherwise for the given user id
-        :param me_or_user_id:
-        :param path:
-        :return:
-        """
-        user_id = unicode(me_or_user_id)
-        if user_id == 'me':
-            return 'me/%s' % path.strip('/')
-        return 'users/%s/%s' % (user_id, path.strip('/'))
+    def _create_url(self, path, user_id=None):
+        if user_id:
+            if user_id == 'me':
+                path = 'me/%s' % path.strip('/')
+                pass
+            else:
+                path = 'users/%s/%s' % (user_id, path.strip('/'))
+                pass
+            pass
+
+        return 'https://api.soundcloud.com:443/%s' % path
+
+    def _handle_error(self, response):
+        pass
+
+    def get_trending(self, category='music', page=1):
+        if not category.lower() in ['music', 'audio']:
+            raise Exception('Unknown category "%s"' % category)
+
+        params = {'limit': str(self._items_per_page)}
+        if page > 1:
+            params['offset'] = str((page - 1) * self._items_per_page)
+            pass
+
+        response = self._request(self._create_url('app/mobileapps/suggestions/tracks/popular/%s' % category),
+                                 headers={'Accept': 'application/json'},
+                                 params=params)
+        self._handle_error(response)
+        return items.convert_to_items(response.json(), mobile_conversion=True)
+
+    def get_genre(self, genre, page=1):
+        params = {'limit': str(self._items_per_page)}
+        if page > 1:
+            params['offset'] = str((page - 1) * self._items_per_page)
+            pass
+
+        response = self._request(self._create_url('app/mobileapps/suggestions/tracks/categories/%s' % genre),
+                                 headers={'Accept': 'application/json'},
+                                 params=params)
+        self._handle_error(response)
+        return items.convert_to_items(response.json(), mobile_conversion=True)
+
+    def get_categories(self):
+        def _process_category(_category, _result, _json_data):
+            for _item in _json_data:
+                _result.append({'type': 'folder',
+                                'title': _item['title']})
+                pass
+            pass
+
+        response = self._request(self._create_url('app/mobileapps/suggestions/tracks/categories'),
+                                 headers={'Accept': 'application/json'})
+        self._handle_error(response)
+
+        json_data = response.json()
+        result = {'audio': [], 'music': []}
+        for key in result:
+            _process_category(key, result[key], json_data.get(key, []))
+            pass
+
+        return result
+
+    # ========
 
     def resolve_url(self, url):
         params = {'url': url}
         return self._perform_request(path='resolve',
                                      headers={'Accept': 'application/json'},
                                      params=params)
-
-    def get_trending(self, category='music', page=1):
-        page = int(page)
-        per_page = int(self._items_per_page)
-
-        path = 'app/mobileapps/suggestions/tracks/popular/%s' % category
-        params = {'limit': str(per_page)}
-        if page > 1:
-            params['offset'] = str((page - 1) * per_page)
-            pass
-        return self._perform_request(path=path,
-                                     headers={'Accept': 'application/json'},
-                                     params=params)
-
-    def get_genre(self, genre, page=1):
-        page = int(page)
-        per_page = int(self._items_per_page)
-
-        path = 'app/mobileapps/suggestions/tracks/categories/%s' % genre
-        params = {'limit': str(per_page)}
-        if page > 1:
-            params['offset'] = str((page - 1) * per_page)
-            pass
-        return self._perform_request(path=path,
-                                     headers={'Accept': 'application/json'},
-                                     params=params)
-
-    def get_categories(self):
-        return self._perform_request(path='app/mobileapps/suggestions/tracks/categories',
-                                     headers={'Accept': 'application/json'})
 
     def get_track_url(self, track_id):
         return self._perform_request(path='tracks/%s/stream' % str(track_id),
@@ -97,12 +122,12 @@ class Client(object):
     def search(self, search_text, category='sounds', page=1):
         """
 
-        :param search_text:
-        :param category: ['sounds', 'people', 'sets']
-        :param page:
-        :param per_page:
-        :return:
-        """
+    :param search_text:
+    :param category: ['sounds', 'people', 'sets']
+    :param page:
+    :param per_page:
+    :return:
+    """
         page = int(page)
         per_page = int(self._items_per_page)
 
@@ -280,54 +305,24 @@ class Client(object):
     def get_access_token(self):
         return self._access_token
 
-    def _perform_request(self, method='GET', headers=None, path=None, post_data=None, params=None,
-                         allow_redirects=True):
-        # params
+    def _request(self, url, method='GET', headers=None, post_data=None, params=None, allow_redirects=True):
         if not params:
             params = {}
             pass
+
         if self._client_id:
             params['client_id'] = self._client_id
             pass
 
-        # basic header
-        _headers = {'Accept-Encoding': 'gzip',
-                    'Host': 'api.soundcloud.com:443',
-                    'Connection': 'Keep-Alive',
-                    'User-Agent': 'SoundCloud-Android/14.10.01-27 (Android 4.4.4; samsung GT-I9100'}
-        # set access token
-        if self._access_token:
-            _headers['Authorization'] = 'OAuth %s' % self._access_token
-            pass
         if not headers:
             headers = {}
             pass
-        _headers.update(headers)
 
-        # url
-        _url = 'https://api.soundcloud.com:443/%s' % path
-
-        result = None
-        if method == 'GET':
-            result = requests.get(_url, params=params, headers=_headers, verify=False, allow_redirects=allow_redirects)
-        elif method == 'POST':
-            result = requests.post(_url, data=post_data, params=params, headers=_headers, verify=False,
-                                   allow_redirects=allow_redirects)
-        elif method == 'PUT':
-            result = requests.put(_url, data=post_data, params=params, headers=_headers, verify=False,
-                                  allow_redirects=allow_redirects)
-        elif method == 'DELETE':
-            result = requests.delete(_url, data=post_data, params=params, headers=_headers, verify=False,
-                                     allow_redirects=allow_redirects)
+        if self._access_token:
+            headers['Authorization'] = 'OAuth %s' % self._access_token
             pass
 
-        if result is None:
-            return {}
-
-        if result.status_code == requests.codes.unauthorized:
-            raise ClientException(status_code=result.status_code)
-
-        return result.json()
+        return super(Client, self)._request(url, method, headers, post_data, params, allow_redirects)
 
     def update_access_token(self):
         if not self._access_token and self._username and self._password:

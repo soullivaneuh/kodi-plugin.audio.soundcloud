@@ -17,12 +17,35 @@ def _do_info_labels(context, kodi_item, item):
     info_labels = {}
     item_type = item['type']
 
-    if item_type in ['video', 'movie']:
+    if item_type in ['audio', 'music']:
+        # 'title' = 'Blow Your Head Off' (string)
+        _process_not_none_value(info_labels, 'title', item['title'])
+
+        # 'tracknumber' = 12 (int)
+        _process_not_none_value(info_labels, 'tracknumber', item.get('tracknumber', None))
+
+        # 'year' = 1994 (int)
+        _process_not_none_value(info_labels, 'year', item.get('year', None))
+
+        # 'genre' = 'Hardcore' (string)
+        _process_not_none_value(info_labels, 'genre', item.get('genre', None))
+
+        # 'duration' = 79 (int)
+        _process_not_none_value(info_labels, 'duration', item.get('duration', None))
+
+        # 'album' = 'Buckle Up' (string)
+        _process_not_none_value(info_labels, 'album', item.get('album', None))
+
+        # 'artist' = 'Angerfist' (string)
+        _process_not_none_value(info_labels, 'artist', item.get('artist', None))
+
+        if info_labels:
+            kodi_item.setInfo(type=u'music', infoLabels=info_labels)
+            pass
+        pass
+    elif item_type in ['video', 'movie']:
         # 'plot' = '...' (string)
         _process_not_none_value(info_labels, 'plot', item.get('plot', None))
-
-        # 'artist' = [] (list)
-        #_process_not_none_value(info_labels, 'artist', item.get('artist', None))
 
         # studio
         _process_not_none_value(info_labels, 'studio', item.get('studio', None))
@@ -96,12 +119,12 @@ def _do_fanart(context, kodi_item, item):
 
 def _create_kodi_item(context, item):
     icon_image_map = {'folder': u'DefaultFolder.png',
-                       'video': u'DefaultVideo.png',
-                       'movie': u'DefaultVideo.png',
-                       'audio': u'DefaultAudio.png',
-                       'music': u'DefaultAudio.png',
-                       'image': u'DefaultFile.png',
-                       'uri': u''}
+                      'video': u'DefaultVideo.png',
+                      'movie': u'DefaultVideo.png',
+                      'audio': u'DefaultAudio.png',
+                      'music': u'DefaultAudio.png',
+                      'image': u'DefaultFile.png',
+                      'uri': u''}
 
     item_type = item['type']
     if item_type == 'uri':
@@ -109,8 +132,8 @@ def _create_kodi_item(context, item):
         pass
     else:
         kodi_item = xbmcgui.ListItem(label=item.get('title', item['uri']),
-                                      iconImage=icon_image_map.get(item_type, u''),
-                                      thumbnailImage=item.get('images', {}).get('thumbnail', u''))
+                                     iconImage=icon_image_map.get(item_type, u''),
+                                     thumbnailImage=item.get('images', {}).get('thumbnail', u''))
         pass
 
     # set playable

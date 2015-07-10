@@ -3,7 +3,7 @@ __author__ = 'bromix'
 from .api import get, post, put, options, head, delete
 
 
-class HttpClient():
+class HttpClient(object):
     def __init__(self, default_header={}):
         self._default_header = default_header
         self._verify = False
