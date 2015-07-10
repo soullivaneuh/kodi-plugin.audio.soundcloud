@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
-import re
-
-from resources.lib.com.soundcloud.client import ClientException
-
-
 __author__ = 'bromix'
 
+import re
 import unittest
+
 from resources.lib.com.soundcloud import Client
 
 
@@ -14,8 +11,12 @@ class TestClient(unittest.TestCase):
     TOKEN = u'1-21686-118589874-262b20fc160e44'
     FALSE_TOKEN = u'1-21686-118589874-262b20fc160e456'
 
-    def setUp(self):
+    def test_get_trending(self):
+        client = Client()
+        result = client.get_trending('audio')
         pass
+
+    # ==================
 
     def test_resolve_url(self):
         client = Client(access_token=self.TOKEN)
@@ -51,11 +52,6 @@ class TestClient(unittest.TestCase):
         # some user
         json_data = client.get_likes('520685', page=2)
         self.assertGreater(len(json_data), 0)
-        pass
-
-    def test_get_trending(self):
-        client = Client()
-        json_data = client.get_trending('audio')
         pass
 
     def test_get_genre(self):

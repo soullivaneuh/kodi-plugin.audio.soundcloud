@@ -2,27 +2,26 @@ __author__ = 'bromix'
 
 import re
 
-from resources.lib.kodion.utils import FunctionCache
-from resources.lib.kodion.items import DirectoryItem, AudioItem
-from resources.lib import kodion
-from resources.lib.com.soundcloud.client import ClientException
+from resources.lib.org.bromix import nightcrawler
 from .client import Client
 
 
-class Provider(kodion.AbstractProvider):
+class Provider(nightcrawler.Provider):
+    SOUNDCLOUD_LOCAL_EXPLORE = 30500
+    SOUNDCLOUD_LOCAL_MUSIC_TRENDING = 30501
+    SOUNDCLOUD_LOCAL_AUDIO_TRENDING = 30502
+    SOUNDCLOUD_LOCAL_MUSIC_GENRE = 30503
+    SOUNDCLOUD_LOCAL_AUDIO_GENRE = 30504
+
     SETTINGS_USER_ID = 'soundcloud.user.id'
 
     def __init__(self):
-        kodion.AbstractProvider.__init__(self)
+        nightcrawler.Provider.__init__(self)
 
         self._is_logged_in = False
         self._client = None
+        """
         self._local_map.update(
-            {'soundcloud.explore': 30500,
-             'soundcloud.music.trending': 30501,
-             'soundcloud.audio.trending': 30502,
-             'soundcloud.music.genre': 30503,
-             'soundcloud.audio.genre': 30504,
              'soundcloud.stream': 30505,
              'soundcloud.playlists': 30506,
              'soundcloud.following': 30507,
@@ -37,12 +36,13 @@ class Provider(kodion.AbstractProvider):
              'soundcloud.user.go_to': 30516,
              'soundcloud.recommended': 30517}
         )
+        """
         pass
 
     def get_wizard_supported_views(self):
         return ['default', 'songs', 'artists', 'albums']
 
-    def get_client(self, context):
+    def get_client_old(self, context):
         access_manager = context.get_access_manager()
         access_token = access_manager.get_access_token()
         if access_manager.is_new_login_credential() or not access_token:
@@ -75,6 +75,8 @@ class Provider(kodion.AbstractProvider):
         return self._client
 
     def handle_exception(self, context, exception_to_handle):
+        return None
+
         if isinstance(exception_to_handle, ClientException):
             if exception_to_handle.get_status_code() == 401:
                 context.get_access_manager().update_access_token('')
@@ -88,12 +90,7 @@ class Provider(kodion.AbstractProvider):
     def get_alternative_fanart(self, context):
         return self.get_fanart(context)
 
-    def get_fanart(self, context):
-        if context.get_settings().get_bool('soundcloud.fanart_dark.show', True):
-            return context.create_resource_path('media', 'fanart_dark.jpg')
-        return context.create_resource_path('media', 'fanart.jpg')
-
-    @kodion.RegisterProviderPath('^/play/$')
+    #@kodion.RegisterProviderPath('^/play/$')
     def _on_play(self, context, re_match):
         params = context.get_params()
         url = params.get('url', '')
@@ -140,42 +137,7 @@ class Provider(kodion.AbstractProvider):
 
         return result
 
-    def _do_mobile_collection(self, context, json_data, path, params):
-        result = []
-
-        # this result is not quite the collection we expected, but with some conversion we can use our
-        # main routine for that.
-        collection = json_data.get('collection', [])
-        for collection_item in collection:
-            # move user
-            user = collection_item.get('_embedded', {}).get('user', {})
-            user_id = user['urn'].split(':')[2]
-            collection_item['user'] = {'username': user['username'],
-                                       'id': user_id}
-
-            # create track id of urn
-            track_id = collection_item['urn'].split(':')[2]
-            collection_item['id'] = track_id
-
-            # is always a track
-            collection_item['kind'] = 'track'
-
-            track_item = self._do_item(context, collection_item, path)
-            if track_item is not None:
-                result.append(track_item)
-            pass
-
-        page = int(params.get('page', 1))
-        next_href = json_data.get('_links', {}).get('next', {}).get('href', '')
-        if next_href and len(result) > 0:
-            next_page_item = kodion.items.NextPageItem(context, page)
-            next_page_item.set_fanart(self.get_fanart(context))
-            result.append(next_page_item)
-            pass
-
-        return result
-
-    @kodion.RegisterProviderPath('^\/explore/recommended\/tracks\/(?P<track_id>.+)/$')
+    #@kodion.RegisterProviderPath('^\/explore/recommended\/tracks\/(?P<track_id>.+)/$')
     def _on_explore_recommended_tracks(self, context, re_match):
         result = []
 
@@ -191,24 +153,7 @@ class Provider(kodion.AbstractProvider):
 
         return result
 
-    @kodion.RegisterProviderPath('^\/explore\/trending\/((?P<category>\w+)/)?$')
-    def _on_explore_trending(self, context, re_match):
-        result = []
-        category = re_match.group('category')
-        params = context.get_params()
-        page = int(params.get('page', 1))
-        json_data = context.get_function_cache().get(FunctionCache.ONE_HOUR, self.get_client(context).get_trending,
-                                                     category=category, page=page)
-        path = context.get_path()
-        result = self._do_mobile_collection(context, json_data, path, params)
-
-        if category:
-            context.set_content_type(kodion.constants.content_type.SONGS)
-            pass
-
-        return result
-
-    @kodion.RegisterProviderPath('^\/explore\/genre\/((?P<category>\w+)\/)((?P<genre>.+)\/)?$')
+    #@kodion.RegisterProviderPath('^\/explore\/genre\/((?P<category>\w+)\/)((?P<genre>.+)\/)?$')
     def _on_explore_genre(self, context, re_match):
         result = []
 
@@ -238,41 +183,7 @@ class Provider(kodion.AbstractProvider):
 
         return result
 
-    @kodion.RegisterProviderPath('^\/explore\/?$')
-    def _on_explore(self, context, re_match):
-        result = []
-
-        # trending music
-        music_trending_item = DirectoryItem(context.localize(self._local_map['soundcloud.music.trending']),
-                                            context.create_uri(['explore', 'trending', 'music']),
-                                            image=context.create_resource_path('media', 'music.png'))
-        music_trending_item.set_fanart(self.get_fanart(context))
-        result.append(music_trending_item)
-
-        # trending audio
-        audio_trending_item = DirectoryItem(context.localize(self._local_map['soundcloud.audio.trending']),
-                                            context.create_uri(['explore', 'trending', 'audio']),
-                                            image=context.create_resource_path('media', 'audio.png'))
-        audio_trending_item.set_fanart(self.get_fanart(context))
-        result.append(audio_trending_item)
-
-        # genre music
-        music_genre_item = DirectoryItem(context.localize(self._local_map['soundcloud.music.genre']),
-                                         context.create_uri(['explore', 'genre', 'music']),
-                                         image=context.create_resource_path('media', 'music.png'))
-        music_genre_item.set_fanart(self.get_fanart(context))
-        result.append(music_genre_item)
-
-        # genre audio
-        audio_genre_item = DirectoryItem(context.localize(self._local_map['soundcloud.audio.genre']),
-                                         context.create_uri(['explore', 'genre', 'audio']),
-                                         image=context.create_resource_path('media', 'audio.png'))
-        audio_genre_item.set_fanart(self.get_fanart(context))
-        result.append(audio_genre_item)
-
-        return result
-
-    @kodion.RegisterProviderPath('^\/stream\/$')
+    #@kodion.RegisterProviderPath('^\/stream\/$')
     def _on_stream(self, context, re_match):
         result = []
 
@@ -284,7 +195,7 @@ class Provider(kodion.AbstractProvider):
         result = self._do_collection(context, json_data, path, params)
         return result
 
-    @kodion.RegisterProviderPath('^\/user/tracks\/(?P<user_id>.+)/$')
+    #@kodion.RegisterProviderPath('^\/user/tracks\/(?P<user_id>.+)/$')
     def _on_tracks(self, context, re_match):
         result = []
 
@@ -333,7 +244,7 @@ class Provider(kodion.AbstractProvider):
         result.extend(self._do_collection(context, json_data, path, params))
         return result
 
-    @kodion.RegisterProviderPath('^\/playlist\/(?P<playlist_id>.+)/$')
+    #@kodion.RegisterProviderPath('^\/playlist\/(?P<playlist_id>.+)/$')
     def _on_playlist(self, context, re_match):
         context.set_content_type(kodion.constants.content_type.SONGS)
         result = []
@@ -346,7 +257,7 @@ class Provider(kodion.AbstractProvider):
         result.extend(self._do_item(context, json_data, path, process_playlist=True))
         return result
 
-    @kodion.RegisterProviderPath('^\/user/playlists\/(?P<user_id>.+)/$')
+    #@kodion.RegisterProviderPath('^\/user/playlists\/(?P<user_id>.+)/$')
     def _on_playlists(self, context, re_match):
         user_id = re_match.group('user_id')
         params = context.get_params()
@@ -357,7 +268,7 @@ class Provider(kodion.AbstractProvider):
         path = context.get_path()
         return self._do_collection(context, json_data, path, params, content_type=kodion.constants.content_type.ALBUMS)
 
-    @kodion.RegisterProviderPath('^\/user/following\/(?P<user_id>.+)/$')
+    #@kodion.RegisterProviderPath('^\/user/following\/(?P<user_id>.+)/$')
     def _on_following(self, context, re_match):
         user_id = re_match.group('user_id')
         params = context.get_params()
@@ -368,7 +279,7 @@ class Provider(kodion.AbstractProvider):
         path = context.get_path()
         return self._do_collection(context, json_data, path, params, content_type=kodion.constants.content_type.ARTISTS)
 
-    @kodion.RegisterProviderPath('^\/user/follower\/(?P<user_id>.+)/$')
+    #@kodion.RegisterProviderPath('^\/user/follower\/(?P<user_id>.+)/$')
     def _on_follower(self, context, re_match):
         user_id = re_match.group('user_id')
         params = context.get_params()
@@ -379,7 +290,7 @@ class Provider(kodion.AbstractProvider):
         path = context.get_path()
         return self._do_collection(context, json_data, path, params, content_type=kodion.constants.content_type.ARTISTS)
 
-    @kodion.RegisterProviderPath('^\/follow\/(?P<user_id>.+)/$')
+    #@kodion.RegisterProviderPath('^\/follow\/(?P<user_id>.+)/$')
     def _on_follow(self, context, re_match):
         user_id = re_match.group('user_id')
         params = context.get_params()
@@ -388,7 +299,7 @@ class Provider(kodion.AbstractProvider):
 
         return True
 
-    @kodion.RegisterProviderPath('^\/like\/(?P<category>\w+)\/(?P<content_id>.+)/$')
+    #@kodion.RegisterProviderPath('^\/like\/(?P<category>\w+)\/(?P<content_id>.+)/$')
     def _on_like(self, context, re_match):
         content_id = re_match.group('content_id')
         category = re_match.group('category')
@@ -408,7 +319,7 @@ class Provider(kodion.AbstractProvider):
 
         return True
 
-    @kodion.RegisterProviderPath('^\/user/favorites\/(?P<user_id>.+)/$')
+    #@kodion.RegisterProviderPath('^\/user/favorites\/(?P<user_id>.+)/$')
     def _on_favorites(self, context, re_match):
         user_id = re_match.group('user_id')
 
@@ -461,13 +372,89 @@ class Provider(kodion.AbstractProvider):
         result.extend(self._do_collection(context, json_data, path, params))
         return result
 
-    def on_root(self, context, re_match):
+    # =========
+    def get_fanart(self, context):
+        if context.get_settings().get_bool('soundcloud.fanart_dark.show', True):
+            return context.create_resource_path('media/fanart_dark.jpg')
+        return context.create_resource_path('media/fanart.jpg')
+
+    def get_client(self, context):
+        if self._client:
+            return self._client
+
+        # TODO: login
+        self._client = Client()
+        return self._client
+
+    def process_result(self, context, result):
+        items = []
+
         path = context.get_path()
+        for item in result['items']:
+            # TODO: update context menu based on login and path
+
+            # playback uri
+            item['uri'] = context.create_uri('play', {'audio_id': unicode(item['id'])})
+            item['images']['fanart'] = self.get_fanart(context)
+            items.append(item)
+            pass
+
+        # TODO: next page
+        if result.get('continue', False):
+            items.append(nightcrawler.items.create_next_page_item(context, fanart=self.get_fanart(context)))
+            pass
+        return items
+
+    @nightcrawler.register_path('/explore/trending/(?P<category>\w+)/')
+    @nightcrawler.register_path_value('category', unicode)
+    @nightcrawler.register_context_value('page', int, default=1)
+    def on_explore_trending(self, context, category, page):
+        context.set_content_type(context.CONTENT_TYPE_SONGS)
+
+        result = self.get_client(context).get_trending(category=category, page=page)
+        return self.process_result(context, result)
+
+    @nightcrawler.register_path('/explore/')
+    def on_explore(self, context):
         result = []
 
-        self.get_client(context)
+        # trending music
+        result.append({'type': 'folder',
+                       'title': context.localize(self.SOUNDCLOUD_LOCAL_MUSIC_TRENDING),
+                       'uri': context.create_uri('explore/trending/music'),
+                       'images': {'thumbnail': context.create_resource_path('media/music.png'),
+                                  'fanart': self.get_fanart(context)}})
+
+        # trending audio
+        result.append({'type': 'folder',
+                       'title': context.localize(self.SOUNDCLOUD_LOCAL_AUDIO_TRENDING),
+                       'uri': context.create_uri('explore/trending/audio'),
+                       'images': {'thumbnail': context.create_resource_path('media/audio.png'),
+                                  'fanart': self.get_fanart(context)}})
+
+        # genre music
+        result.append({'type': 'folder',
+                       'title': context.localize(self.SOUNDCLOUD_LOCAL_MUSIC_GENRE),
+                       'uri': context.create_uri('explore/genre/music'),
+                       'images': {'thumbnail': context.create_resource_path('media/music.png'),
+                                  'fanart': self.get_fanart(context)}})
+
+        # genre audio
+        result.append({'type': 'folder',
+                       'title': context.localize(self.SOUNDCLOUD_LOCAL_AUDIO_GENRE),
+                       'uri': context.create_uri('explore/genre/audio'),
+                       'images': {'thumbnail': context.create_resource_path('media/audio.png'),
+                                  'fanart': self.get_fanart(context)}})
+        return result
+
+    @nightcrawler.register_path('/')
+    def on_root(self, context):
+        result = []
+
+        client = self.get_client(context)
 
         # is logged in?
+        """
         if self._is_logged_in:
             # track
             json_data = self.get_client(context).get_user('me')
@@ -481,24 +468,20 @@ class Provider(kodion.AbstractProvider):
             stream_item.set_fanart(self.get_fanart(context))
             result.append(stream_item)
             pass
+            """
 
         # search
-        search_item = DirectoryItem(context.localize(kodion.constants.localize.SEARCH),
-                                    context.create_uri([kodion.constants.paths.SEARCH, 'list']),
-                                    image=context.create_resource_path('media', 'search.png'))
-        search_item.set_fanart(self.get_fanart(context))
-        result.append(search_item)
+        result.append(nightcrawler.items.create_search_item(context, fanart=self.get_fanart(context)))
 
         # explore
-        explore_item = DirectoryItem(context.localize(self._local_map['soundcloud.explore']),
-                                     context.create_uri('explore'),
-                                     image=context.create_resource_path('media', 'explore.png'))
-        explore_item.set_fanart(self.get_fanart(context))
-        result.append(explore_item)
-
+        result.append({'type': 'folder',
+                       'title': context.localize(self.SOUNDCLOUD_LOCAL_EXPLORE),
+                       'uri': context.create_uri('explore'),
+                       'images': {'thumbnail': context.create_resource_path('media/explore.png'),
+                                  'fanart': self.get_fanart(context)}})
         return result
 
-    def _do_collection(self, context, json_data, path, params, content_type=kodion.constants.content_type.SONGS):
+    def _do_collection(self, context, json_data, path, params, content_type):
         context.set_content_type(content_type)
 
         """
