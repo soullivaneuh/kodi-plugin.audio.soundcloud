@@ -245,39 +245,6 @@ class Provider(nightcrawler.Provider):
         path = context.get_path()
         return self._do_collection(context, json_data, path, params)
 
-    def on_search(self, search_text, context, re_match):
-        result = []
-        params = context.get_params()
-        page = int(params.get('page', 1))
-        category = params.get('category', 'sounds')
-
-        path = context.get_path()
-        if page == 1 and category == 'sounds':
-            people_params = {}
-            people_params.update(params)
-            people_params['category'] = 'people'
-            people_item = DirectoryItem('[B]' + context.localize(self._local_map['soundcloud.people']) + '[/B]',
-                                        context.create_uri(path, people_params),
-                                        image=context.create_resource_path('media', 'users.png'))
-            people_item.set_fanart(self.get_fanart(context))
-            result.append(people_item)
-
-            playlist_params = {}
-            playlist_params.update(params)
-            playlist_params['category'] = 'sets'
-            playlist_item = DirectoryItem('[B]' + context.localize(self._local_map['soundcloud.playlists']) + '[/B]',
-                                          context.create_uri(path, playlist_params),
-                                          image=context.create_resource_path('media', 'playlists.png'))
-            playlist_item.set_fanart(self.get_fanart(context))
-            result.append(playlist_item)
-            pass
-
-        json_data = context.get_function_cache().get(FunctionCache.ONE_MINUTE, self.get_client(context).search,
-                                                     search_text,
-                                                     category=category, page=page)
-        result.extend(self._do_collection(context, json_data, path, params))
-        return result
-
     # ===================================
 
     def get_fanart(self, context):
@@ -346,6 +313,41 @@ class Provider(nightcrawler.Provider):
             items.append(nightcrawler.items.create_next_page_item(context, fanart=self.get_fanart(context)))
             pass
         return items
+
+    @nightcrawler.register_context_value('category', unicode, default='sounds')
+    @nightcrawler.register_context_value('page', int, default=1)
+    def on_search(self, context, search_text, category, page):
+        result = []
+
+        path = context.get_path()
+        # TODO: add sub-category searches
+        """
+        if page == 1 and category == 'sounds':
+            people_params = {}
+            people_params.update(params)
+            people_params['category'] = 'people'
+            people_item = DirectoryItem('[B]' + context.localize(self._local_map['soundcloud.people']) + '[/B]',
+                                        context.create_uri(path, people_params),
+                                        image=context.create_resource_path('media', 'users.png'))
+            people_item.set_fanart(self.get_fanart(context))
+            result.append(people_item)
+
+            playlist_params = {}
+            playlist_params.update(params)
+            playlist_params['category'] = 'sets'
+            playlist_item = DirectoryItem('[B]' + context.localize(self._local_map['soundcloud.playlists']) + '[/B]',
+                                          context.create_uri(path, playlist_params),
+                                          image=context.create_resource_path('media', 'playlists.png'))
+            playlist_item.set_fanart(self.get_fanart(context))
+            result.append(playlist_item)
+            pass
+        """
+
+        json_data = context.get_function_cache().get(FunctionCache.ONE_MINUTE, self.get_client(context).search,
+                                                     search_text,
+                                                     category=category, page=page)
+        result.extend(self._do_collection(context, json_data, path, params))
+        return result
 
     @nightcrawler.register_path('/user/tracks/(?P<user_id>.+)/')
     @nightcrawler.register_path_value('user_id', unicode)

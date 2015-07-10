@@ -1,6 +1,7 @@
 __author__ = 'bromix'
 
 from resources.lib.org.bromix import nightcrawler
+from resources.lib.org.bromix.nightcrawler.exception import NightcrawlerException
 from . import items
 
 """
@@ -61,7 +62,7 @@ class Client(nightcrawler.HttpClient):
 
     def get_trending(self, category='music', page=1):
         if not category.lower() in ['music', 'audio']:
-            raise Exception('Unknown category "%s"' % category)
+            raise NightcrawlerException('Unknown category "%s"' % category)
 
         params = {'limit': str(self._items_per_page)}
         if page > 1:
@@ -132,6 +133,22 @@ class Client(nightcrawler.HttpClient):
         self._handle_error(response)
         return items.convert_to_items(response.json())
 
+    def search(self, search_text, category='sounds', page=1):
+        if not category in ['sounds', 'people', 'sets']:
+            raise NightcrawlerException('Unknown category "%s"' % category)
+
+        params = {'limit': str(self._items_per_page),
+                  'q': search_text}
+        if page > 1:
+            params['offset'] = str((page - 1) * self._items_per_page)
+            pass
+
+        response = self._request(self._create_url('search/%s' % category),
+                                 headers = {'Accept': 'application/json'},
+                                 params=params)
+        self._handle_error(response)
+        return items.convert_to_items(response.json())
+
     # ===============================================================
 
     def resolve_url(self, url):
@@ -144,29 +161,6 @@ class Client(nightcrawler.HttpClient):
         return self._perform_request(path='tracks/%s/stream' % str(track_id),
                                      headers={'Accept': 'application/json'},
                                      allow_redirects=False)
-
-    def search(self, search_text, category='sounds', page=1):
-        """
-
-    :param search_text:
-    :param category: ['sounds', 'people', 'sets']
-    :param page:
-    :param per_page:
-    :return:
-    """
-        page = int(page)
-        per_page = int(self._items_per_page)
-
-        params = {'limit': str(per_page),
-                  'q': search_text}
-        if page > 1:
-            params['offset'] = str((page - 1) * per_page)
-            pass
-
-        headers = {'Accept': 'application/json'}
-        return self._perform_request(path='search/%s' % category,
-                                     headers=headers,
-                                     params=params)
 
     def get_stream(self, page_cursor=None):
         params = {'limit': unicode(self._items_per_page)}

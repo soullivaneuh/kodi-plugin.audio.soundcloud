@@ -26,6 +26,11 @@ class TestClient(unittest.TestCase):
         result = client.get_genre('techno')
         pass
 
+    def test_search(self):
+        client = Client()
+        tracks = client.search('angerfist', category='sounds')
+        pass
+
     # ==================
 
     def test_resolve_url(self):
@@ -67,11 +72,6 @@ class TestClient(unittest.TestCase):
     def test_get_track_url(self):
         client = Client()
         json_data = client.get_track_url(77773864)
-        pass
-
-    def test_search(self):
-        client = Client()
-        json_data = client.search('bäume', category='sounds')
         pass
 
     def test_get_recommended_for_track(self):
