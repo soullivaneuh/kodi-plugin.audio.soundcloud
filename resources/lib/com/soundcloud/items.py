@@ -59,40 +59,6 @@ def _convert_to_track_item(json_item):
             'images': {'thumbnail': _get_thumbnail(json_item)}}
 
     return item
-    # year
-    track_item.set_year(_get_track_year(json_item))
-
-    context_menu = []
-    # recommended tracks
-    context_menu.append((context.localize(self._local_map['soundcloud.recommended']),
-                         'Container.Update(%s)' % context.create_uri(
-                             ['explore', 'recommended', 'tracks', unicode(json_item['id'])])))
-
-    # like/unlike a track
-    if path == '/user/favorites/me/':
-        context_menu.append((context.localize(self._local_map['soundcloud.unlike']),
-                             'RunPlugin(%s)' % context.create_uri(['like/track', unicode(json_item['id'])],
-                                                                  {'like': '0'})))
-        pass
-    else:
-        context_menu.append((context.localize(self._local_map['soundcloud.like']),
-                             'RunPlugin(%s)' % context.create_uri(['like/track', unicode(json_item['id'])],
-                                                                  {'like': '1'})))
-        pass
-
-    # go to user
-    username = json_item['user']['username']
-    user_id = str(json_item['user']['id'])
-    if path != '/user/tracks/%s/' % user_id:
-        context_menu.append((
-            context.localize(self._local_map['soundcloud.user.go_to']) % ('[B]%s[/B]' % username),
-            'Container.Update(%s)' % context.create_uri(['user', 'tracks', user_id])))
-        pass
-
-    track_item.set_context_menu(context_menu)
-
-    return track_item
-    pass
 
 
 def convert_to_item(json_item):

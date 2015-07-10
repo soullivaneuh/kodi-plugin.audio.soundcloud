@@ -8,6 +8,9 @@ from .client import Client
 
 class Provider(nightcrawler.Provider):
     SOUNDCLOUD_LOCAL_EXPLORE = 30500
+    SOUNDCLOUD_LOCAL_RECOMMENDED = 30517
+    SOUNDCLOUD_LOCAL_GO_TO_USER = 30516
+
     SOUNDCLOUD_LOCAL_MUSIC_TRENDING = 30501
     SOUNDCLOUD_LOCAL_AUDIO_TRENDING = 30502
     SOUNDCLOUD_LOCAL_MUSIC_GENRE = 30503
@@ -33,14 +36,15 @@ class Provider(nightcrawler.Provider):
              'soundcloud.unfollow': 30513,
              'soundcloud.unlike': 30514,
              'soundcloud.people': 30515,
-             'soundcloud.user.go_to': 30516,
-             'soundcloud.recommended': 30517}
         )
         """
         pass
 
-    def get_wizard_supported_views(self):
-        return ['default', 'songs', 'artists', 'albums']
+    def on_setup(self, mode):
+        if mode == 'content-type':
+            return ['default', 'songs', 'artists', 'albums']
+
+        return None
 
     def get_client_old(self, context):
         access_manager = context.get_access_manager()
@@ -90,7 +94,7 @@ class Provider(nightcrawler.Provider):
     def get_alternative_fanart(self, context):
         return self.get_fanart(context)
 
-    #@kodion.RegisterProviderPath('^/play/$')
+    # @kodion.RegisterProviderPath('^/play/$')
     def _on_play(self, context, re_match):
         params = context.get_params()
         url = params.get('url', '')
@@ -133,52 +137,6 @@ class Provider(nightcrawler.Provider):
             playlist = context.get_audio_playlist()
             playlist.clear()
             playlist.add(result)
-            pass
-
-        return result
-
-    #@kodion.RegisterProviderPath('^\/explore/recommended\/tracks\/(?P<track_id>.+)/$')
-    def _on_explore_recommended_tracks(self, context, re_match):
-        result = []
-
-        track_id = re_match.group('track_id')
-        params = context.get_params()
-        page = int(params.get('page', 1))
-
-        json_data = context.get_function_cache().get(FunctionCache.ONE_HOUR,
-                                                     self.get_client(context).get_recommended_for_track,
-                                                     track_id=track_id, page=page)
-        path = context.get_path()
-        result = self._do_collection(context, json_data, path, params)
-
-        return result
-
-    #@kodion.RegisterProviderPath('^\/explore\/genre\/((?P<category>\w+)\/)((?P<genre>.+)\/)?$')
-    def _on_explore_genre(self, context, re_match):
-        result = []
-
-        genre = re_match.group('genre')
-        if not genre:
-            json_data = context.get_function_cache().get(FunctionCache.ONE_DAY, self.get_client(context).get_categories)
-            category = re_match.group('category')
-            genres = json_data.get(category, [])
-            for genre in genres:
-                title = genre['title']
-                genre_item = DirectoryItem(title,
-                                           context.create_uri(['explore', 'genre', category, title]))
-                genre_item.set_fanart(self.get_fanart(context))
-                result.append(genre_item)
-                pass
-        else:
-            context.set_content_type(kodion.constants.content_type.SONGS)
-            params = context.get_params()
-            page = int(params.get('page', 1))
-            json_data = context.get_function_cache().get(FunctionCache.ONE_HOUR, self.get_client(context).get_genre,
-                                                         genre=genre,
-                                                         page=page)
-
-            path = context.get_path()
-            result = self._do_mobile_collection(context, json_data, path, params)
             pass
 
         return result
@@ -392,6 +350,41 @@ class Provider(nightcrawler.Provider):
         path = context.get_path()
         for item in result['items']:
             # TODO: update context menu based on login and path
+            context_menu = []
+
+            if item['type'] == 'audio':
+                # recommended tracks
+                context_menu.append((context.localize(self.SOUNDCLOUD_LOCAL_RECOMMENDED),
+                                     'Container.Update(%s)' % context.create_uri(
+                                         '/explore/recommended/tracks/%s' % unicode(item['id']))))
+
+                # like/unlike a track
+                """
+                if path == '/user/favorites/me/':
+                    context_menu.append((context.localize(self._local_map['soundcloud.unlike']),
+                                         'RunPlugin(%s)' % context.create_uri(['like/track', unicode(json_item['id'])],
+                                                                              {'like': '0'})))
+                    pass
+                else:
+                    context_menu.append((context.localize(self._local_map['soundcloud.like']),
+                                         'RunPlugin(%s)' % context.create_uri(['like/track', unicode(json_item['id'])],
+                                                                              {'like': '1'})))
+                    pass
+                """
+
+                # go to user
+                username = nightcrawler.utils.strings.to_unicode(item['user']['username'])
+                user_id = nightcrawler.utils.strings.to_unicode(item['user']['id'])
+                if path != '/user/tracks/%s/' % user_id:
+                    context_menu.append((
+                        context.localize(self.SOUNDCLOUD_LOCAL_GO_TO_USER) % ('[B]%s[/B]' % username),
+                        'Container.Update(%s)' % context.create_uri('/user/tracks/%s/' % user_id)))
+                    pass
+                pass
+
+            if context_menu:
+                item['context-menu'] = {'items': context_menu}
+                pass
 
             # playback uri
             item['uri'] = context.create_uri('play', {'audio_id': unicode(item['id'])})
@@ -404,6 +397,15 @@ class Provider(nightcrawler.Provider):
             items.append(nightcrawler.items.create_next_page_item(context, fanart=self.get_fanart(context)))
             pass
         return items
+
+    @nightcrawler.register_path('/explore/recommended/tracks\/(?P<track_id>.+)/')
+    @nightcrawler.register_path_value('track_id', unicode)
+    @nightcrawler.register_context_value('page', int, default=1)
+    def on_explore_recommended_tracks(self, context, track_id, page):
+        context.set_content_type(context.CONTENT_TYPE_SONGS)
+
+        result = self.get_client(context).get_recommended_for_track(track_id, page=page)
+        return self.process_result(context, result)
 
     @nightcrawler.register_path('/explore/genre/(?P<category>music|audio)/(?P<genre>.*)/')
     @nightcrawler.register_path_value('category', unicode)
@@ -546,46 +548,7 @@ class Provider(nightcrawler.Provider):
 
         return result
 
-    def _get_hires_image(self, url):
-        return re.sub('(.*)(-large.jpg\.*)(\?.*)?', r'\1-t300x300.jpg', url)
-
     def _do_item(self, context, json_item, path, process_playlist=False):
-        def _get_track_year(collection_item_json):
-            # this would be the default info, but is mostly not set :(
-            year = collection_item_json.get('release_year', '')
-            if year:
-                return year
-
-            # we use a fallback.
-            # created_at=2013/03/24 00:32:01 +0000
-            re_match = re.match('(?P<year>\d{4})(.*)', collection_item_json.get('created_at', ''))
-            if re_match:
-                year = re_match.group('year')
-                if year:
-                    return year
-                pass
-
-            return ''
-
-        def _get_image(json_data):
-            image_url = json_data.get('artwork_url', '')
-
-            # test avatar image
-            if not image_url:
-                image_url = json_data.get('avatar_url', '')
-
-            # test tracks (used for playlists)
-            if not image_url:
-                tracks = json_data.get('tracks', [])
-                if len(tracks) > 0:
-                    return _get_image(tracks[0])
-
-                # fall back is the user avatar (at least)
-                image_url = json_data.get('user', {}).get('avatar_url', '')
-                pass
-
-            return self._get_hires_image(image_url)
-
         kind = json_item.get('kind', '')
         if kind == 'playlist':
             if process_playlist:

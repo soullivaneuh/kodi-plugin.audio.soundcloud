@@ -106,7 +106,20 @@ class Client(nightcrawler.HttpClient):
 
         return result
 
-    # ========
+    def get_recommended_for_track(self, track_id, page=1):
+        params = {'limit': str(self._items_per_page),
+                  'linked_partitioning': '1'}
+        if page > 1:
+            params['offset'] = str((page - 1) * self._items_per_page)
+            pass
+
+        response = self._request(self._create_url('tracks/%s/related' % str(track_id)),
+                                 headers={'Accept': 'application/json'},
+                                 params=params)
+        self._handle_error(response)
+        return items.convert_to_items(response.json())
+
+    # ===============================================================
 
     def resolve_url(self, url):
         params = {'url': url}
@@ -257,21 +270,6 @@ class Client(nightcrawler.HttpClient):
             pass
 
         path = self._create_path_based_on_user_id(me_or_user_id, 'followings')
-        return self._perform_request(path=path,
-                                     headers={'Accept': 'application/json'},
-                                     params=params)
-
-    def get_recommended_for_track(self, track_id, page=1):
-        path = 'tracks/%s/related' % str(track_id)
-        page = int(page)
-        per_page = int(self._items_per_page)
-
-        params = {'limit': str(per_page),
-                  'linked_partitioning': '1'}
-        if page > 1:
-            params['offset'] = str((page - 1) * per_page)
-            pass
-
         return self._perform_request(path=path,
                                      headers={'Accept': 'application/json'},
                                      params=params)
