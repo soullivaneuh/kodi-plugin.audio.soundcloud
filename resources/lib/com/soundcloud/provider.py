@@ -91,9 +91,6 @@ class Provider(nightcrawler.Provider):
 
         return True
 
-    def get_alternative_fanart(self, context):
-        return self.get_fanart(context)
-
     # @kodion.RegisterProviderPath('^/play/$')
     def _on_play(self, context, re_match):
         params = context.get_params()
@@ -392,7 +389,7 @@ class Provider(nightcrawler.Provider):
             items.append(item)
             pass
 
-        # TODO: next page
+        # TODO: next page for mobile and normal request
         if result.get('continue', False):
             items.append(nightcrawler.items.create_next_page_item(context, fanart=self.get_fanart(context)))
             pass
@@ -547,141 +544,5 @@ class Provider(nightcrawler.Provider):
             pass
 
         return result
-
-    def _do_item(self, context, json_item, path, process_playlist=False):
-        kind = json_item.get('kind', '')
-        if kind == 'playlist':
-            if process_playlist:
-                result = []
-                tracks = json_item['tracks']
-                track_number = 1
-                for track in tracks:
-                    path = context.get_path()
-                    track_item = self._do_item(context, track, path)
-
-                    # set the name of the playlist for the albumname
-                    track_item.set_album_name(json_item['title'])
-
-                    # based on the position in the playlist we add a track number
-                    track_item.set_track_number(track_number)
-                    result.append(track_item)
-                    track_number += 1
-                    pass
-                return result
-            else:
-                playlist_item = DirectoryItem(json_item['title'],
-                                              context.create_uri(['playlist', unicode(json_item['id'])]),
-                                              image=_get_image(json_item))
-                playlist_item.set_fanart(self.get_fanart(context))
-
-                if path == '/user/favorites/me/':
-                    context_menu = [(context.localize(self._local_map['soundcloud.unlike']),
-                                     'RunPlugin(%s)' % context.create_uri(['like/playlist', unicode(json_item['id'])],
-                                                                          {'like': '0'}))]
-                else:
-                    context_menu = [(context.localize(self._local_map['soundcloud.like']),
-                                     'RunPlugin(%s)' % context.create_uri(['like/playlist', unicode(json_item['id'])],
-                                                                          {'like': '1'}))]
-
-                playlist_item.set_context_menu(context_menu)
-                return playlist_item
-            pass
-        elif kind == 'user':
-            username = json_item['username']
-            user_id = unicode(json_item['id'])
-            if path == '/':
-                user_id = 'me'
-                username = '[B]' + username + '[/B]'
-                pass
-            user_item = DirectoryItem(username,
-                                      context.create_uri(['user/tracks', user_id]),
-                                      image=_get_image(json_item))
-            user_item.set_fanart(self.get_fanart(context))
-
-            if path == '/user/following/me/':
-                context_menu = [(context.localize(self._local_map['soundcloud.unfollow']),
-                                 'RunPlugin(%s)' % context.create_uri(['follow', unicode(json_item['id'])],
-                                                                      {'follow': '0'}))]
-                pass
-            else:
-                context_menu = [(context.localize(self._local_map['soundcloud.follow']),
-                                 'RunPlugin(%s)' % context.create_uri(['follow', unicode(json_item['id'])],
-                                                                      {'follow': '1'}))]
-                pass
-            user_item.set_context_menu(context_menu)
-            return user_item
-        elif kind == 'track':
-            title = json_item['title']
-            track_item = AudioItem(title,
-                                   context.create_uri('play', {'audio_id': unicode(json_item['id'])}),
-                                   image=_get_image(json_item))
-            track_item.set_fanart(self.get_fanart(context))
-
-            # title
-            track_item.set_title(title)
-
-            # genre
-            track_item.set_genre(json_item.get('genre', ''))
-
-            # duration
-            track_item.set_duration_from_milli_seconds(json_item.get('duration', 0))
-
-            # artist
-            track_item.set_artist_name(json_item.get('user', {}).get('username', ''))
-
-            # year
-            track_item.set_year(_get_track_year(json_item))
-
-            context_menu = []
-            # recommended tracks
-            context_menu.append((context.localize(self._local_map['soundcloud.recommended']),
-                                 'Container.Update(%s)' % context.create_uri(
-                                     ['explore', 'recommended', 'tracks', unicode(json_item['id'])])))
-
-            # like/unlike a track
-            if path == '/user/favorites/me/':
-                context_menu.append((context.localize(self._local_map['soundcloud.unlike']),
-                                     'RunPlugin(%s)' % context.create_uri(['like/track', unicode(json_item['id'])],
-                                                                          {'like': '0'})))
-                pass
-            else:
-                context_menu.append((context.localize(self._local_map['soundcloud.like']),
-                                     'RunPlugin(%s)' % context.create_uri(['like/track', unicode(json_item['id'])],
-                                                                          {'like': '1'})))
-                pass
-
-            # go to user
-            username = json_item['user']['username']
-            user_id = str(json_item['user']['id'])
-            if path != '/user/tracks/%s/' % user_id:
-                context_menu.append((
-                    context.localize(self._local_map['soundcloud.user.go_to']) % ('[B]%s[/B]' % username),
-                    'Container.Update(%s)' % context.create_uri(['user', 'tracks', user_id])))
-                pass
-
-            track_item.set_context_menu(context_menu)
-
-            return track_item
-        elif kind == 'like':
-            # A like has 'playlist' or 'track' so we find one of them and call this routine again, because the
-            # data is same.
-            test_playlist = json_item.get('playlist', None)
-            if test_playlist is not None:
-                return self._do_item(context, test_playlist, path)
-
-            test_track = json_item.get('track', None)
-            if test_track is not None:
-                return self._do_item(context, test_track, path)
-            pass
-        elif kind == 'group':
-            # at the moment we don't support groups
-            """
-            group_item = DirectoryItem('Group-Dummy',
-                                       '')
-            return group_item
-            """
-            return None
-
-        raise kodion.KodionException("Unknown kind of item '%s'" % kind)
 
     pass

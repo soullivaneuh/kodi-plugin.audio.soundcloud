@@ -1,6 +1,6 @@
-import re
-
 __author__ = 'bromix'
+
+import re
 
 from resources.lib.org.bromix import nightcrawler
 from resources.lib.org.bromix.nightcrawler.exception import NightcrawlerException
@@ -67,43 +67,6 @@ def convert_to_item(json_item):
         return _convert_to_track_item(json_item)
 
     raise NightcrawlerException('Unknown kind of item "%s"' % kind)
-
-    def _get_track_year(collection_item_json):
-        # this would be the default info, but is mostly not set :(
-        year = collection_item_json.get('release_year', '')
-        if year:
-            return year
-
-        # we use a fallback.
-        # created_at=2013/03/24 00:32:01 +0000
-        re_match = re.match('(?P<year>\d{4})(.*)', collection_item_json.get('created_at', ''))
-        if re_match:
-            year = re_match.group('year')
-            if year:
-                return year
-            pass
-
-        return ''
-
-    def _get_image(json_data):
-        image_url = json_data.get('artwork_url', '')
-
-        # test avatar image
-        if not image_url:
-            image_url = json_data.get('avatar_url', '')
-
-        # test tracks (used for playlists)
-        if not image_url:
-            tracks = json_data.get('tracks', [])
-            if len(tracks) > 0:
-                return _get_image(tracks[0])
-
-            # fall back is the user avatar (at least)
-            image_url = json_data.get('user', {}).get('avatar_url', '')
-            pass
-
-        return self._get_hires_image(image_url)
-
 
     if kind == 'playlist':
         if process_playlist:
