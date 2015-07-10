@@ -319,6 +319,17 @@ class Provider(nightcrawler.Provider):
     def on_search(self, context, search_text, category, page):
         result = []
 
+        # set the correct content type
+        if category == 'sounds':
+            context.set_content_type(context.CONTENT_TYPE_SONGS)
+            pass
+        elif category == 'sets':
+            context.set_content_type(context.CONTENT_TYPE_ALBUMS)
+            pass
+        elif category == 'people':
+            context.set_content_type(context.CONTENT_TYPE_ARTISTS)
+            pass
+
         # first page of search
         if page == 1 and category == 'sounds':
             people_params = {}

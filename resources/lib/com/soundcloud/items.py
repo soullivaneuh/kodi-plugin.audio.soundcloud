@@ -174,9 +174,19 @@ def convert_to_items(json_result, mobile_conversion=False):
         result['items'].append(convert_to_item(item))
         pass
 
+    # next page validation
     next_href = json_result.get('_links', {}).get('next', {}).get('href', '')
     if next_href and len(result['items']) > 0:
         result['continue'] = True
+        pass
+
+    next_href = json_result.get('next_href', '')
+    if next_href and len(result['items']) > 0:
+        result['continue'] = True
+        re_match = re.match(r'.*cursor=(?P<cursor>[a-z0-9-]+).*', next_href)
+        if re_match:
+            result['cursor'] = re_match.group('cursor')
+            pass
         pass
 
     return result
