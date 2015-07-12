@@ -67,6 +67,11 @@ class TestClient(unittest.TestCase):
         json_data = client.get_recommended_for_track(193347852, page=1)
         pass
 
+    def test_tracks(self):
+        client = Client()
+        json_data = client.get_tracks(1701116)
+        pass
+
     def test_get_track(self):
         client = Client()
         json_data = client.get_track(193347852)
@@ -104,13 +109,6 @@ class TestClient(unittest.TestCase):
     def test_get_stream(self):
         client = Client(access_token=self.TOKEN)
         json_data = client.get_stream()
-        pass
-
-    def test_tracks(self):
-        client = Client(access_token=self.TOKEN)
-        json_data = client.get_tracks('me')
-
-        json_data = client.get_tracks(1701116)
         pass
 
     def test_follow(self):
