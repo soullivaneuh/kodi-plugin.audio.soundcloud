@@ -150,17 +150,6 @@ class Provider(nightcrawler.Provider):
         result = self._do_collection(context, json_data, path, params)
         return result
 
-    #@kodion.RegisterProviderPath('^\/user/following\/(?P<user_id>.+)/$')
-    def _on_following(self, context, re_match):
-        user_id = re_match.group('user_id')
-        params = context.get_params()
-        page = params.get('page', 1)
-        json_data = context.get_function_cache().get(FunctionCache.ONE_MINUTE, self.get_client(context).get_following,
-                                                     user_id,
-                                                     page=page)
-        path = context.get_path()
-        return self._do_collection(context, json_data, path, params, content_type=kodion.constants.content_type.ARTISTS)
-
     #@kodion.RegisterProviderPath('^\/user/follower\/(?P<user_id>.+)/$')
     def _on_follower(self, context, re_match):
         user_id = re_match.group('user_id')
@@ -273,6 +262,24 @@ class Provider(nightcrawler.Provider):
                                                                           {'like': '1'}))]
                 """
                 pass
+            elif item_type == 'artist':
+                item['type'] = 'folder'
+                item['uri'] = context.create_uri('/user/tracks/%s/' % item['id'])
+
+                # TODO: set context menu
+                """
+                if path == '/user/following/me/':
+                    context_menu = [(context.localize(self._local_map['soundcloud.unfollow']),
+                                     'RunPlugin(%s)' % context.create_uri(['follow', unicode(json_item['id'])],
+                                                                          {'follow': '0'}))]
+                    pass
+                else:
+                    context_menu = [(context.localize(self._local_map['soundcloud.follow']),
+                                     'RunPlugin(%s)' % context.create_uri(['follow', unicode(json_item['id'])],
+                                                                          {'follow': '1'}))]
+                    pass
+                """
+                pass
             else:
                 raise NightcrawlerException('Unknown item type "%s"' % item_type)
 
@@ -350,6 +357,13 @@ class Provider(nightcrawler.Provider):
     def _on_playlists(self, context, user_id, page):
         context.set_content_type(context.CONTENT_TYPE_ALBUMS)
         return self.process_result(context, self.get_client(context).get_playlists(user_id, page=page))
+
+    @nightcrawler.register_path('/user/following/(?P<user_id>.+)/')
+    @nightcrawler.register_path_value('user_id', unicode)
+    @nightcrawler.register_context_value('page', int, default=1)
+    def _on_following(self, context, user_id, page):
+        context.set_content_type(context.CONTENT_TYPE_ARTISTS)
+        return self.process_result(context, self.get_client(context).get_following(user_id, page=page))
 
     @nightcrawler.register_path('^/user/favorites/(?P<user_id>.+)/')
     @nightcrawler.register_path_value('user_id', unicode)

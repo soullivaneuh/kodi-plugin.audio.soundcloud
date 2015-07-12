@@ -71,12 +71,26 @@ def _convert_to_track_item(json_item):
     return item
 
 
+def _convert_to_artist_item(json_item):
+    item = {'type': 'artist',
+            'title': nightcrawler.utils.strings.to_unicode(json_item['username']),
+            'id': nightcrawler.utils.strings.to_unicode(json_item['id']),
+            'images': {'thumbnail': _get_thumbnail(json_item)}}
+
+    return item
+
+
 def convert_to_item(json_item):
     kind = json_item.get('kind', '')
     if kind == 'track':
         return _convert_to_track_item(json_item)
     elif kind == 'playlist':
         return _convert_to_playlist_item(json_item)
+    elif kind == 'user':
+        return _convert_to_artist_item(json_item)
+    elif kind == 'group':
+        # skip groups
+        return None
     elif kind == 'like':
         # a like includes the liked track or playlist.
         if json_item.get('playlist', None):
@@ -88,58 +102,6 @@ def convert_to_item(json_item):
         pass
 
     raise NightcrawlerException('Unknown kind of item "%s"' % kind)
-
-    if kind == 'playlist':
-        if process_playlist:
-            result = []
-            tracks = json_item['tracks']
-            track_number = 1
-            for track in tracks:
-                path = context.get_path()
-                track_item = self._do_item(context, track, path)
-
-                # set the name of the playlist for the albumname
-                track_item.set_album_name(json_item['title'])
-
-                # based on the position in the playlist we add a track number
-                track_item.set_track_number(track_number)
-                result.append(track_item)
-                track_number += 1
-                pass
-            return result
-        pass
-    elif kind == 'user':
-        username = json_item['username']
-        user_id = unicode(json_item['id'])
-        if path == '/':
-            user_id = 'me'
-            username = '[B]' + username + '[/B]'
-            pass
-        user_item = DirectoryItem(username,
-                                  context.create_uri(['user/tracks', user_id]),
-                                  image=_get_image(json_item))
-        user_item.set_fanart(self.get_fanart(context))
-
-        if path == '/user/following/me/':
-            context_menu = [(context.localize(self._local_map['soundcloud.unfollow']),
-                             'RunPlugin(%s)' % context.create_uri(['follow', unicode(json_item['id'])],
-                                                                  {'follow': '0'}))]
-            pass
-        else:
-            context_menu = [(context.localize(self._local_map['soundcloud.follow']),
-                             'RunPlugin(%s)' % context.create_uri(['follow', unicode(json_item['id'])],
-                                                                  {'follow': '1'}))]
-            pass
-        user_item.set_context_menu(context_menu)
-        return user_item
-    elif kind == 'group':
-        # at the moment we don't support groups
-        """
-        group_item = DirectoryItem('Group-Dummy',
-                                   '')
-        return group_item
-        """
-        return None
 
 
 def convert_to_items(json_result, mobile_conversion=False, process_tracks_of_playlist=False):
@@ -165,10 +127,12 @@ def convert_to_items(json_result, mobile_conversion=False, process_tracks_of_pla
         # test if we have an 'origin' tag. If so we are in the activities
         item = item.get('origin', item)
         item = convert_to_item(item)
-        if process_tracks_of_playlist:
-            item['tracknumber'] = tracknumber+1
+        if item:
+            if process_tracks_of_playlist:
+                item['tracknumber'] = tracknumber+1
+                pass
+            result['items'].append(item)
             pass
-        result['items'].append(item)
         pass
 
     # next page validation
