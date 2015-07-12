@@ -33,7 +33,7 @@ def _get_thumbnail(json_data):
 def _convert_to_playlist_item(json_item):
     item = {'type': 'playlist',
             'title': json_item['title'],
-            'id': unicode(json_item['id']),
+            'id': json_item['id'],
             'images': {'thumbnail': _get_thumbnail(json_item)}}
 
     return item
@@ -62,7 +62,7 @@ def _convert_to_track_item(json_item):
             'tracknumber': 1,
             'id': json_item['id'],
             'genre': json_item.get('genre', ''),
-            'duration': int(json_item['duration']) / 1000,
+            'duration': int(int(json_item['duration']) / 1000),
             'artist': json_item['user']['username'],
             'user': json_item['user'],
             'year': _get_track_year(json_item),
@@ -74,7 +74,7 @@ def _convert_to_track_item(json_item):
 def _convert_to_artist_item(json_item):
     item = {'type': 'artist',
             'title': nightcrawler.utils.strings.to_unicode(json_item['username']),
-            'id': nightcrawler.utils.strings.to_unicode(json_item['id']),
+            'id': json_item['id'],
             'images': {'thumbnail': _get_thumbnail(json_item)}}
 
     return item

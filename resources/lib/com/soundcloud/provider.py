@@ -335,20 +335,20 @@ class Provider(nightcrawler.Provider):
         return result
 
     @nightcrawler.register_path('/playlist/(?P<playlist_id>.+)/')
-    @nightcrawler.register_path_value('playlist_id', unicode)
+    @nightcrawler.register_path_value('playlist_id', int)
     def on_playlist(self, context, playlist_id):
         context.set_content_type(context.CONTENT_TYPE_SONGS)
         return self.process_result(context, self.get_client(context).get_playlist(playlist_id))
 
     @nightcrawler.register_path('/user/playlists/(?P<user_id>.+)/')
-    @nightcrawler.register_path_value('user_id', unicode)
+    @nightcrawler.register_path_value('user_id', int)
     @nightcrawler.register_context_value('page', int, default=1)
     def on_user_playlists(self, context, user_id, page):
         context.set_content_type(context.CONTENT_TYPE_ALBUMS)
         return self.process_result(context, self.get_client(context).get_playlists(user_id, page=page))
 
     @nightcrawler.register_path('/user/following/(?P<user_id>.+)/')
-    @nightcrawler.register_path_value('user_id', unicode)
+    @nightcrawler.register_path_value('user_id', int)
     @nightcrawler.register_context_value('page', int, default=1)
     def on_user_following(self, context, user_id, page):
         context.set_content_type(context.CONTENT_TYPE_ARTISTS)
@@ -362,7 +362,7 @@ class Provider(nightcrawler.Provider):
         return self.process_result(context, self.get_client(context).get_follower(user_id, page=page))
 
     @nightcrawler.register_path('^/user/favorites/(?P<user_id>.+)/')
-    @nightcrawler.register_path_value('user_id', unicode)
+    @nightcrawler.register_path_value('user_id', int)
     @nightcrawler.register_context_value('page', int, default=1)
     def on_user_favorites(self, context, user_id, page):
         context.set_content_type(context.CONTENT_TYPE_SONGS)
@@ -382,7 +382,7 @@ class Provider(nightcrawler.Provider):
         #return self.process_result(context, self.get_client(context).get_favorites(user_id, page=page))
 
     @nightcrawler.register_path('/user/tracks/(?P<user_id>.+)/')
-    @nightcrawler.register_path_value('user_id', unicode)
+    @nightcrawler.register_path_value('user_id', int)
     @nightcrawler.register_context_value('page', int, default=1)
     def on_user_tracks(self, context, user_id, page):
         def _make_bold(user_id, title):
@@ -435,7 +435,7 @@ class Provider(nightcrawler.Provider):
         return result
 
     @nightcrawler.register_path('/explore/recommended/tracks\/(?P<track_id>.+)/')
-    @nightcrawler.register_path_value('track_id', unicode)
+    @nightcrawler.register_path_value('track_id', int)
     @nightcrawler.register_context_value('page', int, default=1)
     def on_explore_recommended_tracks(self, context, track_id, page):
         context.set_content_type(context.CONTENT_TYPE_SONGS)
