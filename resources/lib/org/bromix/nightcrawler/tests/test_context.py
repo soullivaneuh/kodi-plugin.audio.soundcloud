@@ -43,6 +43,15 @@ class TestContext(unittest.TestCase):
         uri = context.create_uri(path='/browse/now/', params={'video_id': '121234'})
         self.assertEquals('plugin://mock.plugin/browse/now/?video_id=121234', uri)
 
+        uri = context.create_uri(path='/browse/now/', params={'video_id': 121234})
+        self.assertEquals('plugin://mock.plugin/browse/now/?video_id=121234', uri)
+
+        uri = context.create_uri(path='/browse/now/', params={'video_id': 121234, 'safe': False})
+        self.assertEquals('plugin://mock.plugin/browse/now/?safe=False&video_id=121234', uri)
+
+        uri = context.create_uri(path='/browse/now/', params={'video_id': 121234, 'safe': True})
+        self.assertEquals('plugin://mock.plugin/browse/now/?safe=True&video_id=121234', uri)
+
         uri = context.create_uri(path='/browse//now/', params={'video_id': '121234'})
         self.assertEquals('plugin://mock.plugin/browse/now/?video_id=121234', uri)
 
