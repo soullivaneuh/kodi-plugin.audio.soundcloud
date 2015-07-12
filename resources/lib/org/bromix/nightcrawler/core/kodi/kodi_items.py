@@ -87,7 +87,7 @@ def _do_info_labels(context, kodi_item, item):
             pass
 
         # 'rating' = 4.5 (float)
-        #_process_video_rating(info_labels, base_item.get_rating())
+        # _process_video_rating(info_labels, base_item.get_rating())
 
         # 'director' = 'Steven Spielberg' (string)
         #_process_string_value(info_labels, 'director', base_item.get_director())
@@ -126,15 +126,12 @@ def _create_kodi_item(context, item):
                       'image': u'DefaultFile.png',
                       'uri': u''}
 
+
     item_type = item['type']
-    if item_type == 'uri':
-        kodi_item = xbmcgui.ListItem(path=item['uri'])
-        pass
-    else:
-        kodi_item = xbmcgui.ListItem(label=item.get('title', item['uri']),
-                                     iconImage=icon_image_map.get(item_type, u''),
-                                     thumbnailImage=item.get('images', {}).get('thumbnail', u''))
-        pass
+    kodi_item = xbmcgui.ListItem(label=item.get('title', item['uri']),
+                                 path=item['uri'],
+                                 iconImage=icon_image_map.get(item_type, u''),
+                                 thumbnailImage=item.get('images', {}).get('thumbnail', u''))
 
     # set playable
     if item_type in ['video', 'movie', 'audio', 'music', 'uri']:
@@ -149,13 +146,13 @@ def _create_kodi_item(context, item):
     return kodi_item
 
 
-def process_item(context, item):
+def process_item(context, item, resolve=False):
     kodi_item = _create_kodi_item(context, item)
     _do_fanart(context, kodi_item, item)
     _do_context_menu(context, kodi_item, item)
     _do_info_labels(context, kodi_item, item)
 
-    if item['type'] == 'uri':
+    if item['type'] == 'uri' or resolve:
         xbmcplugin.setResolvedUrl(context.get_handle(), succeeded=True, listitem=kodi_item)
         pass
     else:

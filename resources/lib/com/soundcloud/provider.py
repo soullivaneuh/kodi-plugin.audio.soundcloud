@@ -91,53 +91,6 @@ class Provider(nightcrawler.Provider):
 
         return True
 
-    # @kodion.RegisterProviderPath('^/play/$')
-    def _on_play(self, context, re_match):
-        params = context.get_params()
-        url = params.get('url', '')
-        audio_id = params.get('audio_id', '')
-
-        client = self.get_client(context)
-        result = None
-        update_playlist = False
-        if url and not audio_id:
-            json_data = client.resolve_url(url)
-            path = context.get_path()
-            result = self._do_item(context, json_data, path, process_playlist=True)
-            if isinstance(result, AudioItem):
-                audio_id = json_data['id']
-                update_playlist = True
-                pass
-            elif isinstance(result, list):
-                playlist = context.get_audio_playlist()
-                playlist.clear()
-                for track in result:
-                    playlist.add(track)
-                    pass
-                return result[0]
-            pass
-        elif audio_id:
-            json_data = client.get_track(audio_id)
-            path = context.get_path()
-            result = self._do_item(context, json_data, path, process_playlist=True)
-            pass
-        else:
-            raise kodion.KodionException("Audio ID or URL missing")
-
-        json_data = client.get_track_url(audio_id)
-        location = json_data.get('location')
-        if not location:
-            raise kodion.KodionException("Could not get url for track '%s'" % audio_id)
-
-        result.set_uri(location.encode('utf-8'))
-        if update_playlist:
-            playlist = context.get_audio_playlist()
-            playlist.clear()
-            playlist.add(result)
-            pass
-
-        return result
-
     #@kodion.RegisterProviderPath('^\/stream\/$')
     def _on_stream(self, context, re_match):
         result = []
@@ -291,6 +244,60 @@ class Provider(nightcrawler.Provider):
             items.append(nightcrawler.items.create_next_page_item(new_context, fanart=self.get_fanart(context)))
             pass
         return items
+
+    @nightcrawler.register_path('/play/')
+    @nightcrawler.register_context_value('audio_id', int, alias='track_id', default=None)
+    def on_play(self, context, track_id):
+        client = self.get_client(context)
+
+        if track_id:
+            track_item = client.get_track(track_id)
+            url = client.get_track_url(track_id)
+            track_item['uri'] = url
+            return track_item
+
+        """
+        result = None
+        update_playlist = False
+        if url and not audio_id:
+            json_data = client.resolve_url(url)
+            path = context.get_path()
+            result = self._do_item(context, json_data, path, process_playlist=True)
+            if isinstance(result, AudioItem):
+                audio_id = json_data['id']
+                update_playlist = True
+                pass
+            elif isinstance(result, list):
+                playlist = context.get_audio_playlist()
+                playlist.clear()
+                for track in result:
+                    playlist.add(track)
+                    pass
+                return result[0]
+            pass
+        elif audio_id:
+            json_data = client.get_track(audio_id)
+            path = context.get_path()
+            result = self._do_item(context, json_data, path, process_playlist=True)
+            pass
+        else:
+            raise kodion.KodionException("Audio ID or URL missing")
+
+        json_data = client.get_track_url(audio_id)
+        location = json_data.get('location')
+        if not location:
+            raise kodion.KodionException("Could not get url for track '%s'" % audio_id)
+
+        result.set_uri(location.encode('utf-8'))
+        if update_playlist:
+            playlist = context.get_audio_playlist()
+            playlist.clear()
+            playlist.add(result)
+            pass
+
+        return result
+        """
+        return False
 
     @nightcrawler.register_context_value('category', unicode, default='sounds')
     @nightcrawler.register_context_value('page', int, default=1)

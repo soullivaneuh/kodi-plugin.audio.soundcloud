@@ -33,12 +33,12 @@ class TestClient(unittest.TestCase):
 
     def test_get_favorites(self):
         client = Client()
-        json_data = client.get_favorites('520685')
+        json_data = client.get_favorites(520685)
         pass
 
     def test_get_likes(self):
         client = Client()
-        json_data = client.get_likes('520685')
+        json_data = client.get_likes(520685)
         pass
 
     def test_get_playlists(self):
@@ -48,18 +48,33 @@ class TestClient(unittest.TestCase):
 
     def test_get_playlist(self):
         client = Client()
-        json_data = client.get_playlist('55019726')
+        json_data = client.get_playlist(55019726)
         self.assertGreater(len(json_data), 0)
         pass
 
     def test_get_following(self):
         client = Client()
-        json_data = client.get_following('520685')
+        json_data = client.get_following(520685)
         pass
 
     def test_get_follower(self):
         client = Client()
-        json_data = client.get_follower('520685')
+        json_data = client.get_follower(520685)
+        pass
+
+    def test_get_recommended_for_track(self):
+        client = Client()
+        json_data = client.get_recommended_for_track(193347852, page=1)
+        pass
+
+    def test_get_track(self):
+        client = Client()
+        json_data = client.get_track(193347852)
+        pass
+
+    def test_get_track_url(self):
+        client = Client()
+        url = client.get_track_url(193347852)
         pass
 
     # ==================
@@ -84,16 +99,6 @@ class TestClient(unittest.TestCase):
         re_match = re.match('.*cursor\=(?P<cursor>[a-z0-9-]+).*', next_href)
         page_cursor = re_match.group('cursor')
         self.assertEqual('aedb3280-55fb-11e3-8019-38efa603dd45', page_cursor)
-        pass
-
-    def test_get_track_url(self):
-        client = Client()
-        json_data = client.get_track_url(77773864)
-        pass
-
-    def test_get_recommended_for_track(self):
-        client = Client(access_token=self.TOKEN)
-        json_data = client.get_recommended_for_track(193347852, page=1)
         pass
 
     def test_get_stream(self):

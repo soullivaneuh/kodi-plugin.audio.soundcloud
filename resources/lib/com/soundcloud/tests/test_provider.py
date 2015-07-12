@@ -44,6 +44,13 @@ class TestProvider(unittest.TestCase):
         result = provider.navigate(context)
         pass
 
+    def test_play(self):
+        provider = soundcloud.Provider()
+
+        context = nightcrawler.Context('/play/', {'audio_id': 193347852})
+        result = provider.navigate(context)
+        pass
+
     # =======
 
     def _create_context(self, path):

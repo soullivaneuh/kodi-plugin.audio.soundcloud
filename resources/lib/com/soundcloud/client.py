@@ -67,6 +67,21 @@ class Client(nightcrawler.HttpClient):
     def _handle_error(self, response):
         pass
 
+    def get_track(self, track_id):
+        response = self._request(self._create_url('tracks/%s' % unicode(track_id)),
+                                 headers={'Accept': 'application/json'})
+        self._handle_error(response)
+        return items.convert_to_item(response.json())
+
+    def get_track_url(self, track_id):
+        response = self._request(self._create_url('tracks/%s/stream' % unicode(track_id)),
+                                 headers={'Accept': 'application/json'}, allow_redirects=False)
+        self._handle_error(response)
+        if response.status_code == 302:
+            return response.headers['location']
+
+        return response.url
+
     def get_trending(self, category='music', page=1):
         if not category.lower() in ['music', 'audio']:
             raise NightcrawlerException('Unknown category "%s"' % category)
@@ -209,11 +224,6 @@ class Client(nightcrawler.HttpClient):
                                      headers={'Accept': 'application/json'},
                                      params=params)
 
-    def get_track_url(self, track_id):
-        return self._perform_request(path='tracks/%s/stream' % str(track_id),
-                                     headers={'Accept': 'application/json'},
-                                     allow_redirects=False)
-
     def get_stream(self, page_cursor=None):
         params = {'limit': unicode(self._items_per_page)}
         if page_cursor is not None:
@@ -251,11 +261,6 @@ class Client(nightcrawler.HttpClient):
 
         return self._perform_request(method=method,
                                      path='me/followings/%s' % unicode(user_id),
-                                     headers={'Accept': 'application/json'})
-
-    def get_track(self, track_id):
-        path = 'tracks/%s' % str(track_id)
-        return self._perform_request(path=path,
                                      headers={'Accept': 'application/json'})
 
     def get_user(self, me_or_user_id):

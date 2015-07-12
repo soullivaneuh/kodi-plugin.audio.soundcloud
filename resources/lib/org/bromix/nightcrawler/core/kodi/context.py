@@ -318,7 +318,7 @@ class KodiContext(AbstractContext):
         pass
 
     def resolve_item(self, item):
-        kodi_items.process_item(self, item)
+        kodi_items.process_item(self, item, resolve=True)
         pass
 
     def add_item(self, item):
