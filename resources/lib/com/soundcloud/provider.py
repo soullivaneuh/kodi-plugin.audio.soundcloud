@@ -150,17 +150,6 @@ class Provider(nightcrawler.Provider):
         result = self._do_collection(context, json_data, path, params)
         return result
 
-    #@kodion.RegisterProviderPath('^\/user/follower\/(?P<user_id>.+)/$')
-    def _on_follower(self, context, re_match):
-        user_id = re_match.group('user_id')
-        params = context.get_params()
-        page = params.get('page', 1)
-        json_data = context.get_function_cache().get(FunctionCache.ONE_MINUTE, self.get_client(context).get_follower,
-                                                     user_id,
-                                                     page=page)
-        path = context.get_path()
-        return self._do_collection(context, json_data, path, params, content_type=kodion.constants.content_type.ARTISTS)
-
     #@kodion.RegisterProviderPath('^\/follow\/(?P<user_id>.+)/$')
     def _on_follow(self, context, re_match):
         user_id = re_match.group('user_id')
@@ -347,23 +336,30 @@ class Provider(nightcrawler.Provider):
 
     @nightcrawler.register_path('/playlist/(?P<playlist_id>.+)/')
     @nightcrawler.register_path_value('playlist_id', unicode)
-    def _on_playlist(self, context, playlist_id):
+    def on_playlist(self, context, playlist_id):
         context.set_content_type(context.CONTENT_TYPE_SONGS)
         return self.process_result(context, self.get_client(context).get_playlist(playlist_id))
 
     @nightcrawler.register_path('/user/playlists/(?P<user_id>.+)/')
     @nightcrawler.register_path_value('user_id', unicode)
     @nightcrawler.register_context_value('page', int, default=1)
-    def _on_playlists(self, context, user_id, page):
+    def on_user_playlists(self, context, user_id, page):
         context.set_content_type(context.CONTENT_TYPE_ALBUMS)
         return self.process_result(context, self.get_client(context).get_playlists(user_id, page=page))
 
     @nightcrawler.register_path('/user/following/(?P<user_id>.+)/')
     @nightcrawler.register_path_value('user_id', unicode)
     @nightcrawler.register_context_value('page', int, default=1)
-    def _on_following(self, context, user_id, page):
+    def on_user_following(self, context, user_id, page):
         context.set_content_type(context.CONTENT_TYPE_ARTISTS)
         return self.process_result(context, self.get_client(context).get_following(user_id, page=page))
+
+    @nightcrawler.register_path('/user/follower/(?P<user_id>.+)/')
+    @nightcrawler.register_path_value('user_id', unicode)
+    @nightcrawler.register_context_value('page', int, default=1)
+    def on_user_follower(self, context, user_id, page):
+        context.set_content_type(context.CONTENT_TYPE_ARTISTS)
+        return self.process_result(context, self.get_client(context).get_follower(user_id, page=page))
 
     @nightcrawler.register_path('^/user/favorites/(?P<user_id>.+)/')
     @nightcrawler.register_path_value('user_id', unicode)

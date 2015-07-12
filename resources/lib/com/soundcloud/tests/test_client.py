@@ -57,6 +57,11 @@ class TestClient(unittest.TestCase):
         json_data = client.get_following('520685')
         pass
 
+    def test_get_follower(self):
+        client = Client()
+        json_data = client.get_follower('520685')
+        pass
+
     # ==================
 
     def test_resolve_url(self):
@@ -109,12 +114,6 @@ class TestClient(unittest.TestCase):
         self.assertGreater(len(json_data), 0)
 
         json_data = client.follow_user(1701116, True)
-        self.assertGreater(len(json_data), 0)
-        pass
-
-    def test_get_follower(self):
-        client = Client(access_token=self.TOKEN)
-        json_data = client.get_follower('me')
         self.assertGreater(len(json_data), 0)
         pass
 

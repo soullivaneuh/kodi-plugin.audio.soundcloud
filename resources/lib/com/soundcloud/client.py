@@ -142,6 +142,15 @@ class Client(nightcrawler.HttpClient):
         self._handle_error(response)
         return items.convert_to_items(response.json())
 
+    def get_follower(self, user_id, page=1):
+        params = self._get_params(page)
+        params['linked_partitioning'] = '1'
+        response = self._request(self._create_url('followers', user_id=user_id),
+                                 headers={'Accept': 'application/json'},
+                                 params=params)
+        self._handle_error(response)
+        return items.convert_to_items(response.json())
+
     def get_playlist(self, playlist_id):
         response = self._request(self._create_url('playlists/%s' % unicode(playlist_id)),
                                  headers={'Accept': 'application/json'})
@@ -243,21 +252,6 @@ class Client(nightcrawler.HttpClient):
         return self._perform_request(method=method,
                                      path='me/followings/%s' % unicode(user_id),
                                      headers={'Accept': 'application/json'})
-
-    def get_follower(self, me_or_user_id, page=1):
-        page = int(page)
-        per_page = int(self._items_per_page)
-
-        params = {'limit': str(per_page),
-                  'linked_partitioning': '1'}
-        if page > 1:
-            params['offset'] = str((page - 1) * per_page)
-            pass
-
-        path = self._create_path_based_on_user_id(me_or_user_id, 'followers')
-        return self._perform_request(path=path,
-                                     headers={'Accept': 'application/json'},
-                                     params=params)
 
     def get_track(self, track_id):
         path = 'tracks/%s' % str(track_id)
