@@ -41,6 +41,17 @@ class TestClient(unittest.TestCase):
         json_data = client.get_likes('520685')
         pass
 
+    def test_get_playlists(self):
+        client = Client()
+        json_data = client.get_playlists(2442230)
+        pass
+
+    def test_get_playlist(self):
+        client = Client()
+        json_data = client.get_playlist('55019726')
+        self.assertGreater(len(json_data), 0)
+        pass
+
     # ==================
 
     def test_resolve_url(self):
@@ -93,23 +104,6 @@ class TestClient(unittest.TestCase):
         self.assertGreater(len(json_data), 0)
 
         json_data = client.follow_user(1701116, True)
-        self.assertGreater(len(json_data), 0)
-        pass
-
-    def test_get_playlist(self):
-        client = Client(access_token=self.TOKEN)
-        json_data = client.get_playlist(55019726)
-        self.assertGreater(len(json_data), 0)
-        pass
-
-    def test_get_playlists(self):
-        # me
-        client = Client(access_token=self.TOKEN)
-        json_data = client.get_playlists('me')
-        self.assertGreater(len(json_data), 0)
-
-        # some user
-        json_data = client.get_playlists(2442230)
         self.assertGreater(len(json_data), 0)
         pass
 

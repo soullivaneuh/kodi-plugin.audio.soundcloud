@@ -37,6 +37,13 @@ class TestProvider(unittest.TestCase):
         self.assertEquals(len(result), 51)  # 50 + next page
         pass
 
+    def test_get_user_playlists(self):
+        provider = soundcloud.Provider()
+
+        context = nightcrawler.Context('/user/playlists/2442230/')
+        result = provider.navigate(context)
+        pass
+
     # =======
 
     def _create_context(self, path):
@@ -88,15 +95,6 @@ class TestProvider(unittest.TestCase):
 
         context = self._create_context('/playlist/54934787/')
         context.set_localization(30516, 'TEST %s')
-        result = provider.navigate(context)
-        items = result[0]
-        print_items(items)
-        pass
-
-    def test_get_user_playlists(self):
-        provider = Provider()
-
-        context = self._create_context('/user/playlists/me/')
         result = provider.navigate(context)
         items = result[0]
         print_items(items)

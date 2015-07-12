@@ -1,3 +1,5 @@
+from resources.lib.org.bromix.nightcrawler.exception import NightcrawlerException
+
 __author__ = 'bromix'
 
 from resources.lib.org.bromix import nightcrawler
@@ -148,30 +150,6 @@ class Provider(nightcrawler.Provider):
         result = self._do_collection(context, json_data, path, params)
         return result
 
-    #@kodion.RegisterProviderPath('^\/playlist\/(?P<playlist_id>.+)/$')
-    def _on_playlist(self, context, re_match):
-        context.set_content_type(kodion.constants.content_type.SONGS)
-        result = []
-
-        playlist_id = re_match.group('playlist_id')
-        json_data = context.get_function_cache().get(FunctionCache.ONE_MINUTE, self.get_client(context).get_playlist,
-                                                     playlist_id)
-
-        path = context.get_path()
-        result.extend(self._do_item(context, json_data, path, process_playlist=True))
-        return result
-
-    #@kodion.RegisterProviderPath('^\/user/playlists\/(?P<user_id>.+)/$')
-    def _on_playlists(self, context, re_match):
-        user_id = re_match.group('user_id')
-        params = context.get_params()
-        page = params.get('page', 1)
-        json_data = context.get_function_cache().get(FunctionCache.ONE_MINUTE, self.get_client(context).get_playlists,
-                                                     user_id,
-                                                     page=page)
-        path = context.get_path()
-        return self._do_collection(context, json_data, path, params, content_type=kodion.constants.content_type.ALBUMS)
-
     #@kodion.RegisterProviderPath('^\/user/following\/(?P<user_id>.+)/$')
     def _on_following(self, context, re_match):
         user_id = re_match.group('user_id')
@@ -245,8 +223,12 @@ class Provider(nightcrawler.Provider):
         for item in result['items']:
             # TODO: update context menu based on login and path
             context_menu = []
+            item_type = item['type']
 
-            if item['type'] == 'audio':
+            if item_type == 'audio':
+                # playback uri
+                item['uri'] = context.create_uri('play', {'audio_id': unicode(item['id'])})
+
                 # recommended tracks
                 context_menu.append((context.localize(self.SOUNDCLOUD_LOCAL_RECOMMENDED),
                                      'Container.Update(%s)' % context.create_uri(
@@ -275,7 +257,7 @@ class Provider(nightcrawler.Provider):
                         'Container.Update(%s)' % context.create_uri('/user/tracks/%s/' % user_id)))
                     pass
                 pass
-            elif type == 'playlist':
+            elif item_type == 'playlist':
                 item['type'] = 'folder'
                 item['uri'] = context.create_uri('/playlist/%s/' % item['id'])
 
@@ -291,13 +273,13 @@ class Provider(nightcrawler.Provider):
                                                                           {'like': '1'}))]
                 """
                 pass
+            else:
+                raise NightcrawlerException('Unknown item type "%s"' % item_type)
 
             if context_menu:
                 item['context-menu'] = {'items': context_menu}
                 pass
 
-            # playback uri
-            item['uri'] = context.create_uri('play', {'audio_id': unicode(item['id'])})
             item['images']['fanart'] = self.get_fanart(context)
             items.append(item)
             pass
@@ -355,6 +337,19 @@ class Provider(nightcrawler.Provider):
         search_result = self.get_client(context).search(search_text, category, page=page)
         result.extend(self.process_result(context, search_result))
         return result
+
+    @nightcrawler.register_path('/playlist/(?P<playlist_id>.+)/')
+    @nightcrawler.register_path_value('playlist_id', unicode)
+    def _on_playlist(self, context, playlist_id):
+        context.set_content_type(context.CONTENT_TYPE_SONGS)
+        return self.process_result(context, self.get_client(context).get_playlist(playlist_id))
+
+    @nightcrawler.register_path('/user/playlists/(?P<user_id>.+)/')
+    @nightcrawler.register_path_value('user_id', unicode)
+    @nightcrawler.register_context_value('page', int, default=1)
+    def _on_playlists(self, context, user_id, page):
+        context.set_content_type(context.CONTENT_TYPE_ALBUMS)
+        return self.process_result(context, self.get_client(context).get_playlists(user_id, page=page))
 
     @nightcrawler.register_path('^/user/favorites/(?P<user_id>.+)/')
     @nightcrawler.register_path_value('user_id', unicode)

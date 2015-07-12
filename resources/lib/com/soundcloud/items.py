@@ -59,6 +59,7 @@ def _convert_to_track_item(json_item):
 
     item = {'type': 'audio',
             'title': nightcrawler.utils.strings.to_unicode(json_item['title']),
+            'tracknumber': 1,
             'id': json_item['id'],
             'genre': json_item.get('genre', ''),
             'duration': int(json_item['duration']) / 1000,
@@ -131,17 +132,6 @@ def convert_to_item(json_item):
             pass
         user_item.set_context_menu(context_menu)
         return user_item
-    elif kind == 'like':
-        # A like has 'playlist' or 'track' so we find one of them and call this routine again, because the
-        # data is same.
-        test_playlist = json_item.get('playlist', None)
-        if test_playlist is not None:
-            return self._do_item(context, test_playlist, path)
-
-        test_track = json_item.get('track', None)
-        if test_track is not None:
-            return self._do_item(context, test_track, path)
-        pass
     elif kind == 'group':
         # at the moment we don't support groups
         """
@@ -152,11 +142,11 @@ def convert_to_item(json_item):
         return None
 
 
-def convert_to_items(json_result, mobile_conversion=False):
+def convert_to_items(json_result, mobile_conversion=False, process_tracks_of_playlist=False):
     result = {'items': []}
 
     collection = json_result.get('collection', [])
-    for item in collection:
+    for tracknumber, item in enumerate(collection):
         if mobile_conversion:
             # simple conversion to use the common convert_to_item() method
             user = item.get('_embedded', {}).get('user', {})
@@ -174,7 +164,11 @@ def convert_to_items(json_result, mobile_conversion=False):
 
         # test if we have an 'origin' tag. If so we are in the activities
         item = item.get('origin', item)
-        result['items'].append(convert_to_item(item))
+        item = convert_to_item(item)
+        if process_tracks_of_playlist:
+            item['tracknumber'] = tracknumber+1
+            pass
+        result['items'].append(item)
         pass
 
     # next page validation
