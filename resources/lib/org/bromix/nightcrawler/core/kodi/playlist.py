@@ -25,7 +25,7 @@ class KodiPlaylist(AbstractPlaylist):
         pass
 
     def add(self, item):
-        kodi_item = kodi_items.process_item(self._context, item)
+        kodi_item = kodi_items.create_kodi_item(self._context, item)
         self._playlist.add(item['uri'], listitem=kodi_item)
         pass
 

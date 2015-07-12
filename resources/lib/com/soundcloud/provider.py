@@ -247,7 +247,9 @@ class Provider(nightcrawler.Provider):
 
     @nightcrawler.register_path('/play/')
     @nightcrawler.register_context_value('audio_id', int, alias='track_id', default=None)
-    def on_play(self, context, track_id):
+    @nightcrawler.register_context_value('playlist_id', int, default=None)
+    @nightcrawler.register_context_value('url', str, default='')
+    def on_play(self, context, track_id, playlist_id, url):
         client = self.get_client(context)
 
         if track_id:
@@ -256,47 +258,33 @@ class Provider(nightcrawler.Provider):
             track_item['uri'] = url
             return track_item
 
-        """
-        result = None
-        update_playlist = False
-        if url and not audio_id:
-            json_data = client.resolve_url(url)
-            path = context.get_path()
-            result = self._do_item(context, json_data, path, process_playlist=True)
-            if isinstance(result, AudioItem):
-                audio_id = json_data['id']
-                update_playlist = True
-                pass
-            elif isinstance(result, list):
+        if url:
+            item = client.resolve_url(url)
+            item_type = item['type']
+            if item_type in ['audio', 'music']:
+                return {'type': 'uri',
+                        'uri': context.create_uri('/play/', {'audio_id': item['id']})}
+
+            if item_type == 'playlist':
+                return {'type': 'uri',
+                        'uri': context.create_uri('/play/', {'playlist_id': item['id']})}
+
+            raise NightcrawlerException('Unknown item kind "%s"' % item_type)
+
+        if playlist_id:
+            tracks = client.get_playlist(playlist_id).get('items', [])
+            if tracks:
                 playlist = context.get_audio_playlist()
                 playlist.clear()
-                for track in result:
+                for track in tracks:
+                    track['uri'] = context.create_uri('/play/', {'audio_id': track['id']})
                     playlist.add(track)
                     pass
-                return result[0]
-            pass
-        elif audio_id:
-            json_data = client.get_track(audio_id)
-            path = context.get_path()
-            result = self._do_item(context, json_data, path, process_playlist=True)
-            pass
-        else:
-            raise kodion.KodionException("Audio ID or URL missing")
 
-        json_data = client.get_track_url(audio_id)
-        location = json_data.get('location')
-        if not location:
-            raise kodion.KodionException("Could not get url for track '%s'" % audio_id)
+                return tracks[0]
 
-        result.set_uri(location.encode('utf-8'))
-        if update_playlist:
-            playlist = context.get_audio_playlist()
-            playlist.clear()
-            playlist.add(result)
-            pass
+            raise NightcrawlerException('No tracks found in playlist')
 
-        return result
-        """
         return False
 
     @nightcrawler.register_context_value('category', unicode, default='sounds')

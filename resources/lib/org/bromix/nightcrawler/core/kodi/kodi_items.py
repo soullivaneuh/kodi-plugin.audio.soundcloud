@@ -117,7 +117,7 @@ def _do_fanart(context, kodi_item, item):
     pass
 
 
-def _create_kodi_item(context, item):
+def create_kodi_item(context, item):
     icon_image_map = {'folder': u'DefaultFolder.png',
                       'video': u'DefaultVideo.png',
                       'movie': u'DefaultVideo.png',
@@ -143,14 +143,15 @@ def _create_kodi_item(context, item):
         kodi_item.addStreamInfo('video', {'duration': '%d' % item['duration']})
         pass
 
+    _do_fanart(context, kodi_item, item)
+    _do_context_menu(context, kodi_item, item)
+    _do_info_labels(context, kodi_item, item)
+
     return kodi_item
 
 
 def process_item(context, item, resolve=False):
-    kodi_item = _create_kodi_item(context, item)
-    _do_fanart(context, kodi_item, item)
-    _do_context_menu(context, kodi_item, item)
-    _do_info_labels(context, kodi_item, item)
+    kodi_item = create_kodi_item(context, item)
 
     if item['type'] == 'uri' or resolve:
         xbmcplugin.setResolvedUrl(context.get_handle(), succeeded=True, listitem=kodi_item)

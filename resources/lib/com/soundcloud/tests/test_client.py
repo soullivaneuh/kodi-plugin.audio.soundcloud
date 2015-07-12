@@ -82,15 +82,17 @@ class TestClient(unittest.TestCase):
         url = client.get_track_url(193347852)
         pass
 
-    # ==================
-
     def test_resolve_url(self):
-        client = Client(access_token=self.TOKEN)
+        client = Client()
 
         url = 'http://soundcloud.com/qdance/luna-presents-minus-is-more-december-2014-yearmix'
-        #url = 'http://soundcloud.com/julyukie/sets/juliana-yamasaki-new-tracks'
+        json_data = client.resolve_url(url)
+
+        url = 'http://soundcloud.com/julyukie/sets/juliana-yamasaki-new-tracks'
         json_data = client.resolve_url(url)
         pass
+
+    # ==================
 
     def test_false_token(self):
         client = Client(access_token=self.FALSE_TOKEN)

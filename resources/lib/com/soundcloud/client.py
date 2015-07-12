@@ -67,6 +67,14 @@ class Client(nightcrawler.HttpClient):
     def _handle_error(self, response):
         pass
 
+    def resolve_url(self, url):
+        params = {'url': url}
+        response = self._request(self._create_url('resolve'),
+                                 headers={'Accept': 'application/json'},
+                                 params=params)
+        self._handle_error(response)
+        return items.convert_to_item(response.json())
+
     def get_track(self, track_id):
         response = self._request(self._create_url('tracks/%s' % unicode(track_id)),
                                  headers={'Accept': 'application/json'})
@@ -217,12 +225,6 @@ class Client(nightcrawler.HttpClient):
         return items.convert_to_items(response.json())
 
     # ===============================================================
-
-    def resolve_url(self, url):
-        params = {'url': url}
-        return self._perform_request(path='resolve',
-                                     headers={'Accept': 'application/json'},
-                                     params=params)
 
     def get_stream(self, page_cursor=None):
         params = {'limit': unicode(self._items_per_page)}
