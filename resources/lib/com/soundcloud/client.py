@@ -75,6 +75,13 @@ class Client(nightcrawler.HttpClient):
         self._handle_error(response)
         return items.convert_to_item(response.json())
 
+    def get_user(self, user_id):
+        #self.update_access_token()
+        response = self._request(self._create_url('', user_id=user_id),
+                                 headers={'Accept': 'application/json'})
+        self._handle_error(response)
+        return items.convert_to_item(response.json())
+
     def get_track(self, track_id):
         response = self._request(self._create_url('tracks/%s' % unicode(track_id)),
                                  headers={'Accept': 'application/json'})
@@ -263,12 +270,6 @@ class Client(nightcrawler.HttpClient):
 
         return self._perform_request(method=method,
                                      path='me/followings/%s' % unicode(user_id),
-                                     headers={'Accept': 'application/json'})
-
-    def get_user(self, me_or_user_id):
-        self.update_access_token()
-        path = self._create_path_based_on_user_id(me_or_user_id, '')
-        return self._perform_request(path=path,
                                      headers={'Accept': 'application/json'})
 
     def get_access_token(self):

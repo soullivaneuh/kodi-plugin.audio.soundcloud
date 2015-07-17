@@ -43,7 +43,7 @@ class TestClient(unittest.TestCase):
 
     def test_get_playlists(self):
         client = Client()
-        json_data = client.get_playlists(2442230)
+        json_data = client.get_playlists(520685)
         pass
 
     def test_get_playlist(self):
@@ -65,6 +65,11 @@ class TestClient(unittest.TestCase):
     def test_get_recommended_for_track(self):
         client = Client()
         json_data = client.get_recommended_for_track(193347852, page=1)
+        pass
+
+    def test_user(self):
+        client = Client()
+        json_data = client.get_user(1701116)
         pass
 
     def test_tracks(self):
@@ -119,13 +124,6 @@ class TestClient(unittest.TestCase):
         self.assertGreater(len(json_data), 0)
 
         json_data = client.follow_user(1701116, True)
-        self.assertGreater(len(json_data), 0)
-        pass
-
-    def test_user(self):
-        client = Client(access_token=self.TOKEN)
-        json_data = client.get_user('me')
-
         self.assertGreater(len(json_data), 0)
         pass
 

@@ -379,8 +379,8 @@ class Provider(nightcrawler.Provider):
     @nightcrawler.register_path_value('user_id', int)
     @nightcrawler.register_context_value('page', int, default=1)
     def on_user_tracks(self, context, user_id, page):
-        def _make_bold(user_id, title):
-            if user_id != 'me':
+        def _make_bold(_user_id, title):
+            if _user_id != 'me':
                 return '[B]%s[/B]' % title
             return title
 
@@ -390,10 +390,8 @@ class Provider(nightcrawler.Provider):
         # on the first page add some extra stuff to navigate to
         if page == 1:
             # TODO: get correct user image
-            #json_data = self.get_client(context).get_user(user_id)
-            #user_image = json_data.get('avatar_url', '')
-            #user_image = self._get_hires_image(user_image)
-            user_image = u''
+            user_item = self.get_client(context).get_user(user_id)
+            user_image = user_item.get('images', {}).get('thumbnail')
 
             # playlists
             result.append({'type': 'folder',
