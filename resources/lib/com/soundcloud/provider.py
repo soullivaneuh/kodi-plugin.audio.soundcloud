@@ -1,8 +1,7 @@
-from resources.lib.org.bromix.nightcrawler.exception import NightcrawlerException
-
 __author__ = 'bromix'
 
 from resources.lib.org.bromix import nightcrawler
+from resources.lib.org.bromix.nightcrawler.exception import NightcrawlerException
 from .client import Client
 
 
@@ -362,7 +361,7 @@ class Provider(nightcrawler.Provider):
     def on_user_favorites(self, context, user_id, page):
         context.set_content_type(context.CONTENT_TYPE_SONGS)
 
-        # We use an API of th APP, this API only work with an user id. In the case of 'me' we gave to get our own
+        # We use an API of the APP, this API only work with an user id. In the case of 'me' we gave to get our own
         # user id to use this function.
         # TODO: this isn't finished yet
         if user_id == 'me':

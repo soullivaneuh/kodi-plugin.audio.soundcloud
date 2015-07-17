@@ -57,7 +57,7 @@ class Client(nightcrawler.HttpClient):
 
         return 'https://api.soundcloud.com:443/%s' % path
 
-    def _get_params(self, page=1):
+    def _create_params(self, page=1):
         params = {'limit': str(self._items_per_page)}
         if page > 1:
             params['offset'] = str((page - 1) * self._items_per_page)
@@ -94,7 +94,7 @@ class Client(nightcrawler.HttpClient):
         if not category.lower() in ['music', 'audio']:
             raise NightcrawlerException('Unknown category "%s"' % category)
 
-        params = self._get_params(page)
+        params = self._create_params(page)
         response = self._request(self._create_url('app/mobileapps/suggestions/tracks/popular/%s' % category),
                                  headers={'Accept': 'application/json'},
                                  params=params)
@@ -102,7 +102,7 @@ class Client(nightcrawler.HttpClient):
         return items.convert_to_items(response.json(), mobile_conversion=True)
 
     def get_genre(self, genre, page=1):
-        params = self._get_params(page)
+        params = self._create_params(page)
         response = self._request(self._create_url('app/mobileapps/suggestions/tracks/categories/%s' % genre),
                                  headers={'Accept': 'application/json'},
                                  params=params)
@@ -130,7 +130,7 @@ class Client(nightcrawler.HttpClient):
         return result
 
     def get_recommended_for_track(self, track_id, page=1):
-        params = self._get_params(page)
+        params = self._create_params(page)
         params['linked_partitioning'] = '1'
         response = self._request(self._create_url('tracks/%s/related' % str(track_id)),
                                  headers={'Accept': 'application/json'},
@@ -139,7 +139,7 @@ class Client(nightcrawler.HttpClient):
         return items.convert_to_items(response.json())
 
     def get_tracks(self, user_id, page=1):
-        params = self._get_params(page)
+        params = self._create_params(page)
         params['linked_partitioning'] = '1'
         response = self._request(self._create_url('tracks', user_id=user_id),
                                  headers={'Accept': 'application/json'},
@@ -148,7 +148,7 @@ class Client(nightcrawler.HttpClient):
         return items.convert_to_items(response.json())
 
     def get_favorites(self, user_id, page=1):
-        params = self._get_params(page)
+        params = self._create_params(page)
         params['linked_partitioning'] = '1'
         response = self._request(self._create_url('favorites', user_id=user_id),
                                  headers={'Accept': 'application/json'},
@@ -157,7 +157,7 @@ class Client(nightcrawler.HttpClient):
         return items.convert_to_items(response.json())
 
     def get_following(self, user_id, page=1):
-        params = self._get_params(page)
+        params = self._create_params(page)
         params['linked_partitioning'] = '1'
         response = self._request(self._create_url('followings', user_id=user_id),
                                  headers={'Accept': 'application/json'},
@@ -166,7 +166,7 @@ class Client(nightcrawler.HttpClient):
         return items.convert_to_items(response.json())
 
     def get_follower(self, user_id, page=1):
-        params = self._get_params(page)
+        params = self._create_params(page)
         params['linked_partitioning'] = '1'
         response = self._request(self._create_url('followers', user_id=user_id),
                                  headers={'Accept': 'application/json'},
@@ -185,7 +185,7 @@ class Client(nightcrawler.HttpClient):
         return items.convert_to_items(json_result, process_tracks_of_playlist=True)
 
     def get_playlists(self, user_id, page=1):
-        params = self._get_params(page)
+        params = self._create_params(page)
         params['linked_partitioning'] = '1'
         response = self._request(self._create_url('playlists', user_id=user_id),
                                  headers={'Accept': 'application/json'},
@@ -194,7 +194,7 @@ class Client(nightcrawler.HttpClient):
         return items.convert_to_items(response.json())
 
     def get_likes(self, user_id, page=1):
-        params = self._get_params(page)
+        params = self._create_params(page)
         params['linked_partitioning'] = '1'
         if page > 1:
             params['page_size'] = params['offset']
