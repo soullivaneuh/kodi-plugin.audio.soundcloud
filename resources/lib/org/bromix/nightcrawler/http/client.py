@@ -31,19 +31,19 @@ class HttpClient(object):
                           allow_redirects=allow_redirects)
             pass
         elif method == 'PUT':
-            result = post(url, data=post_data, params=params, headers=_headers, verify=False,
-                          allow_redirects=allow_redirects)
+            result = put(url, data=post_data, params=params, headers=_headers, verify=False,
+                         allow_redirects=allow_redirects)
             pass
         elif method == 'DELETE':
-            result = post(url, data=post_data, params=params, headers=_headers, verify=False,
-                          allow_redirects=allow_redirects)
+            result = delete(url, data=post_data, params=params, headers=_headers, verify=False,
+                            allow_redirects=allow_redirects)
             pass
         elif method == 'OPTIONS':
-            result = post(url, data=post_data, params=params, headers=_headers, verify=False,
-                          allow_redirects=allow_redirects)
+            result = options(url, data=post_data, params=params, headers=_headers, verify=False,
+                             allow_redirects=allow_redirects)
             pass
         elif method == 'HEAD':
-            result = post(url, params=params, headers=_headers, verify=False, allow_redirects=allow_redirects)
+            result = head(url, params=params, headers=_headers, verify=False, allow_redirects=allow_redirects)
             pass
 
         return result

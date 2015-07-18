@@ -7,12 +7,23 @@ from resources.lib.com import soundcloud
 
 
 class TestProvider(unittest.TestCase):
+    USERNAME = 'co4hu41hkqud5cm@my10minutemail.com'
+    PASSWORD = '1234567890'
     TOKEN = u'1-21686-118589874-2e78a9be01d463'
 
     def test_root(self):
+        # without login
         context = nightcrawler.Context('/')
         result = soundcloud.Provider().navigate(context)
         self.assertEquals(len(result), 2)  # 50 + next page
+
+        # with login
+        context = nightcrawler.Context('/')
+        settings = context.get_settings()
+        settings.set_string(settings.LOGIN_USERNAME, self.USERNAME)
+        settings.set_string(settings.LOGIN_PASSWORD, self.PASSWORD)
+        result = soundcloud.Provider().navigate(context)
+        self.assertEquals(len(result), 4)  # 50 + next page
         pass
 
     def test_on_explore(self):

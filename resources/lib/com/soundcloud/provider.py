@@ -6,7 +6,9 @@ from .client import Client
 
 
 class Provider(nightcrawler.Provider):
+    SOUNDCLOUD_LOCAL_STREAM = 30505
     SOUNDCLOUD_LOCAL_EXPLORE = 30500
+    SOUNDCLOUD_LOCAL_TRACKS = 30512
     SOUNDCLOUD_LOCAL_RECOMMENDED = 30517
     SOUNDCLOUD_LOCAL_GO_TO_USER = 30516
     SOUNDCLOUD_LOCAL_PLAYLISTS = 30506
@@ -14,6 +16,10 @@ class Provider(nightcrawler.Provider):
     SOUNDCLOUD_LOCAL_LIKES = 30510
     SOUNDCLOUD_LOCAL_FOLLOWING = 30507
     SOUNDCLOUD_LOCAL_FOLLOWER = 30509
+    SOUNDCLOUD_LOCAL_LIKE = 30511
+    SOUNDCLOUD_LOCAL_UNLIKE = 30514
+    SOUNDCLOUD_LOCAL_FOLLOW = 30508
+    SOUNDCLOUD_LOCAL_UNFOLLOW = 30513
 
     SOUNDCLOUD_LOCAL_MUSIC_TRENDING = 30501
     SOUNDCLOUD_LOCAL_AUDIO_TRENDING = 30502
@@ -24,19 +30,7 @@ class Provider(nightcrawler.Provider):
 
     def __init__(self):
         nightcrawler.Provider.__init__(self)
-
-        self._is_logged_in = False
         self._client = None
-        """
-        self._local_map.update(
-             'soundcloud.stream': 30505,
-             'soundcloud.follow': 30508,
-             'soundcloud.like': 30511,
-             'soundcloud.tracks': 30512,
-             'soundcloud.unfollow': 30513,
-             'soundcloud.unlike': 30514,
-        )
-        """
         pass
 
     def on_setup(self, mode):
@@ -44,38 +38,6 @@ class Provider(nightcrawler.Provider):
             return ['default', 'songs', 'artists', 'albums']
 
         return None
-
-    def get_client_old(self, context):
-        access_manager = context.get_access_manager()
-        access_token = access_manager.get_access_token()
-        if access_manager.is_new_login_credential() or not access_token:
-            access_manager.update_access_token('')  # in case of an old access_token
-            self._client = None
-            pass
-
-        if not self._client:
-            items_per_page = context.get_settings().get_items_per_page()
-            if access_manager.has_login_credentials():
-                username, password = access_manager.get_login_credentials()
-                access_token = access_manager.get_access_token()
-
-                # create a new access_token
-                if not access_token:
-                    self._client = Client(username=username, password=password, access_token='',
-                                          items_per_page=items_per_page)
-                    access_token = self._client.update_access_token()
-                    access_manager.update_access_token(access_token)
-                    pass
-
-                self._is_logged_in = access_token != ''
-                self._client = Client(username=username, password=password, access_token=access_token,
-                                      items_per_page=items_per_page)
-            else:
-                self._client = Client(items_per_page=items_per_page)
-                pass
-            pass
-
-        return self._client
 
     def handle_exception(self, context, exception_to_handle):
         return None
@@ -90,68 +52,29 @@ class Provider(nightcrawler.Provider):
 
         return True
 
-    #@kodion.RegisterProviderPath('^\/stream\/$')
-    def _on_stream(self, context, re_match):
-        result = []
-
-        params = context.get_params()
-        cursor = params.get('cursor', None)
-        json_data = context.get_function_cache().get(FunctionCache.ONE_MINUTE * 5, self.get_client(context).get_stream,
-                                                     page_cursor=cursor)
-        path = context.get_path()
-        result = self._do_collection(context, json_data, path, params)
-        return result
-
-    #@kodion.RegisterProviderPath('^\/follow\/(?P<user_id>.+)/$')
-    def _on_follow(self, context, re_match):
-        user_id = re_match.group('user_id')
-        params = context.get_params()
-        follow = params.get('follow', '') == '1'
-        json_data = self.get_client(context).follow_user(user_id, follow)
-
-        return True
-
-    #@kodion.RegisterProviderPath('^\/like\/(?P<category>\w+)\/(?P<content_id>.+)/$')
-    def _on_like(self, context, re_match):
-        content_id = re_match.group('content_id')
-        category = re_match.group('category')
-        params = context.get_params()
-        like = params.get('like', '') == '1'
-
-        if category == 'track':
-            json_data = self.get_client(context).like_track(content_id, like)
-        elif category == 'playlist':
-            json_data = self.get_client(context).like_playlist(content_id, like)
-        else:
-            raise kodion.KodionException("Unknown category '%s' in 'on_like'" % category)
-
-        if not like:
-            context.get_ui().refresh_container()
-            pass
-
-        return True
-
-    # ===================================
-
     def get_fanart(self, context):
         if context.get_settings().get_bool('soundcloud.fanart_dark.show', True):
             return context.create_resource_path('media/fanart_dark.jpg')
         return context.create_resource_path('media/fanart.jpg')
 
     def get_client(self, context):
+        def _login(username, password):
+            return Client().login(username, password)
+
         if self._client:
             return self._client
 
-        # TODO: login
-        self._client = Client()
+        access_data = context.get_access_manager().do_login(_login)
+        items_per_page = context.get_settings().get_items_per_page()
+        self._client = Client(access_token=access_data.get('access_token', ''), items_per_page=items_per_page)
         return self._client
 
     def process_result(self, context, result):
-        items = []
+        client = self.get_client(context)
 
+        items = []
         path = context.get_path()
         for item in result['items']:
-            # TODO: update context menu based on login and path
             context_menu = []
             item_type = item['type']
 
@@ -165,18 +88,18 @@ class Provider(nightcrawler.Provider):
                                          '/explore/recommended/tracks/%s' % unicode(item['id']))))
 
                 # like/unlike a track
-                """
-                if path == '/user/favorites/me/':
-                    context_menu.append((context.localize(self._local_map['soundcloud.unlike']),
-                                         'RunPlugin(%s)' % context.create_uri(['like/track', unicode(json_item['id'])],
-                                                                              {'like': '0'})))
+                if client.get_access_token():
+                    if path == '/user/favorites/me/':
+                        context_menu.append((context.localize(self.SOUNDCLOUD_LOCAL_UNLIKE),
+                                             'RunPlugin(%s)' % context.create_uri('like/track/%s' % unicode(item['id']),
+                                                                                  {'like': '0'})))
+                        pass
+                    else:
+                        context_menu.append((context.localize(self.SOUNDCLOUD_LOCAL_LIKE),
+                                             'RunPlugin(%s)' % context.create_uri('like/track/%s' % unicode(item['id']),
+                                                                                  {'like': '1'})))
+                        pass
                     pass
-                else:
-                    context_menu.append((context.localize(self._local_map['soundcloud.like']),
-                                         'RunPlugin(%s)' % context.create_uri(['like/track', unicode(json_item['id'])],
-                                                                              {'like': '1'})))
-                    pass
-                """
 
                 # go to user
                 username = nightcrawler.utils.strings.to_unicode(item['user']['username'])
@@ -191,35 +114,34 @@ class Provider(nightcrawler.Provider):
                 item['type'] = 'folder'
                 item['uri'] = context.create_uri('/playlist/%s/' % item['id'])
 
-                # TODO: set context menu
-                """
+                if client.get_access_token():
                     if path == '/user/favorites/me/':
-                    context_menu = [(context.localize(self._local_map['soundcloud.unlike']),
-                                     'RunPlugin(%s)' % context.create_uri(['like/playlist', unicode(json_item['id'])],
-                                                                          {'like': '0'}))]
-                else:
-                    context_menu = [(context.localize(self._local_map['soundcloud.like']),
-                                     'RunPlugin(%s)' % context.create_uri(['like/playlist', unicode(json_item['id'])],
-                                                                          {'like': '1'}))]
-                """
+                        context_menu = [(context.localize(self.SOUNDCLOUD_LOCAL_UNLIKE),
+                                         'RunPlugin(%s)' % context.create_uri('like/playlist/%s' % unicode(item['id']),
+                                                                              {'like': '0'}))]
+                    else:
+                        context_menu = [(context.localize(self.SOUNDCLOUD_LOCAL_LIKE),
+                                         'RunPlugin(%s)' % context.create_uri('like/playlist/%s' % unicode(item['id']),
+                                                                              {'like': '1'}))]
+                        pass
+                    pass
                 pass
             elif item_type == 'artist':
                 item['type'] = 'folder'
                 item['uri'] = context.create_uri('/user/tracks/%s/' % item['id'])
 
-                # TODO: set context menu
-                """
-                if path == '/user/following/me/':
-                    context_menu = [(context.localize(self._local_map['soundcloud.unfollow']),
-                                     'RunPlugin(%s)' % context.create_uri(['follow', unicode(json_item['id'])],
-                                                                          {'follow': '0'}))]
+                if client.get_access_token():
+                    if path == '/user/following/me/':
+                        context_menu = [(context.localize(self.SOUNDCLOUD_LOCAL_UNFOLLOW),
+                                         'RunPlugin(%s)' % context.create_uri('follow/%s' % unicode(item['id']),
+                                                                              {'follow': '0'}))]
+                        pass
+                    else:
+                        context_menu = [(context.localize(self.SOUNDCLOUD_LOCAL_FOLLOW),
+                                         'RunPlugin(%s)' % context.create_uri('follow/%s' % unicode(item['id']),
+                                                                              {'follow': '1'}))]
+                        pass
                     pass
-                else:
-                    context_menu = [(context.localize(self._local_map['soundcloud.follow']),
-                                     'RunPlugin(%s)' % context.create_uri(['follow', unicode(json_item['id'])],
-                                                                          {'follow': '1'}))]
-                    pass
-                """
                 pass
             else:
                 raise NightcrawlerException('Unknown item type "%s"' % item_type)
@@ -243,6 +165,38 @@ class Provider(nightcrawler.Provider):
             items.append(nightcrawler.items.create_next_page_item(new_context, fanart=self.get_fanart(context)))
             pass
         return items
+
+    @nightcrawler.register_path('/like/(?P<category>track|playlist)/(?P<content_id>.+)/')
+    @nightcrawler.register_path_value('category', unicode)
+    @nightcrawler.register_path_value('content_id', int)
+    @nightcrawler.register_context_value('like', bool, required=True)
+    def on_like(self, context, category, content_id, like):
+
+        if category == 'track':
+            json_data = self.get_client(context).like_track(content_id, like)
+            pass
+        elif category == 'playlist':
+            json_data = self.get_client(context).like_playlist(content_id, like)
+            pass
+        else:
+            raise NightcrawlerException('Unknown category "%s" in "on_like"' % category)
+
+        if not like:
+            context.get_ui().refresh_container()
+            pass
+
+        return True
+
+    @nightcrawler.register_path('/follow/(?P<user_id>.+)/')
+    @nightcrawler.register_path_value('user_id', int)
+    @nightcrawler.register_context_value('follow', bool, required=True)
+    def _on_follow(self, context, user_id, follow):
+        self.get_client(context).follow_user(user_id, follow)
+        if not follow:
+            context.get_ui().refresh_container()
+            pass
+
+        return True
 
     @nightcrawler.register_path('/play/')
     @nightcrawler.register_context_value('audio_id', int, alias='track_id', default=None)
@@ -335,14 +289,14 @@ class Provider(nightcrawler.Provider):
         return self.process_result(context, self.get_client(context).get_playlist(playlist_id))
 
     @nightcrawler.register_path('/user/playlists/(?P<user_id>.+)/')
-    @nightcrawler.register_path_value('user_id', int)
+    @nightcrawler.register_path_value('user_id', unicode)
     @nightcrawler.register_context_value('page', int, default=1)
     def on_user_playlists(self, context, user_id, page):
         context.set_content_type(context.CONTENT_TYPE_ALBUMS)
         return self.process_result(context, self.get_client(context).get_playlists(user_id, page=page))
 
     @nightcrawler.register_path('/user/following/(?P<user_id>.+)/')
-    @nightcrawler.register_path_value('user_id', int)
+    @nightcrawler.register_path_value('user_id', unicode)
     @nightcrawler.register_context_value('page', int, default=1)
     def on_user_following(self, context, user_id, page):
         context.set_content_type(context.CONTENT_TYPE_ARTISTS)
@@ -356,27 +310,23 @@ class Provider(nightcrawler.Provider):
         return self.process_result(context, self.get_client(context).get_follower(user_id, page=page))
 
     @nightcrawler.register_path('^/user/favorites/(?P<user_id>.+)/')
-    @nightcrawler.register_path_value('user_id', int)
+    @nightcrawler.register_path_value('user_id', unicode)
     @nightcrawler.register_context_value('page', int, default=1)
     def on_user_favorites(self, context, user_id, page):
         context.set_content_type(context.CONTENT_TYPE_SONGS)
 
         # We use an API of the APP, this API only work with an user id. In the case of 'me' we gave to get our own
         # user id to use this function.
-        # TODO: this isn't finished yet
         if user_id == 'me':
-            json_data = context.get_function_cache().get(FunctionCache.ONE_MINUTE * 10,
-                                                         self.get_client(context).get_user,
-                                                         'me')
+            json_data = self.get_client(context).get_user('me')
             user_id = json_data['id']
             pass
 
         # do not cache: in case of adding or deleting content
         return self.process_result(context, self.get_client(context).get_likes(user_id, page=page))
-        #return self.process_result(context, self.get_client(context).get_favorites(user_id, page=page))
 
     @nightcrawler.register_path('/user/tracks/(?P<user_id>.+)/')
-    @nightcrawler.register_path_value('user_id', int)
+    @nightcrawler.register_path_value('user_id', unicode)
     @nightcrawler.register_context_value('page', int, default=1)
     def on_user_tracks(self, context, user_id, page):
         def _make_bold(_user_id, title):
@@ -389,7 +339,6 @@ class Provider(nightcrawler.Provider):
 
         # on the first page add some extra stuff to navigate to
         if page == 1:
-            # TODO: get correct user image
             user_item = self.get_client(context).get_user(user_id)
             user_image = user_item.get('images', {}).get('thumbnail')
 
@@ -502,28 +451,34 @@ class Provider(nightcrawler.Provider):
                                   'fanart': self.get_fanart(context)}})
         return result
 
+    @nightcrawler.register_path('/stream/')
+    @nightcrawler.register_context_value('cursor', unicode)
+    @nightcrawler.register_context_value('page', int)
+    def on_stream(self, context, cursor, page):
+        context.set_content_type(context.CONTENT_TYPE_SONGS)
+
+        result = self.get_client(context).get_stream(page_cursor=cursor)
+        return self.process_result(context, result)
+
     @nightcrawler.register_path('/')
     def on_root(self, context):
         result = []
 
         client = self.get_client(context)
 
-        # is logged in?
-        """
-        if self._is_logged_in:
+        # if logged in provide some extra items
+        if client.get_access_token():
             # track
             json_data = self.get_client(context).get_user('me')
-            me_item = self._do_item(context, json_data, path)
-            result.append(me_item)
+            json_data['id'] = 'me'
+            result.extend(self.process_result(context, {'items': [json_data]}))
 
             # stream
-            stream_item = DirectoryItem(context.localize(self._local_map['soundcloud.stream']),
-                                        context.create_uri(['stream']),
-                                        image=context.create_resource_path('media', 'stream.png'))
-            stream_item.set_fanart(self.get_fanart(context))
-            result.append(stream_item)
+            result.append({'type': 'folder',
+                           'title': context.localize(self.SOUNDCLOUD_LOCAL_STREAM),
+                           'uri': context.create_uri('stream'),
+                           'images': {'thumbnail': context.create_resource_path('media/stream.png')}})
             pass
-            """
 
         # search
         result.append(nightcrawler.items.create_search_item(context, fanart=self.get_fanart(context)))

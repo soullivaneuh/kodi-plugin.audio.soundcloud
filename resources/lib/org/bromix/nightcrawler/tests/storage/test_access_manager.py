@@ -1,17 +1,37 @@
-from resources.lib.org.bromix import nightcrawler
-
 __author__ = 'bromix'
 
 import time
 import unittest
 
-import resources.lib.org.bromix.nightcrawler
+from resources.lib.org.bromix import nightcrawler
 from resources.lib.org.bromix.nightcrawler.core.abstract_settings import AbstractSettings
 from resources.lib.org.bromix.nightcrawler.storage import AccessManager
 
 
 class TestAccessManager(unittest.TestCase):
-    def setUp(self):
+    def test_do_login(self):
+        def _login(username, password):
+            return {'access_token': 'abcd',
+                    'refresh_token': '1234',
+                    'expires_in': int(time.time())}
+
+        def _refresh_token(access_data):
+            return access_data
+
+        context = nightcrawler.Context()
+        settings = context.get_settings()
+
+        access_manager = context.get_access_manager()
+        access_manager.remove_login_credentials()
+        access_data = context.get_access_manager().do_login(_login)
+        self.assertDictEqual(access_data, {})
+
+        settings.set_string(settings.LOGIN_USERNAME, 'Hans')
+        settings.set_string(settings.LOGIN_PASSWORD, '1235')
+        access_data = context.get_access_manager().do_login(_login)
+
+        access_data = context.get_access_manager().do_login(_login)
+        access_data = context.get_access_manager().do_refresh_token(_refresh_token)
         pass
 
     def test_access_token_expired(self):
@@ -26,7 +46,7 @@ class TestAccessManager(unittest.TestCase):
         self.assertEqual('', access_token)
 
         # should return False because no access_token was provided
-        result = access_manager.is_access_token_expired()
+        result = access_manager._is_access_token_expired()
         self.assertEqual(True, result)
 
         access_manager.update_access_token('1234567890')
@@ -34,17 +54,17 @@ class TestAccessManager(unittest.TestCase):
         self.assertEqual('1234567890', access_token)
 
         # should return False, because the access_token is fresh
-        result = access_manager.is_access_token_expired()
+        result = access_manager._is_access_token_expired()
         self.assertEqual(False, result)
 
         # should return False, we have 5000 seconds
         access_manager.update_access_token('1234567890', time.time() + 5000)
-        result = access_manager.is_access_token_expired()
+        result = access_manager._is_access_token_expired()
         self.assertEqual(False, result)
 
         # should return True, we are 5000 seconds in the future
         access_manager.update_access_token('1234567890', time.time() - 5000)
-        result = access_manager.is_access_token_expired()
+        result = access_manager._is_access_token_expired()
         self.assertEqual(True, result)
         pass
 

@@ -4,31 +4,16 @@ from resources.lib.org.bromix import nightcrawler
 from resources.lib.org.bromix.nightcrawler.exception import NightcrawlerException
 from . import items
 
-"""
-class ClientException(kodion.KodionException):
-    def __init__(self, status_code, *args, **kwargs):
-        Exception.__init__(self, *args, **kwargs)
-        self._status_code = status_code
-        pass
-
-    def get_status_code(self):
-        return self._status_code
-
-    pass
-"""
-
 
 class Client(nightcrawler.HttpClient):
     CLIENT_ID = '40ccfee680a844780a41fbe23ea89934'
     CLIENT_SECRET = '26a5240f7ee0ee2d4fa9956ed80616c2'
 
-    def __init__(self, username='', password='', access_token='', client_id='', client_secret='', items_per_page=50):
+    def __init__(self, access_token='', client_id='', client_secret='', items_per_page=50):
         nightcrawler.HttpClient.__init__(self, default_header={'Accept-Encoding': 'gzip',
                                                                'Host': 'api.soundcloud.com:443',
                                                                'Connection': 'Keep-Alive',
                                                                'User-Agent': 'SoundCloud-Android/14.10.01-27 (Android 4.4.4; samsung GT-I9100'})
-        self._username = username
-        self._password = password
         self._access_token = access_token
         self._items_per_page = items_per_page
 
@@ -44,6 +29,9 @@ class Client(nightcrawler.HttpClient):
             self._client_secret = client_secret
             pass
         pass
+
+    def get_access_token(self):
+        return self._access_token
 
     def _create_url(self, path, user_id=None):
         if user_id:
@@ -76,7 +64,7 @@ class Client(nightcrawler.HttpClient):
         return items.convert_to_item(response.json())
 
     def get_user(self, user_id):
-        #self.update_access_token()
+        # self.update_access_token()
         response = self._request(self._create_url('', user_id=user_id),
                                  headers={'Accept': 'application/json'})
         self._handle_error(response)
@@ -231,36 +219,17 @@ class Client(nightcrawler.HttpClient):
         self._handle_error(response)
         return items.convert_to_items(response.json())
 
-    # ===============================================================
-
     def get_stream(self, page_cursor=None):
-        params = {'limit': unicode(self._items_per_page)}
+        params = self._create_params()
         if page_cursor is not None:
             params['cursor'] = page_cursor
-
-        return self._perform_request(path='me/activities/tracks/affiliated',
-                                     headers={'Accept': 'application/json'},
-                                     params=params)
-
-    def like_track(self, track_id, like=True):
-        method = 'PUT'
-        if not like:
-            method = 'DELETE'
             pass
 
-        return self._perform_request(method=method,
-                                     path='e1/me/track_likes/%s' % unicode(track_id),
-                                     headers={'Accept': 'application/json'})
-
-    def like_playlist(self, playlist_id, like=True):
-        method = 'PUT'
-        if not like:
-            method = 'DELETE'
-            pass
-
-        return self._perform_request(method=method,
-                                     path='e1/me/playlist_likes/%s' % unicode(playlist_id),
-                                     headers={'Accept': 'application/json'})
+        response = self._request(self._create_url('me/activities/tracks/affiliated'),
+                                 headers={'Accept': 'application/json'},
+                                 params=params)
+        self._handle_error(response)
+        return items.convert_to_items(response.json())
 
     def follow_user(self, user_id, follow=True):
         method = 'PUT'
@@ -268,12 +237,34 @@ class Client(nightcrawler.HttpClient):
             method = 'DELETE'
             pass
 
-        return self._perform_request(method=method,
-                                     path='me/followings/%s' % unicode(user_id),
-                                     headers={'Accept': 'application/json'})
+        response = self._request(self._create_url('me/followings/%s' % unicode(user_id)), method=method,
+                                 headers={'Accept': 'application/json'})
+        self._handle_error(response)
+        return response.json()
 
-    def get_access_token(self):
-        return self._access_token
+    def like_track(self, track_id, like=True):
+        method = 'PUT'
+        if not like:
+            method = 'DELETE'
+            pass
+
+        response = self._request(self._create_url('e1/me/track_likes/%s' % unicode(track_id)),
+                                 method=method,
+                                 headers={'Accept': 'application/json'})
+        self._handle_error(response)
+        return True
+
+    def like_playlist(self, playlist_id, like=True):
+        method = 'PUT'
+        if not like:
+            method = 'DELETE'
+            pass
+
+        response = self._request(self._create_url('e1/me/playlist_likes/%s' % unicode(playlist_id)),
+                                 method=method,
+                                 headers={'Accept': 'application/json'})
+        self._handle_error(response)
+        return True
 
     def _request(self, url, method='GET', headers=None, post_data=None, params=None, allow_redirects=True):
         if not params:
@@ -294,19 +285,16 @@ class Client(nightcrawler.HttpClient):
 
         return super(Client, self)._request(url, method, headers, post_data, params, allow_redirects)
 
-    def update_access_token(self):
-        if not self._access_token and self._username and self._password:
-            post_data = {'grant_type': 'password',
-                         'client_id': self._client_id,
-                         'client_secret': self._client_secret,
-                         'username': self._username.encode('utf-8'),
-                         'password': self._password.encode('utf-8'),
-                         'scope': 'non-expiring'}
+    def login(self, username, password):
+        post_data = {'grant_type': 'password',
+                     'client_id': self._client_id,
+                     'client_secret': self._client_secret,
+                     'username': nightcrawler.utils.strings.to_utf8(username),
+                     'password': nightcrawler.utils.strings.to_utf8(password),
+                     'scope': 'non-expiring'}
 
-            json_data = self._perform_request(method='POST', path='oauth2/token', post_data=post_data)
-            self._access_token = json_data.get('access_token', None)
-            return self._access_token
-
-        return ''
+        response = self._request(self._create_url('oauth2/token'), method='POST', post_data=post_data)
+        self._handle_error(response)
+        return response.json()
 
     pass

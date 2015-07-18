@@ -28,7 +28,7 @@ class AbstractSettings(object):
     LOGIN_USERNAME = 'login.username'
     LOGIN_PASSWORD = 'login.password'
     LOGIN_ACCESS_TOKEN = 'login.access_token'
-    LOGIN_ACCESS_TOKEN_EXPIRES = 'login.access_token.expires'
+    LOGIN_ACCESS_TOKEN_EXPIRES = 'login.expires_in'
     LOGIN_REFRESH_TOKEN = 'login.refresh_token'
     LOGIN_HASH = 'login.hash'
 

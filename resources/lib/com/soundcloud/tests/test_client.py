@@ -8,6 +8,8 @@ from resources.lib.com.soundcloud import Client
 
 
 class TestClient(unittest.TestCase):
+    USERNAME = 'co4hu41hkqud5cm@my10minutemail.com'
+    PASSWORD = '1234567890'
     TOKEN = u'1-21686-118589874-262b20fc160e44'
     FALSE_TOKEN = u'1-21686-118589874-262b20fc160e456'
 
@@ -97,13 +99,26 @@ class TestClient(unittest.TestCase):
         json_data = client.resolve_url(url)
         pass
 
-    # ==================
+    def test_login(self):
+        login_data = Client().login(username=self.USERNAME, password=self.PASSWORD)
 
-    def test_false_token(self):
-        client = Client(access_token=self.FALSE_TOKEN)
+        false_login_data = Client().login(username=self.USERNAME, password='0')
+        pass
 
-        # me
-        self.assertRaises(ClientException, client.get_user, 'me')
+    def test_get_stream(self):
+        login_data = Client().login(username=self.USERNAME, password=self.PASSWORD)
+        client = Client(access_token=login_data['access_token'])
+        json_data = client.get_stream()
+        pass
+
+    def test_follow(self):
+        login_data = Client().login(username=self.USERNAME, password=self.PASSWORD)
+        client = Client(access_token=login_data['access_token'])
+        json_data = client.follow_user(1647796, False)
+        self.assertGreater(len(json_data), 0)
+
+        json_data = client.follow_user(1647796, True)
+        self.assertGreater(len(json_data), 0)
         pass
 
     def test_cursor(self):
@@ -111,28 +126,6 @@ class TestClient(unittest.TestCase):
         re_match = re.match('.*cursor\=(?P<cursor>[a-z0-9-]+).*', next_href)
         page_cursor = re_match.group('cursor')
         self.assertEqual('aedb3280-55fb-11e3-8019-38efa603dd45', page_cursor)
-        pass
-
-    def test_get_stream(self):
-        client = Client(access_token=self.TOKEN)
-        json_data = client.get_stream()
-        pass
-
-    def test_follow(self):
-        client = Client(access_token=self.TOKEN)
-        json_data = client.follow_user(1701116, False)
-        self.assertGreater(len(json_data), 0)
-
-        json_data = client.follow_user(1701116, True)
-        self.assertGreater(len(json_data), 0)
-        pass
-
-    def test_update_token(self):
-        client = Client(username='co4hu41hkqud5cm@my10minutemail.com', password='1234567890')
-        token = client.update_access_token()
-
-        self.assertTrue(token is not None)
-        print "Token: '%s'" % token
         pass
 
     pass
