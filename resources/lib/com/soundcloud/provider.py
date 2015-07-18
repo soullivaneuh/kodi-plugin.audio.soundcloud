@@ -1,5 +1,3 @@
-from resources.lib.org.bromix.nightcrawler.storage import FunctionCache
-
 __author__ = 'bromix'
 
 from resources.lib.org.bromix import nightcrawler
@@ -286,7 +284,8 @@ class Provider(nightcrawler.Provider):
 
             pass
 
-        search_result = self.get_client(context).search(search_text, category, page=page)
+        search_result = context.cache_function(context.CACHE_ONE_MINUTE * 10, self.get_client(context).search,
+                                               search_text, category, page=page)
         result.extend(self.process_result(context, search_result))
         return result
 
@@ -294,28 +293,36 @@ class Provider(nightcrawler.Provider):
     @nightcrawler.register_path_value('playlist_id', int)
     def on_playlist(self, context, playlist_id):
         context.set_content_type(context.CONTENT_TYPE_SONGS)
-        return self.process_result(context, self.get_client(context).get_playlist(playlist_id))
+        result = context.cache_function(context.CACHE_ONE_MINUTE * 5, self.get_client(context).get_playlist,
+                                        playlist_id)
+        return self.process_result(context, result)
 
     @nightcrawler.register_path('/user/playlists/(?P<user_id>.+)/')
     @nightcrawler.register_path_value('user_id', unicode)
     @nightcrawler.register_context_value('page', int, default=1)
     def on_user_playlists(self, context, user_id, page):
         context.set_content_type(context.CONTENT_TYPE_ALBUMS)
-        return self.process_result(context, self.get_client(context).get_playlists(user_id, page=page))
+        result = context.cache_function(context.CACHE_ONE_MINUTE * 5, self.get_client(context).get_playlists, user_id,
+                                        page=page)
+        return self.process_result(context, result)
 
     @nightcrawler.register_path('/user/following/(?P<user_id>.+)/')
     @nightcrawler.register_path_value('user_id', unicode)
     @nightcrawler.register_context_value('page', int, default=1)
     def on_user_following(self, context, user_id, page):
         context.set_content_type(context.CONTENT_TYPE_ARTISTS)
-        return self.process_result(context, self.get_client(context).get_following(user_id, page=page))
+        result = context.cache_function(context.CACHE_ONE_MINUTE * 5, self.get_client(context).get_following, user_id,
+                                        page=page)
+        return self.process_result(context, result)
 
     @nightcrawler.register_path('/user/follower/(?P<user_id>.+)/')
     @nightcrawler.register_path_value('user_id', unicode)
     @nightcrawler.register_context_value('page', int, default=1)
     def on_user_follower(self, context, user_id, page):
         context.set_content_type(context.CONTENT_TYPE_ARTISTS)
-        return self.process_result(context, self.get_client(context).get_follower(user_id, page=page))
+        result = context.cache_function(context.CACHE_ONE_MINUTE * 5, self.get_client(context).get_follower, user_id,
+                                        page=page)
+        return self.process_result(context, result)
 
     @nightcrawler.register_path('^/user/favorites/(?P<user_id>.+)/')
     @nightcrawler.register_path_value('user_id', unicode)
@@ -326,7 +333,7 @@ class Provider(nightcrawler.Provider):
         # We use an API of the APP, this API only work with an user id. In the case of 'me' we gave to get our own
         # user id to use this function.
         if user_id == 'me':
-            json_data = self.get_client(context).get_user('me')
+            json_data = context.cache_function(context.CACHE_ONE_MINUTE * 10, self.get_client(context).get_user, 'me')
             user_id = json_data['id']
             pass
 
@@ -347,7 +354,8 @@ class Provider(nightcrawler.Provider):
 
         # on the first page add some extra stuff to navigate to
         if page == 1:
-            user_item = self.get_client(context).get_user(user_id)
+            user_item = context.cache_function(context.CACHE_ONE_MINUTE * 10, self.get_client(context).get_user,
+                                               user_id)
             user_image = user_item.get('images', {}).get('thumbnail')
 
             # playlists
@@ -379,7 +387,8 @@ class Provider(nightcrawler.Provider):
                                       'fanart': self.get_fanart(context)}})
             pass
 
-        tracks_result = self.get_client(context).get_tracks(user_id, page=page)
+        tracks_result = context.cache_function(context.CACHE_ONE_MINUTE * 10, self.get_client(context).get_tracks,
+                                               user_id, page=page)
         result.extend(self.process_result(context, tracks_result))
         return result
 
@@ -389,7 +398,8 @@ class Provider(nightcrawler.Provider):
     def on_explore_recommended_tracks(self, context, track_id, page):
         context.set_content_type(context.CONTENT_TYPE_SONGS)
 
-        result = self.get_client(context).get_recommended_for_track(track_id, page=page)
+        result = context.cache_function(context.CACHE_ONE_HOUR, self.get_client(context).get_recommended_for_track,
+                                        track_id, page=page)
         return self.process_result(context, result)
 
     @nightcrawler.register_path('/explore/genre/(?P<category>music|audio)/(?P<genre>.*)/')
@@ -399,13 +409,14 @@ class Provider(nightcrawler.Provider):
     def on_explore_genre_sub(self, context, category, genre, page):
         context.set_content_type(context.CONTENT_TYPE_SONGS)
 
-        result = self.get_client(context).get_genre(genre=genre, page=page)
+        result = context.cache_function(context.CACHE_ONE_HOUR, self.get_client(context).get_genre, genre=genre,
+                                        page=page)
         return self.process_result(context, result)
 
     @nightcrawler.register_path('/explore/genre/(?P<category>music|audio)/')
     @nightcrawler.register_path_value('category', unicode)
     def on_explore_genre(self, context, category):
-        categories = self.get_client(context).get_categories()
+        categories = context.cache_function(context.CACHE_ONE_HOUR, self.get_client(context).get_categories)
         items = categories.get(category, [])
         result = []
         for item in items:
@@ -423,7 +434,8 @@ class Provider(nightcrawler.Provider):
     def on_explore_trending(self, context, category, page):
         context.set_content_type(context.CONTENT_TYPE_SONGS)
 
-        result = self.get_client(context).get_trending(category=category, page=page)
+        result = context.cache_function(context.CACHE_ONE_HOUR, self.get_client(context).get_trending,
+                                        category=category, page=page)
         return self.process_result(context, result)
 
     @nightcrawler.register_path('/explore/')
@@ -465,7 +477,8 @@ class Provider(nightcrawler.Provider):
     def on_stream(self, context, cursor, page):
         context.set_content_type(context.CONTENT_TYPE_SONGS)
 
-        result = self.get_client(context).get_stream(page_cursor=cursor)
+        result = context.cache_function(context.CACHE_ONE_MINUTE * 10, self.get_client(context).get_stream,
+                                        page_cursor=cursor)
         return self.process_result(context, result)
 
     @nightcrawler.register_path('/')
@@ -477,8 +490,7 @@ class Provider(nightcrawler.Provider):
         # if logged in provide some extra items
         if client.get_access_token():
             # track
-            json_data = context.get_function_cache().get(FunctionCache.ONE_MINUTE * 10,
-                                                         self.get_client(context).get_user, 'me')
+            json_data = context.cache_function(context.CACHE_ONE_MINUTE * 10, self.get_client(context).get_user, 'me')
             json_data['id'] = 'me'
             result.extend(self.process_result(context, {'items': [json_data]}))
 

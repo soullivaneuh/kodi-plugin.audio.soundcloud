@@ -7,6 +7,12 @@ from .. import utils
 
 
 class AbstractContext(object):
+    CACHE_ONE_MINUTE = 60
+    CACHE_ONE_HOUR = 60 * CACHE_ONE_MINUTE
+    CACHE_ONE_DAY = 24 * CACHE_ONE_HOUR
+    CACHE_ONE_WEEK = 7 * CACHE_ONE_DAY
+    CACHE_ONE_MONTH = 4 * CACHE_ONE_WEEK
+
     SORT_METHOD_ALBUM = 'album'
     SORT_METHOD_ALBUM_IGNORE_THE = 'album_ignore_the'
     SORT_METHOD_ARTIST = 'artist'
@@ -126,6 +132,9 @@ class AbstractContext(object):
                                                  max_file_size_kb=max_cache_size_mb * 1024)
             pass
         return self._function_cache
+
+    def cache_function(self, seconds, func, *args, **keywords):
+        return self.get_function_cache().get(seconds, func, *args, **keywords)
 
     def get_search_history(self):
         if not self._search_history:
