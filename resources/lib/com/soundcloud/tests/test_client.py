@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from resources.lib.org.bromix import nightcrawler
+
 __author__ = 'bromix'
 
 import re
@@ -100,7 +102,7 @@ class TestClient(unittest.TestCase):
     def test_login(self):
         login_data = Client().login(username=self.USERNAME, password=self.PASSWORD)
 
-        false_login_data = Client().login(username=self.USERNAME, password='0')
+        self.assertRaises(nightcrawler.CredentialsException, Client().login, username=self.USERNAME, password='0')
         pass
 
     def test_get_stream(self):

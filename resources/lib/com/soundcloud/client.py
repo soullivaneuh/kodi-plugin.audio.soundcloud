@@ -53,7 +53,9 @@ class Client(nightcrawler.HttpClient):
         return params
 
     def _handle_error(self, response):
-        if response.status_code != 200:
+        status_class = response.status_code/100
+        # accept 2XX and 3XX
+        if status_class != 2 and status_class != 3:
             json_data = response.json()
             error_message = 'HTTP error %d' % response.status_code
             if 'error' in json_data:

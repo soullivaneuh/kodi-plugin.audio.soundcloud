@@ -23,6 +23,13 @@ class TestProvider(unittest.TestCase):
         settings.set_string(settings.LOGIN_PASSWORD, self.PASSWORD)
         result = soundcloud.Provider().navigate(context)
         self.assertEquals(len(result), 4)  # 50 + next page
+
+        # with false login
+        context = nightcrawler.Context('/')
+        settings = context.get_settings()
+        settings.set_string(settings.LOGIN_USERNAME, self.USERNAME)
+        settings.set_string(settings.LOGIN_PASSWORD, 'fail')
+        nightcrawler.run(soundcloud.Provider(), context)
         pass
 
     def test_on_explore(self):

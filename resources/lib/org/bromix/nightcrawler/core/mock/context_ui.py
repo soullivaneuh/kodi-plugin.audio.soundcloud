@@ -27,20 +27,27 @@ class MockContextUI(AbstractContextUI):
         return False, ''
 
     def show_notification(self, message, header='', image_uri='', time_milliseconds=5000):
-        self._context.log('=======NOTIFICATION=======')
-        self._context.log('Message  : %s' % message)
-        self._context.log('header   : %s' % header)
-        self._context.log('image_uri: %s' % image_uri)
-        self._context.log('Time     : %d' % time_milliseconds)
-        self._context.log('==========================')
+        self._context.log_info('=======NOTIFICATION=======')
+        self._context.log_info('Message  : %s' % message)
+        self._context.log_info('header   : %s' % header)
+        self._context.log_info('image_uri: %s' % image_uri)
+        self._context.log_info('Time     : %d' % time_milliseconds)
+        self._context.log_info('==========================')
+        pass
+
+    def on_ok(self, title, text):
+        self._context.log_info('============OK============')
+        self._context.log_info('Title  : %s' % title)
+        self._context.log_info('Text   : %s' % text)
+        self._context.log_info('==========================')
         pass
 
     def open_settings(self):
-        self._context.log("called 'open_settings'")
+        self._context.log_info("called 'open_settings'")
         pass
 
     def refresh_container(self):
-        self._context.log("called 'refresh_container'")
+        self._context.log_info("called 'refresh_container'")
         pass
 
     pass

@@ -9,6 +9,7 @@ from .exception import ProviderException
 
 class Provider(object):
     LOCAL_SETUP_WIZARD_EXECUTE = 30030
+    LOCAL_LOGIN_FAILED = 30121
 
     LOCAL_PLEASE_WAIT = 30119
 

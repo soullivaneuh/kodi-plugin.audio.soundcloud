@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <strings>
-    <!-- Kodion Settings -->
+    <!-- Settings -->
     <string id="30000">General</string>
     <string id="30001">Username</string>
     <string id="30002">Password</string>
@@ -32,7 +32,7 @@
     <string id="30035">View: Albums</string>
     <string id="30036">Support alternative player</string>
 
-    <!-- Kodion Common -->
+    <!-- Common -->
     <string id="30100">Favorites</string>
     <string id="30101">Add to addon favs</string>
     <string id="30102">Search</string>
@@ -54,6 +54,7 @@
     <string id="30118">Delete</string>
     <string id="30119">Please wait...</string>
     <string id="30120">Clear</string>
+    <string id="30121">Login failed</string>
 
     <!-- SoundCloud -->
     <string id="30500">Explore</string>

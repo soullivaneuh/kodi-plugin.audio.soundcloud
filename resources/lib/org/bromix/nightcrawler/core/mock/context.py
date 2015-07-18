@@ -105,5 +105,10 @@ class MockContext(AbstractContext):
 
     def add_item(self, item):
         self.log_info('Adding item: %s' % json.dumps(item))
+        pass
+
+    def end_of_content(self, succeeded=True):
+        self.log_info('called "end_of_content"')
+        pass
 
     pass

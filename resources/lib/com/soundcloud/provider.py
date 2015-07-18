@@ -38,17 +38,13 @@ class Provider(nightcrawler.Provider):
         return None
 
     def handle_exception(self, context, exception_to_handle):
+        if isinstance(exception_to_handle, nightcrawler.CredentialsException):
+            context.get_ui().show_notification(exception_to_handle.get_message(),
+                                               header=context.localize(self.LOCAL_LOGIN_FAILED))
+            context.get_ui().open_settings()
+            return False
+
         return None
-
-        if isinstance(exception_to_handle, ClientException):
-            if exception_to_handle.get_status_code() == 401:
-                context.get_access_manager().update_access_token('')
-                context.get_ui().show_notification('Login Failed')
-                context.get_ui().open_settings()
-                return False
-            pass
-
-        return True
 
     def get_fanart(self, context):
         if context.get_settings().get_bool('soundcloud.fanart_dark.show', True):
