@@ -43,14 +43,19 @@ class KodiContextUI(AbstractContextUI):
 
         # Starting with Gotham (13.X > ...)
         dialog = xbmcgui.Dialog()
-        result = dialog.input(title, str(default), type=xbmcgui.INPUT_ALPHANUM)
-        if result:
+        result = dialog.input(utils.strings.to_unicode(title), utils.strings.to_unicode(default),
+                              type=xbmcgui.INPUT_ALPHANUM)
+        if result != default:
             text = utils.strings.to_unicode(result)
             return True, text
 
-        return False, u''
+        return False, result
 
-    def on_numeric_input(self, title, default=''):
+    def on_numeric_input(self, title, default=None):
+        if not default:
+            default = ''
+            pass
+
         dialog = xbmcgui.Dialog()
         result = dialog.input(title, str(default), type=xbmcgui.INPUT_NUMERIC)
         if result:

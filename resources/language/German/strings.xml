@@ -31,6 +31,7 @@
     <string id="30034">Ansicht: Interpreten</string>
     <string id="30035">Ansicht: Alben</string>
     <string id="30036">Alternativen Player unterstützen</string>
+    <string id="30037">Ansicht überschreiben?</string>
 
     <!-- Common -->
     <string id="30100">Favoriten</string>
@@ -76,4 +77,5 @@
     <string id="30516">Zu %s</string>
     <string id="30517">Empfehlenswerte Tracks</string>
     <string id="30518">Dunkels Fanart anzeigen</string>
+    <string id="30519">Anmeldung einrichten?</string>
 </strings>

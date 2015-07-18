@@ -31,6 +31,7 @@
     <string id="30034">View: Artists</string>
     <string id="30035">View: Albums</string>
     <string id="30036">Support alternative player</string>
+    <string id="30037">Override view?</string>
 
     <!-- Common -->
     <string id="30100">Favorites</string>
@@ -76,4 +77,5 @@
     <string id="30516">Go to %s</string>
     <string id="30517">Recommended Tracks</string>
     <string id="30518">Show black Fanart</string>
+    <string id="30519">Setup login?</string>
 </strings>

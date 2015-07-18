@@ -42,9 +42,6 @@ class AbstractSettings(object):
     def set_string(self, setting_id, value):
         raise NotImplementedError()
 
-    def open_settings(self):
-        raise NotImplementedError()
-
     def get_int(self, setting_id, default_value, converter=None):
         if not converter:
             converter = lambda x: x

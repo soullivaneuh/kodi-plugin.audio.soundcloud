@@ -26,25 +26,36 @@ class Provider(nightcrawler.Provider):
     SOUNDCLOUD_LOCAL_MUSIC_GENRE = 30503
     SOUNDCLOUD_LOCAL_AUDIO_GENRE = 30504
 
+    SOUNDCLOUD_LOCAL_SETUP_LOGIN = 30519
+
     def __init__(self):
         nightcrawler.Provider.__init__(self)
         self._client = None
         pass
 
-    def on_setup(self, mode):
+    def on_setup(self, context, mode):
         if mode == 'content-type':
             return ['default', 'songs', 'artists', 'albums']
+
+        if mode == 'setup':
+            if not context.get_ui().on_yes_no_input(context.get_name(),
+                                                    context.localize(self.SOUNDCLOUD_LOCAL_SETUP_LOGIN)):
+                return
+
+            context.get_ui().open_settings();
+            pass
 
         return None
 
     def handle_exception(self, context, exception_to_handle):
         if isinstance(exception_to_handle, nightcrawler.CredentialsException):
+            context.get_access_manager().remove_login_credentials()
             context.get_ui().show_notification(exception_to_handle.get_message(),
                                                header=context.localize(self.LOCAL_LOGIN_FAILED))
             context.get_ui().open_settings()
             return False
 
-        return None
+        return True
 
     def get_fanart(self, context):
         if context.get_settings().get_bool('soundcloud.fanart_dark.show', True):

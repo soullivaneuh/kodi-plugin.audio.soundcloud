@@ -49,7 +49,7 @@ def run(provider, context=None):
         pass
     except ProviderException, ex:
         result = provider.handle_exception(context, ex)
-        if not result:
+        if result:
             context.log_error(ex.__str__())
             context.get_ui().on_ok('Exception in ContentProvider', ex.__str__())
             context.end_of_content(succeeded=False)

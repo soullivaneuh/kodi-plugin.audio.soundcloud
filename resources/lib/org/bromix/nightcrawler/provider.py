@@ -10,6 +10,8 @@ from .exception import ProviderException
 class Provider(object):
     LOCAL_SETUP_WIZARD_EXECUTE = 30030
     LOCAL_LOGIN_FAILED = 30121
+    LOCAL_LOGIN_USERNAME = 30001
+    LOCAL_LOGIN_PASSWORD = 30002
 
     LOCAL_PLEASE_WAIT = 30119
 
@@ -79,13 +81,13 @@ class Provider(object):
         view_manager = ViewManager(context, self)
         view_manager.setup()
 
-        self.on_setup(mode='setup')
+        self.on_setup(context, mode='setup')
 
         # disable the setup
         settings.set_bool(settings.ADDON_SETUP, False)
         pass
 
-    def on_setup(self, mode):
+    def on_setup(self, context, mode):
         if mode == 'content-types':
             return ['default']
 
