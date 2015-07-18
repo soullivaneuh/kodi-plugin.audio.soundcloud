@@ -49,6 +49,7 @@ class Provider(nightcrawler.Provider):
 
     def handle_exception(self, context, exception_to_handle):
         if isinstance(exception_to_handle, nightcrawler.CredentialsException):
+            context.get_function_cache().clear()
             context.get_access_manager().remove_login_credentials()
             context.get_ui().show_notification(exception_to_handle.get_message(),
                                                header=context.localize(self.LOCAL_LOGIN_FAILED))
