@@ -1,3 +1,5 @@
+from resources.lib.org.bromix.nightcrawler.storage import FunctionCache
+
 __author__ = 'bromix'
 
 from resources.lib.org.bromix import nightcrawler
@@ -475,7 +477,8 @@ class Provider(nightcrawler.Provider):
         # if logged in provide some extra items
         if client.get_access_token():
             # track
-            json_data = self.get_client(context).get_user('me')
+            json_data = context.get_function_cache().get(FunctionCache.ONE_MINUTE * 10,
+                                                         self.get_client(context).get_user, 'me')
             json_data['id'] = 'me'
             result.extend(self.process_result(context, {'items': [json_data]}))
 

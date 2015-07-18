@@ -18,7 +18,7 @@ class ViewManager(object):
                                                       self._context.localize(self._provider.LOCAL_SETUP_OVERRIDE_VIEW)):
             return
 
-        content_types = self._provider.on_setup(mode='content-type')
+        content_types = self._provider.on_setup(self._context, mode='content-type')
         if content_types is None or not content_types:
             content_types = ['default']
             pass
