@@ -1,6 +1,6 @@
 __author__ = 'bromix'
 
-from .exception import NightcrawlerException
+from .exception import ProviderException, CredentialsException
 from .http import HttpClient
 
 # decorators

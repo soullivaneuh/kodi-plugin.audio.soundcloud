@@ -1,7 +1,7 @@
 __author__ = 'bromix'
 
 from resources.lib.org.bromix import nightcrawler
-from resources.lib.org.bromix.nightcrawler.exception import NightcrawlerException
+from resources.lib.org.bromix.nightcrawler.exception import ProviderException
 from . import items
 
 
@@ -53,6 +53,24 @@ class Client(nightcrawler.HttpClient):
         return params
 
     def _handle_error(self, response):
+        if response.status_code != 200:
+            json_data = response.json()
+            error_message = 'HTTP error %d' % response.status_code
+            if 'error' in json_data:
+                error_message = json_data['error']
+                pass
+
+            if 'errors' in json_data:
+                errors = json_data['errors']
+                if len(errors) > 0:
+                    error_message = errors[0].get('error_message', '')
+                pass
+
+            # last fallback
+            if not error_message:
+                error_message = response.headers.get('status', error_message)
+                pass
+            raise nightcrawler.CredentialsException(error_message)
         pass
 
     def resolve_url(self, url):
@@ -87,7 +105,7 @@ class Client(nightcrawler.HttpClient):
 
     def get_trending(self, category='music', page=1):
         if not category.lower() in ['music', 'audio']:
-            raise NightcrawlerException('Unknown category "%s"' % category)
+            raise ProviderException('Unknown category "%s"' % category)
 
         params = self._create_params(page)
         response = self._request(self._create_url('app/mobileapps/suggestions/tracks/popular/%s' % category),
@@ -205,7 +223,7 @@ class Client(nightcrawler.HttpClient):
     def search(self, search_text, category='sounds', page=1):
 
         if not category in ['sounds', 'people', 'sets']:
-            raise NightcrawlerException('Unknown category "%s"' % category)
+            raise ProviderException('Unknown category "%s"' % category)
 
         params = {'limit': str(self._items_per_page),
                   'q': search_text}

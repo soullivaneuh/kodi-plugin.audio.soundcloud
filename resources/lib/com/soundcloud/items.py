@@ -3,7 +3,7 @@ __author__ = 'bromix'
 import re
 
 from resources.lib.org.bromix import nightcrawler
-from resources.lib.org.bromix.nightcrawler.exception import NightcrawlerException
+from resources.lib.org.bromix.nightcrawler.exception import ProviderException
 
 
 def _get_hires_image(url):
@@ -101,7 +101,7 @@ def convert_to_item(json_item):
 
         pass
 
-    raise NightcrawlerException('Unknown kind of item "%s"' % kind)
+    raise ProviderException('Unknown kind of item "%s"' % kind)
 
 
 def convert_to_items(json_result, mobile_conversion=False, process_tracks_of_playlist=False):

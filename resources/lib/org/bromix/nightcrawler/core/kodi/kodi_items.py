@@ -3,7 +3,7 @@ __author__ = 'bromix'
 import xbmcgui
 import xbmcplugin
 
-from ...exception import NightcrawlerException
+from ...exception import ProviderException
 from ... import utils
 
 
@@ -126,7 +126,6 @@ def create_kodi_item(context, item):
                       'image': u'DefaultFile.png',
                       'uri': u''}
 
-
     item_type = item['type']
     kodi_item = xbmcgui.ListItem(label=item.get('title', item['uri']),
                                  path=item['uri'],
@@ -159,27 +158,6 @@ def process_item(context, item, resolve=False):
     else:
         if not xbmcplugin.addDirectoryItem(handle=context.get_handle(), url=item['uri'], listitem=kodi_item,
                                            isFolder=item['type'] == 'folder'):
-            raise NightcrawlerException('Failed to add folder item')
+            raise ProviderException('Failed to add folder item')
         pass
     pass
-
-
-def to_audio_item(context, audio_item):
-    context.log_debug('Converting AudioItem')
-    item = xbmcgui.ListItem(label=audio_item.get_name(),
-                            iconImage=u'DefaultAudio.png',
-                            thumbnailImage=audio_item.get_image())
-
-    # only set fanart is enabled
-    settings = context.get_settings()
-    if audio_item.get_fanart() and settings.show_fanart():
-        item.setProperty(u'fanart_image', audio_item.get_fanart())
-        pass
-    if audio_item.get_context_menu() is not None:
-        item.addContextMenuItems(audio_item.get_context_menu(), replaceItems=audio_item.replace_context_menu())
-        pass
-
-    item.setProperty(u'IsPlayable', u'true')
-
-    item.setInfo(type=u'music', infoLabels=info_labels.create_from_item(context, audio_item))
-    return item

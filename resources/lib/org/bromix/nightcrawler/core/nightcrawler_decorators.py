@@ -4,7 +4,7 @@ __author__ = 'bromix'
 import re
 import json
 
-from ..exception import NightcrawlerException
+from ..exception import ProviderException
 
 
 def _string_to_type(value, value_type):
@@ -116,7 +116,7 @@ class register_context_value(object):
             else:
                 # if required raise an exception!
                 if self._required:
-                    raise NightcrawlerException(
+                    raise ProviderException(
                         'Context value "%s" required for path "%s"' % (self._name, context.get_path()))
 
                 # at this point we can set the default (fallback) value

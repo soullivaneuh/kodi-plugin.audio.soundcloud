@@ -9,7 +9,6 @@ from resources.lib.com import soundcloud
 class TestProvider(unittest.TestCase):
     USERNAME = 'co4hu41hkqud5cm@my10minutemail.com'
     PASSWORD = '1234567890'
-    TOKEN = u'1-21686-118589874-2e78a9be01d463'
 
     def test_root(self):
         # without login
@@ -113,6 +112,20 @@ class TestProvider(unittest.TestCase):
         provider = soundcloud.Provider()
 
         context = nightcrawler.Context(provider.PATH_SEARCH_QUERY, {'q': 'angerfist'})
+        context.set_localization(provider.SOUNDCLOUD_LOCAL_GO_TO_USER, 'Go to %s')
+        result = provider.navigate(context)
+        self.assertGreaterEqual(len(result), 2)
+
+        # playlist search
+        path, params = nightcrawler.utils.path.from_uri(result[1]['uri'])
+        context = nightcrawler.Context(provider.PATH_SEARCH_QUERY, params)
+        context.set_localization(provider.SOUNDCLOUD_LOCAL_GO_TO_USER, 'Go to %s')
+        result = provider.navigate(context)
+        self.assertGreater(len(result), 0)
+
+        # people search
+        path, params = nightcrawler.utils.path.from_uri(result[0]['uri'])
+        context = nightcrawler.Context(provider.PATH_SEARCH_QUERY, params)
         context.set_localization(provider.SOUNDCLOUD_LOCAL_GO_TO_USER, 'Go to %s')
         result = provider.navigate(context)
         self.assertGreater(len(result), 0)

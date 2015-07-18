@@ -1,7 +1,6 @@
-import urlparse
-
 __author__ = 'bromix'
 
+import urlparse
 import urllib
 
 from . import strings

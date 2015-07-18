@@ -63,5 +63,5 @@ def parse(datetime_string):
                                  second=_to_int(abbreviated_match.group('second')))
         pass
 
-    from ..exception import NightcrawlerException
-    raise NightcrawlerException("Could not parse iso 8601 timestamp '%s'" % datetime_string)
+    from ..exception import ProviderException
+    raise ProviderException("Could not parse iso 8601 timestamp '%s'" % datetime_string)

@@ -10,8 +10,6 @@ from resources.lib.com.soundcloud import Client
 class TestClient(unittest.TestCase):
     USERNAME = 'co4hu41hkqud5cm@my10minutemail.com'
     PASSWORD = '1234567890'
-    TOKEN = u'1-21686-118589874-262b20fc160e44'
-    FALSE_TOKEN = u'1-21686-118589874-262b20fc160e456'
 
     def test_get_trending(self):
         client = Client()

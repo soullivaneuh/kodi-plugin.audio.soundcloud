@@ -1,7 +1,7 @@
 __author__ = 'bromix'
 
 from resources.lib.org.bromix import nightcrawler
-from resources.lib.org.bromix.nightcrawler.exception import NightcrawlerException
+from resources.lib.org.bromix.nightcrawler.exception import ProviderException
 from .client import Client
 
 
@@ -25,8 +25,6 @@ class Provider(nightcrawler.Provider):
     SOUNDCLOUD_LOCAL_AUDIO_TRENDING = 30502
     SOUNDCLOUD_LOCAL_MUSIC_GENRE = 30503
     SOUNDCLOUD_LOCAL_AUDIO_GENRE = 30504
-
-    SETTINGS_USER_ID = 'soundcloud.user.id'
 
     def __init__(self):
         nightcrawler.Provider.__init__(self)
@@ -144,7 +142,7 @@ class Provider(nightcrawler.Provider):
                     pass
                 pass
             else:
-                raise NightcrawlerException('Unknown item type "%s"' % item_type)
+                raise ProviderException('Unknown item type "%s"' % item_type)
 
             if context_menu:
                 item['context-menu'] = {'items': context_menu}
@@ -179,7 +177,7 @@ class Provider(nightcrawler.Provider):
             json_data = self.get_client(context).like_playlist(content_id, like)
             pass
         else:
-            raise NightcrawlerException('Unknown category "%s" in "on_like"' % category)
+            raise ProviderException('Unknown category "%s" in "on_like"' % category)
 
         if not like:
             context.get_ui().refresh_container()
@@ -222,7 +220,7 @@ class Provider(nightcrawler.Provider):
                 return {'type': 'uri',
                         'uri': context.create_uri('/play/', {'playlist_id': item['id']})}
 
-            raise NightcrawlerException('Unknown item kind "%s"' % item_type)
+            raise ProviderException('Unknown item kind "%s"' % item_type)
 
         if playlist_id:
             tracks = client.get_playlist(playlist_id).get('items', [])
@@ -236,7 +234,7 @@ class Provider(nightcrawler.Provider):
 
                 return tracks[0]
 
-            raise NightcrawlerException('No tracks found in playlist')
+            raise ProviderException('No tracks found in playlist')
 
         return False
 

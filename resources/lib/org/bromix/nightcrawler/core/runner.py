@@ -1,7 +1,7 @@
 __author__ = 'bromix'
 
 from . import Context
-from ..exception import NightcrawlerException
+from ..exception import ProviderException
 
 
 def _process_result(context, result):
@@ -16,7 +16,7 @@ def _process_result(context, result):
         if item_type in ['video', 'movie', 'audio', 'music', 'uri']:
             context.resolve_item(result)
         else:
-            raise NightcrawlerException('Found not playable item of type "%s"' % item_type)
+            raise ProviderException('Found not playable item of type "%s"' % item_type)
         pass
     elif isinstance(result, list):
         for item in result:
@@ -47,7 +47,7 @@ def run(provider, context=None):
         result = provider.navigate(context)
         _process_result(context, result)
         pass
-    except NightcrawlerException, ex:
+    except ProviderException, ex:
         result = provider.handle_exception(context, ex)
         if not result:
             context.log_error(ex.__str__())

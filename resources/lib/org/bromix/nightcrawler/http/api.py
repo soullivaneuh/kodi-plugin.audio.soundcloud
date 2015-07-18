@@ -51,7 +51,9 @@ class Response():
         return self.text
 
     def json(self):
-        return real_json.loads(self.text)
+        if self.headers.get('content-type', '').lower().startswith('application/json'):
+            return real_json.loads(self.text)
+        return {}
 
     pass
 

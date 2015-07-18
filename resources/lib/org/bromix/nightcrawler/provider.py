@@ -4,7 +4,7 @@ import json
 
 from .core.nightcrawler_decorators import register_path, register_context_value, register_path_value
 from .core.view_manager import ViewManager
-from .exception import NightcrawlerException
+from .exception import ProviderException
 
 
 class Provider(object):
@@ -146,7 +146,7 @@ class Provider(object):
 
         # we need an uri in the video stream
         if not 'uri' in selected_video_stream:
-            raise NightcrawlerException('Missing uri in video stream')
+            raise ProviderException('Missing uri in video stream')
 
         # update the given video item (optional)
         if video_item:
@@ -170,7 +170,7 @@ class Provider(object):
                 pass
             pass
 
-        raise NightcrawlerException('Missing method for path "%s"' % context.get_path())
+        raise ProviderException('Missing method for path "%s"' % context.get_path())
 
     def get_fanart(self, context):
         """
