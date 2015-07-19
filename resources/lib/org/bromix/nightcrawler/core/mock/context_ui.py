@@ -10,9 +10,6 @@ class MockContextUI(AbstractContextUI):
         self._context = context
         pass
 
-    def create_progress_dialog(self, heading, text=None, background=False):
-        return MockProgressDialog(heading, text)
-
     def get_skin_id(self):
         return 'skin.kodion.dummy'
 

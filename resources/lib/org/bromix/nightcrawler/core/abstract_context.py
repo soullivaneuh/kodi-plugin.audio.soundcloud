@@ -127,9 +127,17 @@ class AbstractContext(object):
 
     def get_function_cache(self):
         if not self._function_cache:
-            max_cache_size_mb = self.get_settings().get_int(AbstractSettings.ADDON_CACHE_SIZE, 5)
+            settings = self.get_settings()
+            max_cache_size_mb = settings.get_int(AbstractSettings.ADDON_CACHE_SIZE, 5)
             self._function_cache = FunctionCache(os.path.join(self._get_cache_path(), 'cache'),
                                                  max_file_size_kb=max_cache_size_mb * 1024)
+
+            if settings.is_clear_cache_enabled():
+                self.log_info('Clearing cache...')
+                settings.disable_clear_cache()
+                self._function_cache.remove_file()
+                self.log_info('Clearing cache done')
+                pass
             pass
         return self._function_cache
 

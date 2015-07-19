@@ -30,6 +30,19 @@ class Storage(object):
         self._needs_commit = False
         pass
 
+    def remove_file(self):
+        self._close()
+        # do nothing - only if this folder exists
+        path = os.path.dirname(self._filename)
+        if not os.path.exists(path):
+            return
+
+        if not os.path.exists(self._filename):
+            return
+
+        os.remove(self._filename)
+        pass
+
     def get_max_item_count(self):
         return self._max_item_count
 

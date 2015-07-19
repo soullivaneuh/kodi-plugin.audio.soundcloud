@@ -93,7 +93,7 @@ class Provider(object):
 
         return None
 
-    def select_video_stream(self, context, video_streams, video_quality_index=[360, 720], video_item=None):
+    def select_video_stream(self, context, video_streams, video_quality_index=None, video_item=None):
         """
         Returns a selected video stream or False if the user aborted
         :param context: the current context
@@ -102,6 +102,10 @@ class Provider(object):
         :param video_quality_index: index mapping to video quality
         :return:
         """
+        if not video_quality_index:
+            video_quality_index = [360, 720]
+            pass
+
         def _sort_video_streams(_video_stream):
             return _video_stream.get('sort', 0)
 
@@ -196,8 +200,6 @@ class Provider(object):
     @register_path_value('method', unicode)
     @register_context_value('item', dict, required=True)
     def _internal_favorites_with_item(self, context, method, item):
-        # context.add_sort_method(constants.sort_method.LABEL_IGNORE_THE)
-
         if method == 'add':
             context.get_favorite_list().add(item)
             return True
@@ -210,9 +212,7 @@ class Provider(object):
         return False
 
     @register_path('/favorites/list/')
-    def _internal_favorites_list(self, context):
-        # context.add_sort_method(constants.sort_method.LABEL_IGNORE_THE)
-
+    def on_favorites_list(self, context):
         result = context.get_favorite_list().list()
         for directory_item in result:
             context_menu = [(context.localize(self.LOCAL_WATCH_LATER_REMOVE),

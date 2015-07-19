@@ -8,6 +8,7 @@ import re
 class AbstractSettings(object):
     # addon
     ADDON_SETUP = 'addon.setup'  # (bool)
+    ADDON_CACHE_CLEAR = 'addon.cache.clear'  # (bool)
     ADDON_CACHE_SIZE = 'addon.cache.size'  # (int)
     ADDON_SHOW_FANART = 'addon.fanart.show'  # (bool)
     ADDON_SEARCH_SIZE = 'addon.search.size'  # (int)
@@ -80,7 +81,10 @@ class AbstractSettings(object):
     def get_items_per_page(self):
         return self.get_int(self.ADDON_ITEMS_PER_PAGE, 50, lambda x: (x + 1) * 5)
 
-    def get_video_quality(self, video_quality_index=[240, 360, 480, 720, 1080, 2160, 4320]):
+    def get_video_quality(self, video_quality_index=None):
+        if not video_quality_index:
+            video_quality_index = [240, 360, 480, 720, 1080, 2160, 4320]
+            pass
         return self.get_int(self.VIDEO_QUALITY, video_quality_index[0], converter=lambda x: video_quality_index[x])
 
     def ask_for_video_quality(self):
@@ -100,5 +104,11 @@ class AbstractSettings(object):
 
     def is_support_alternative_player_enabled(self):
         return self.get_bool(self.SUPPORT_ALTERNATIVE_PLAYER, False)
+
+    def is_clear_cache_enabled(self):
+        return self.get_bool(self.ADDON_CACHE_CLEAR, False)
+
+    def disable_clear_cache(self):
+        self.set_bool(self.ADDON_CACHE_CLEAR, False)
 
     pass

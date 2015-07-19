@@ -4,7 +4,11 @@ from .api import get, post, put, options, head, delete
 
 
 class HttpClient(object):
-    def __init__(self, default_header={}):
+    def __init__(self, default_header=None):
+        if not default_header:
+            default_header = {}
+            pass
+
         self._default_header = default_header
         self._verify = False
 

@@ -71,14 +71,6 @@ class KodiContextUI(AbstractContextUI):
         dialog = xbmcgui.Dialog()
         return dialog.ok(title, text)
 
-    def on_remove_content(self, content_name):
-        text = self._context.localize(constants.localize.REMOVE_CONTENT) % content_name
-        return self.on_yes_no_input(self._context.localize(constants.localize.CONFIRM_REMOVE), text)
-
-    def on_delete_content(self, content_name):
-        text = self._context.localize(constants.localize.DELETE_CONTENT) % content_name
-        return self.on_yes_no_input(self._context.localize(constants.localize.CONFIRM_DELETE), text)
-
     def on_select(self, title, items, default=-1):
         _dict = {}
         _items = []

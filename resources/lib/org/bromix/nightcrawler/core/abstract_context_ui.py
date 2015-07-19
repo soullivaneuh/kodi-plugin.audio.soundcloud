@@ -23,9 +23,6 @@ class AbstractContextUI(object):
     def on_ok(self, title, text):
         raise NotImplementedError()
 
-    def on_remove_content(self, content_name):
-        raise NotImplementedError()
-
     def on_select(self, title, items, default=-1):
         raise NotImplementedError()
 
