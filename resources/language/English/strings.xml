@@ -5,6 +5,7 @@
     <string id="30001">Username</string>
     <string id="30002">Password</string>
 
+    <string id="30009">Always ask for the video quality</string>
     <string id="30010">Video Quality</string>
     <string id="30011">480p</string>
 	<string id="30012">720p (HD)</string>
@@ -31,7 +32,7 @@
     <string id="30034">View: Artists</string>
     <string id="30035">View: Albums</string>
     <string id="30036">Support alternative player</string>
-    <string id="30037">Override view?</string>
+    <string id="30037">Clear cache</string>
 
     <!-- Common -->
     <string id="30100">Favorites</string>
@@ -55,7 +56,6 @@
     <string id="30118">Delete</string>
     <string id="30119">Please wait...</string>
     <string id="30120">Clear</string>
-    <string id="30121">Login failed</string>
 
     <!-- SoundCloud -->
     <string id="30500">Explore</string>

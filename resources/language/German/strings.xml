@@ -5,6 +5,7 @@
     <string id="30001">Benutzername</string>
     <string id="30002">Passwort</string>
 
+    <string id="30009">Immer nach der Videoqualität fragen</string>
     <string id="30010">Video Qualität</string>
     <string id="30011">480p</string>
 	<string id="30012">720p (HD)</string>
@@ -31,7 +32,7 @@
     <string id="30034">Ansicht: Interpreten</string>
     <string id="30035">Ansicht: Alben</string>
     <string id="30036">Alternativen Player unterstützen</string>
-    <string id="30037">Ansicht überschreiben?</string>
+    <string id="30037">Cache leeren</string>
 
     <!-- Common -->
     <string id="30100">Favoriten</string>
@@ -55,7 +56,6 @@
     <string id="30118">Löschen</string>
     <string id="30119">Bitte warten...</string>
     <string id="30120">Leeren</string>
-    <string id="30121">Anmeldung fehlgeschlagen</string>
 
     <!-- SoundCloud -->
     <string id="30500">Erkunden</string>

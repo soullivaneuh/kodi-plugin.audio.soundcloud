@@ -127,6 +127,11 @@ def create_kodi_item(context, item):
                       'uri': u''}
 
     item_type = item['type']
+
+    # uri items will only resolve an existing item, so we can return the item here
+    if item_type == 'uri':
+        return xbmcgui.ListItem(path=item['uri'])
+
     kodi_item = xbmcgui.ListItem(label=item.get('title', item['uri']),
                                  path=item['uri'],
                                  iconImage=icon_image_map.get(item_type, u''),
