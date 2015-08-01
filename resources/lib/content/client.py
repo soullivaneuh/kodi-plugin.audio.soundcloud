@@ -1,8 +1,8 @@
 __author__ = 'bromix'
 
-from resources.lib.org.bromix import nightcrawler
-from resources.lib.org.bromix.nightcrawler.exception import ProviderException
-from . import items
+from resources.lib import nightcrawler
+from resources.lib.nightcrawler.exception import ProviderException
+from resources.lib.content import items
 
 
 class Client(nightcrawler.HttpClient):
@@ -55,7 +55,7 @@ class Client(nightcrawler.HttpClient):
     def _handle_error(self, response):
         status_class = response.status_code/100
         # accept 2XX and 3XX
-        if status_class != 2 and status_class != 3:
+        if status_class != 2 and status_class != 3 and status_class != 5:
             json_data = response.json()
             error_message = 'HTTP error %d' % response.status_code
             if 'error' in json_data:

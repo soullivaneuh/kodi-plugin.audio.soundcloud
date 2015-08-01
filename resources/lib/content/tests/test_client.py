@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-from resources.lib.org.bromix import nightcrawler
+from resources.lib import nightcrawler
 
 __author__ = 'bromix'
 
 import re
 import unittest
 
-from resources.lib.com.soundcloud import Client
+from resources.lib.content import Client
 
 
 class TestClient(unittest.TestCase):

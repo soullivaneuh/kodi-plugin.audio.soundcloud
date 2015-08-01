@@ -2,8 +2,8 @@ __author__ = 'bromix'
 
 import unittest
 
-from resources.lib.org.bromix import nightcrawler
-from resources.lib.com import soundcloud
+from resources.lib import nightcrawler
+from resources.lib.content import Provider
 
 
 class TestProvider(unittest.TestCase):
@@ -13,7 +13,7 @@ class TestProvider(unittest.TestCase):
     def test_root(self):
         # without login
         context = nightcrawler.Context('/')
-        result = soundcloud.Provider().navigate(context)
+        result = Provider().navigate(context)
         self.assertEquals(len(result), 2)  # 50 + next page
 
         # with login
@@ -21,7 +21,7 @@ class TestProvider(unittest.TestCase):
         settings = context.get_settings()
         settings.set_string(settings.LOGIN_USERNAME, self.USERNAME)
         settings.set_string(settings.LOGIN_PASSWORD, self.PASSWORD)
-        result = soundcloud.Provider().navigate(context)
+        result = Provider().navigate(context)
         self.assertEquals(len(result), 4)  # 50 + next page
 
         # with false login
@@ -29,17 +29,17 @@ class TestProvider(unittest.TestCase):
         settings = context.get_settings()
         settings.set_string(settings.LOGIN_USERNAME, self.USERNAME)
         settings.set_string(settings.LOGIN_PASSWORD, 'fail')
-        nightcrawler.run(soundcloud.Provider(), context)
+        nightcrawler.run(Provider(), context)
         pass
 
     def test_on_explore(self):
         context = nightcrawler.Context('/explore/')
-        result = soundcloud.Provider().navigate(context)
+        result = Provider().navigate(context)
         self.assertEquals(len(result), 4)
         pass
 
     def test_explore_trending(self):
-        provider = soundcloud.Provider()
+        provider = Provider()
 
         # music
         context = nightcrawler.Context('/explore/trending/music/')
@@ -55,7 +55,7 @@ class TestProvider(unittest.TestCase):
         pass
 
     def test_explore_genres_drum_bass(self):
-        provider = soundcloud.Provider()
+        provider = Provider()
 
         context = nightcrawler.Context('/explore/genre/music/Drum & Bass/')
         context.set_localization(provider.SOUNDCLOUD_LOCAL_GO_TO_USER, 'Go to %s')
@@ -64,28 +64,28 @@ class TestProvider(unittest.TestCase):
         pass
 
     def test_get_user_playlists(self):
-        provider = soundcloud.Provider()
+        provider = Provider()
         context = nightcrawler.Context('/user/playlists/2442230/')
         result = provider.navigate(context)
         self.assertGreater(len(result), 0)
         pass
 
     def test_get_user_tracks(self):
-        provider = soundcloud.Provider()
+        provider = Provider()
         context = nightcrawler.Context('/user/tracks/2442230/')
         result = provider.navigate(context)
         self.assertGreater(len(result), 0)
         pass
 
     def test_get_following(self):
-        provider = soundcloud.Provider()
+        provider = Provider()
         context = nightcrawler.Context('/user/following/2442230/')
         result = provider.navigate(context)
         self.assertGreater(len(result), 0)
         pass
 
     def test_get_follower(self):
-        provider = soundcloud.Provider()
+        provider = Provider()
 
         context = nightcrawler.Context('/user/follower/2442230/')
         result = provider.navigate(context)
@@ -93,7 +93,7 @@ class TestProvider(unittest.TestCase):
         pass
 
     def test_get_favorites(self):
-        provider = soundcloud.Provider()
+        provider = Provider()
         context = nightcrawler.Context('/user/favorites/2442230/')
         context.set_localization(provider.SOUNDCLOUD_LOCAL_GO_TO_USER, 'Go to %s')
         result = provider.navigate(context)
@@ -101,13 +101,13 @@ class TestProvider(unittest.TestCase):
         pass
 
     def test_play(self):
-        provider = soundcloud.Provider()
+        provider = Provider()
         context = nightcrawler.Context('/play/', {'audio_id': 193347852})
         result = provider.navigate(context)
         pass
 
     def test_get_recommended_for_track(self):
-        provider = soundcloud.Provider()
+        provider = Provider()
 
         context = nightcrawler.Context('/explore/recommended/tracks/193347852/')
         context.set_localization(provider.SOUNDCLOUD_LOCAL_GO_TO_USER, 'Go to %s')
@@ -116,7 +116,7 @@ class TestProvider(unittest.TestCase):
         pass
 
     def test_search(self):
-        provider = soundcloud.Provider()
+        provider = Provider()
 
         context = nightcrawler.Context(provider.PATH_SEARCH_QUERY, {'q': 'angerfist'})
         context.set_localization(provider.SOUNDCLOUD_LOCAL_GO_TO_USER, 'Go to %s')

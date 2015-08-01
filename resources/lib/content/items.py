@@ -2,8 +2,8 @@ __author__ = 'bromix'
 
 import re
 
-from resources.lib.org.bromix import nightcrawler
-from resources.lib.org.bromix.nightcrawler.exception import ProviderException
+from resources.lib import nightcrawler
+from resources.lib.nightcrawler.exception import ProviderException
 
 
 def _get_hires_image(url):
