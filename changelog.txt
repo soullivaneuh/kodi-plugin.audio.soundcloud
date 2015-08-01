@@ -1,5 +1,5 @@
-2.0.0~alpha2 (2015-07-19)
-UPD: framework update
+2.0.0 (2015-08-01)
+UPD: framework
 
 1.2.1 (2015-05-17)
 UPD: resized fanart for better support of visualization
